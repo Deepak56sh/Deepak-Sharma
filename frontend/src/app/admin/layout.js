@@ -15,30 +15,16 @@ export default function AdminLayout({ children }) {
     checkAuth();
     setIsMounted(true);
     
-    // ✅ ONLY HIDE MAIN WEBSITE NAVBAR & FOOTER
-    const hideElements = () => {
-      // Main website navbar (not admin navbar)
-      const mainNav = document.querySelector('nav:not(.admin-nav)');
-      const footer = document.querySelector('footer');
-      
-      if (mainNav) {
-        console.log('Hiding main nav');
-        mainNav.style.display = 'none';
-      }
-      if (footer) {
-        console.log('Hiding footer');
-        footer.style.display = 'none';
-      }
-    };
+    // ✅ FIXED: Variable names match karo
+    const nav = document.querySelector('nav'); // 'navbar' se 'nav' kiya
+    const footer = document.querySelector('footer');
     
-    hideElements();
+    if (nav) nav.style.display = 'none'; // ✅ 'navbar' se 'nav' kiya
+    if (footer) footer.style.display = 'none';
     
     // Cleanup on unmount
     return () => {
-      const mainNav = document.querySelector('nav:not(.admin-nav)');
-      const footer = document.querySelector('footer');
-      
-      if (mainNav) mainNav.style.display = '';
+      if (nav) nav.style.display = ''; // ✅ 'navbar' se 'nav' kiya
       if (footer) footer.style.display = '';
     };
   }, []);
@@ -52,6 +38,7 @@ export default function AdminLayout({ children }) {
         return;
       }
 
+      // Verify token with backend
       const response = await fetch('http://localhost:5000/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -93,11 +80,9 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* ✅ SPECIFIC GLOBAL STYLE - Only hide main website nav */}
+      {/* ✅ EXTRA SAFETY: Global CSS bhi add karo */}
       <style jsx global>{`
-        /* Only hide nav that is NOT inside admin layout */
-        body:has(.min-h-screen.bg-slate-950) > nav,
-        body:has(.min-h-screen.bg-slate-950) > footer {
+        nav, footer {
           display: none !important;
         }
       `}</style>

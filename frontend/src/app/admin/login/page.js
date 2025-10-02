@@ -14,21 +14,24 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Check if already logged in
     const token = localStorage.getItem('adminToken');
     if (token) {
-      router.push('/admin');
+      router.replace('/admin');
+      return;
     }
-    
-    // ✅ HIDE NAV AND FOOTER ON LOGIN PAGE TOO
+
+    // Hide nav and footer
     const hideElements = () => {
       const nav = document.querySelector('nav');
       const footer = document.querySelector('footer');
       if (nav) nav.style.display = 'none';
       if (footer) footer.style.display = 'none';
     };
-    
+
     hideElements();
-    
+
+    // Cleanup
     return () => {
       const nav = document.querySelector('nav');
       const footer = document.querySelector('footer');
@@ -63,13 +66,8 @@ export default function AdminLogin() {
 
       if (data.success) {
         localStorage.setItem('adminToken', data.data.token);
-        localStorage.setItem('adminUser', JSON.stringify({
-          name: data.data.name,
-          email: data.data.email,
-          role: data.data.role
-        }));
-
-        router.push('/admin');
+        localStorage.setItem('adminUser', JSON.stringify(data.data.admin));
+        router.replace('/admin');
       } else {
         setError(data.message || 'Login failed');
       }
@@ -83,7 +81,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 py-12">
-      {/* ✅ EXTRA SAFETY - GLOBAL STYLE TO HIDE NAV/FOOTER */}
+      {/* Global style to ensure nav/footer are hidden */}
       <style jsx global>{`
         nav, footer {
           display: none !important;
@@ -163,20 +161,6 @@ export default function AdminLogin() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-purple-500/30 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-0"
-                />
-                <span className="text-gray-400">Remember me</span>
-              </label>
-              <a href="#" className="text-purple-400 hover:text-purple-300 transition-colors">
-                Forgot password?
-              </a>
             </div>
 
             {/* Submit Button */}

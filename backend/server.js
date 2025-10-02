@@ -24,7 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
-app.use('/api/menu', require('./src/routes/menuRoutes')); // ✅ YEH LINE CORRECT KARO
+app.use('/api/menu', require('./src/routes/menuRoutes'));
+app.use('/api/footer', require('./src/routes/footerRoutes'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
