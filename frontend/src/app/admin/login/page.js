@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
 
@@ -13,12 +13,36 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      router.push('/admin');
+    }
+    
+    // ✅ HIDE NAV AND FOOTER ON LOGIN PAGE TOO
+    const hideElements = () => {
+      const nav = document.querySelector('nav');
+      const footer = document.querySelector('footer');
+      if (nav) nav.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+    };
+    
+    hideElements();
+    
+    return () => {
+      const nav = document.querySelector('nav');
+      const footer = document.querySelector('footer');
+      if (nav) nav.style.display = '';
+      if (footer) footer.style.display = '';
+    };
+  }, [router]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError(''); // Clear error when user types
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -38,7 +62,6 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (data.success) {
-        // Save token to localStorage
         localStorage.setItem('adminToken', data.data.token);
         localStorage.setItem('adminUser', JSON.stringify({
           name: data.data.name,
@@ -46,7 +69,6 @@ export default function AdminLogin() {
           role: data.data.role
         }));
 
-        // Redirect to admin dashboard
         router.push('/admin');
       } else {
         setError(data.message || 'Login failed');
@@ -61,6 +83,13 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 py-12">
+      {/* ✅ EXTRA SAFETY - GLOBAL STYLE TO HIDE NAV/FOOTER */}
+      <style jsx global>{`
+        nav, footer {
+          display: none !important;
+        }
+      `}</style>
+      
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>

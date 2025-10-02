@@ -12,7 +12,8 @@ import {
   MessageSquare, 
   Settings,
   ChevronLeft,
-  Sparkles
+  Sparkles,
+  Menu
 } from 'lucide-react';
 
 export default function AdminSidebar({ isOpen, setIsOpen }) {
@@ -25,6 +26,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
     { name: 'About', path: '/admin/about', icon: Users },
     { name: 'Messages', path: '/admin/contact-messages', icon: MessageSquare },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
+      { name: 'Header', path: '/admin/nav-bar', icon: Menu },
   ];
 
   return (

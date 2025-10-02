@@ -24,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
+app.use('/api/menu', require('./src/routes/menuRoutes')); // ✅ YEH LINE CORRECT KARO
 
 // Health check route
 app.get('/api/health', (req, res) => {
