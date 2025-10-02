@@ -1,62 +1,73 @@
-// ============================================
-// FILE: nexgen-backend/server.js (CommonJS Version)
-// ============================================
-
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./src/config/db.js');
-const errorHandler = require('./src/middleware/errorHandler.js');
+const connectDB = require('./src/config/database');
+const errorHandler = require('./src/middleware/errorHandler');
 
-// Import routes
-const authRoutes = require('./src/routes/authRoutes.js');
-// const serviceRoutes = require('./src/routes/serviceRoutes.js');
-// const heroRoutes = require('./src/routes/heroRoutes.js');
-// const aboutRoutes = require('./src/routes/aboutRoutes.js');
-// const contactRoutes = require('./src/routes/contactRoutes.js');
-// const settingsRoutes = require('./src/routes/settingsRoutes.js');
-
-// Load environment variables
+// Load env vars
 dotenv.config();
 
-// Initialize express app
-const app = express();
-
-// Connect to MongoDB
+// Connect to database
 connectDB();
 
-// Middleware
+const app = express();
+
+// CORS middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
+
+// Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/auth', authRoutes);
-// app.use('/api/services', serviceRoutes);
-// app.use('/api/hero', heroRoutes);
-// app.use('/api/about', aboutRoutes);
-// app.use('/api/contact', contactRoutes);
-// app.use('/api/settings', settingsRoutes);
+app.use('/api/auth', require('./src/routes/authRoutes'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({ 
+    success: true,
     status: 'OK', 
-    message: 'NexGen Backend API is running',
-    timestamp: new Date().toISOString()
+    message: '🚀 NexGen Backend API is running perfectly!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
+
+// Test route for auth
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: '✅ Backend is connected successfully!',
+    data: {
+      server: 'Express.js',
+      database: 'MongoDB Atlas',
+      status: 'Active'
+    }
   });
 });
 
 // Error handling middleware
 app.use(errorHandler);
 
-// Start server
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: '🔍 Route not found'
+  });
+});
+
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
+  console.log(`\n✨ ==============================================`);
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 API: http://localhost:${PORT}/api`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📡 API URL: http://localhost:${PORT}/api`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🔗 Frontend: ${process.env.FRONTEND_URL}`);
+  console.log(`💾 Database: MongoDB Atlas Connected`);
+  console.log(`✨ ==============================================\n`);
 });
