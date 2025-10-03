@@ -19,7 +19,8 @@ const adminSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters']
+        minlength: [6, 'Password must be at least 6 characters'],
+        select: false // Don't return password by default
     },
     role: {
         type: String,
@@ -54,7 +55,11 @@ adminSchema.pre('save', async function(next) {
 
 // Compare password method
 adminSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+    try {
+        return await bcrypt.compare(candidatePassword, this.password);
+    } catch (error) {
+        throw new Error('Password comparison failed');
+    }
 };
 
 // Remove password from JSON output
@@ -64,10 +69,10 @@ adminSchema.methods.toJSON = function() {
     return admin;
 };
 
-// Update last login on login
-adminSchema.methods.updateLastLogin = function() {
+// Update last login
+adminSchema.methods.updateLastLogin = async function() {
     this.lastLogin = new Date();
-    return this.save();
+    return await this.save({ validateBeforeSave: false });
 };
 
 module.exports = mongoose.model('Admin', adminSchema);

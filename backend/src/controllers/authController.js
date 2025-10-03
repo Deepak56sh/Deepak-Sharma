@@ -4,7 +4,7 @@ const Admin = require('../models/Admin');
 // Generate JWT Token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE
+        expiresIn: process.env.JWT_EXPIRE || '30d'
     });
 };
 
@@ -14,6 +14,14 @@ const generateToken = (id) => {
 const registerAdmin = async (req, res) => {
     try {
         const { name, email, password } = req.body;
+
+        // Validate input
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide all required fields'
+            });
+        }
 
         // Check if admin already exists
         const existingAdmin = await Admin.findOne({ email });
@@ -81,8 +89,9 @@ const loginAdmin = async (req, res) => {
             });
         }
 
-        // Check for admin
+        // Check for admin (explicitly select password)
         const admin = await Admin.findOne({ email }).select('+password');
+        
         if (!admin) {
             return res.status(401).json({
                 success: false,
@@ -100,6 +109,7 @@ const loginAdmin = async (req, res) => {
 
         // Check password
         const isPasswordMatch = await admin.comparePassword(password);
+        
         if (!isPasswordMatch) {
             return res.status(401).json({
                 success: false,
@@ -144,10 +154,25 @@ const getMe = async (req, res) => {
     try {
         const admin = await Admin.findById(req.admin.id);
         
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+        
         res.json({
             success: true,
             data: {
-                admin
+                admin: {
+                    id: admin._id,
+                    name: admin.name,
+                    email: admin.email,
+                    role: admin.role,
+                    isActive: admin.isActive,
+                    lastLogin: admin.lastLogin,
+                    createdAt: admin.createdAt
+                }
             }
         });
     } catch (error) {
@@ -159,8 +184,27 @@ const getMe = async (req, res) => {
     }
 };
 
+// @desc    Logout admin (client-side mainly)
+// @route   POST /api/auth/logout
+// @access  Private
+const logoutAdmin = async (req, res) => {
+    try {
+        res.json({
+            success: true,
+            message: 'Logged out successfully'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during logout'
+        });
+    }
+};
+
 module.exports = {
     registerAdmin,
     loginAdmin,
-    getMe
+    getMe,
+    logoutAdmin
 };

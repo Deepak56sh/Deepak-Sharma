@@ -1,56 +1,85 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [adminData, setAdminData] = useState(null);
 
   useEffect(() => {
-    checkAuth();
     setIsMounted(true);
     
-    // ✅ FIXED: Variable names match karo
-    const nav = document.querySelector('nav'); // 'navbar' se 'nav' kiya
+    // Skip auth check for login page
+    if (pathname === '/admin/login') {
+      setLoading(false);
+      return;
+    }
+
+    checkAuth();
+
+    // Hide nav and footer
+    const nav = document.querySelector('nav');
     const footer = document.querySelector('footer');
     
-    if (nav) nav.style.display = 'none'; // ✅ 'navbar' se 'nav' kiya
+    if (nav) nav.style.display = 'none';
     if (footer) footer.style.display = 'none';
     
     // Cleanup on unmount
     return () => {
-      if (nav) nav.style.display = ''; // ✅ 'navbar' se 'nav' kiya
+      const nav = document.querySelector('nav');
+      const footer = document.querySelector('footer');
+      if (nav) nav.style.display = '';
       if (footer) footer.style.display = '';
     };
-  }, []);
+  }, [pathname]);
 
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('adminToken');
+      const storedUser = localStorage.getItem('adminUser');
       
       if (!token) {
         router.push('/admin/login');
         return;
       }
 
+      // Set stored user data first for faster UI
+      if (storedUser) {
+        try {
+          setAdminData(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
+        }
+      }
+
       // Verify token with backend
       const response = await fetch('http://localhost:5000/api/auth/me', {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
       if (response.ok) {
-        setIsAuthenticated(true);
+        const data = await response.json();
+        if (data.success && data.data.admin) {
+          setAdminData(data.data.admin);
+          setIsAuthenticated(true);
+          // Update stored user data
+          localStorage.setItem('adminUser', JSON.stringify(data.data.admin));
+        } else {
+          throw new Error('Invalid response from server');
+        }
       } else {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
-        router.push('/admin/login');
+        throw new Error('Authentication failed');
       }
     } catch (error) {
       console.error('Auth check error:', error);
@@ -62,37 +91,79 @@ export default function AdminLayout({ children }) {
     }
   };
 
-  if (!isMounted || loading) {
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+    router.push('/admin/login');
+  };
+
+  // Don't render anything until mounted (prevents hydration mismatch)
+  if (!isMounted) {
+    return null;
+  }
+
+  // Show loading state
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-white">Loading Admin...</div>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-white text-lg">Loading Admin Panel...</div>
+        </div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
+  // Show redirecting state for unauthenticated users
+  if (!isAuthenticated && pathname !== '/admin/login') {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-white">Redirecting to login...</div>
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-white text-lg">Redirecting to login...</div>
+        </div>
       </div>
     );
   }
 
+  // Render login page without layout
+  if (pathname === '/admin/login') {
+    return (
+      <>
+        <style jsx global>{`
+          nav, footer {
+            display: none !important;
+          }
+        `}</style>
+        {children}
+      </>
+    );
+  }
+
+  // Render admin layout with sidebar and header
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* ✅ EXTRA SAFETY: Global CSS bhi add karo */}
+      {/* Global CSS to hide nav/footer */}
       <style jsx global>{`
         nav, footer {
           display: none !important;
         }
       `}</style>
       
-      <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <AdminSidebar 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen}
+        onLogout={handleLogout}
+      />
       
       <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
-        <AdminHeader toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <AdminHeader 
+          toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          adminData={adminData}
+          onLogout={handleLogout}
+        />
         
-        <main className="p-6">
+        <main className="p-6 min-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </div>

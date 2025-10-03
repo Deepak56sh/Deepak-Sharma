@@ -3,7 +3,8 @@ const router = express.Router();
 const {
     registerAdmin,
     loginAdmin,
-    getMe
+    getMe,
+    logoutAdmin
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -13,5 +14,6 @@ router.post('/login', loginAdmin);
 
 // Protected routes
 router.get('/me', protect, getMe);
+router.post('/logout', protect, logoutAdmin);
 
 module.exports = router;
