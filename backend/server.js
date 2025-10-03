@@ -58,6 +58,7 @@ app.get('/api/test', (req, res) => {
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/menu', require('./src/routes/menuRoutes'));
 app.use('/api/footer', require('./src/routes/footerRoutes'));
+app.use('/api/services', require('./src/routes/serviceRoutes'));
 
 // 404 handler - BEFORE error handler
 app.use('*', (req, res) => {
