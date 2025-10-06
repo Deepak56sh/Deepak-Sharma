@@ -1,13 +1,10 @@
-// ============================================
-// FILE: src/app/page.js (HOME PAGE) - CORRECTED
-// ============================================
+// src/app/page.js - FIXED LINK HANDLING
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Star, Zap, Shield, Globe } from 'lucide-react'; // ✅ ADDED MISSING IMPORTS
+import { ArrowRight, Star, Zap, Shield, Globe, ExternalLink } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
-// ✅ DEFINE API_URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function HomePage() {
@@ -17,7 +14,6 @@ export default function HomePage() {
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
-        // ✅ NOW API_URL IS DEFINED
         const res = await fetch(`${API_URL}/api/hero`, {
           cache: 'no-store',
           headers: {
@@ -40,7 +36,11 @@ export default function HomePage() {
           subTitle: 'Starts Here',
           description: 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience',
           primaryButton: 'Explore Services',
-          secondaryButton: 'Get in Touch'
+          primaryButtonType: 'page',
+          primaryButtonLink: '/services',
+          secondaryButton: 'Get in Touch',
+          secondaryButtonType: 'page',
+          secondaryButtonLink: '/contact'
         });
       } finally {
         setLoading(false);
@@ -49,6 +49,39 @@ export default function HomePage() {
 
     fetchHeroData();
   }, []);
+
+  // Function to render button based on type
+  const renderButton = (buttonData, isPrimary = true) => {
+    const buttonClass = isPrimary 
+      ? "group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+      : "px-8 py-4 bg-slate-800/50 backdrop-blur-sm border-2 border-purple-500/30 rounded-full text-white font-semibold text-lg hover:bg-slate-800 hover:border-purple-500 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2";
+
+    // ✅ ADD PROPER FALLBACKS FOR ALL PROPERTIES
+    const text = buttonData.text || 'Button';
+    const type = buttonData.type || 'page';
+    const link = buttonData.link || (isPrimary ? '/services' : '/contact');
+
+    if (type === 'external') {
+      return (
+        <a 
+          href={link} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={buttonClass}
+        >
+          {text}
+          {isPrimary ? <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" /> : <ExternalLink className="w-5 h-5" />}
+        </a>
+      );
+    } else {
+      return (
+        <Link href={link} className={buttonClass}>
+          {text}
+          {isPrimary && <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />}
+        </Link>
+      );
+    }
+  };
 
   if (loading) {
     return (
@@ -70,7 +103,7 @@ export default function HomePage() {
     <div>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Gradient background (no images) */}
+        {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"></div>
         
         {/* Animated background elements */}
@@ -84,7 +117,7 @@ export default function HomePage() {
             <div className="inline-block mb-6 px-6 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full backdrop-blur-sm">
               <span className="text-purple-300 text-sm font-medium flex items-center gap-2">
                 <Star className="w-4 h-4 animate-spin" style={{animationDuration: '3s'}} />
-                {heroData.badge}
+                {heroData.badge || 'Welcome to the Future'}
               </span>
             </div>
           </AnimatedSection>
@@ -92,28 +125,34 @@ export default function HomePage() {
           <AnimatedSection>
             <h1 className="text-6xl md:text-8xl font-black mb-6 leading-tight">
               <span className="text-gradient animate-gradient bg-[length:200%_200%]">
-                {heroData.mainTitle}
+                {heroData.mainTitle || 'Digital Innovation'}
               </span>
               <br />
-              <span className="text-white">{heroData.subTitle}</span>
+              <span className="text-white">{heroData.subTitle || 'Starts Here'}</span>
             </h1>
           </AnimatedSection>
           
           <AnimatedSection>
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-              {heroData.description}
+              {heroData.description || 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience'}
             </p>
           </AnimatedSection>
           
           <AnimatedSection>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/services" className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2">
-                {heroData.primaryButton}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-              </Link>
-              <Link href="/contact" className="px-8 py-4 bg-slate-800/50 backdrop-blur-sm border-2 border-purple-500/30 rounded-full text-white font-semibold text-lg hover:bg-slate-800 hover:border-purple-500 transition-all duration-300 transform hover:scale-105">
-                {heroData.secondaryButton}
-              </Link>
+              {/* Primary Button */}
+              {renderButton({
+                text: heroData.primaryButton,
+                type: heroData.primaryButtonType,
+                link: heroData.primaryButtonLink
+              }, true)}
+              
+              {/* Secondary Button */}
+              {renderButton({
+                text: heroData.secondaryButton,
+                type: heroData.secondaryButtonType,
+                link: heroData.secondaryButtonLink
+              }, false)}
             </div>
           </AnimatedSection>
         </div>
@@ -131,19 +170,19 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { 
-                icon: Zap, // ✅ NOW DEFINED
+                icon: Zap,
                 title: 'Lightning Fast', 
                 desc: 'Optimized performance for seamless user experiences that load instantly',
                 color: 'from-blue-500 to-cyan-500'
               },
               { 
-                icon: Shield, // ✅ NOW DEFINED
+                icon: Shield,
                 title: 'Secure & Reliable', 
                 desc: 'Enterprise-grade security protocols you can trust with your data',
                 color: 'from-purple-500 to-pink-500'
               },
               { 
-                icon: Globe, // ✅ NOW DEFINED
+                icon: Globe,
                 title: 'Global Reach', 
                 desc: 'Connect with audiences worldwide through scalable solutions',
                 color: 'from-emerald-500 to-teal-500'

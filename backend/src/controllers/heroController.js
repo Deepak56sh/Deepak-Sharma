@@ -1,4 +1,4 @@
-// controllers/heroController.js
+// backend/src/controllers/heroController.js
 const Hero = require('../models/Hero');
 
 // @desc    Get hero section data
@@ -16,7 +16,11 @@ exports.getHero = async (req, res) => {
         subTitle: 'Starts Here',
         description: 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience',
         primaryButton: 'Explore Services',
-        secondaryButton: 'Get in Touch'
+        primaryButtonType: 'page',
+        primaryButtonLink: '/services',
+        secondaryButton: 'Get in Touch',
+        secondaryButtonType: 'page',
+        secondaryButtonLink: '/contact'
       });
     }
 
@@ -44,7 +48,11 @@ exports.updateHero = async (req, res) => {
       subTitle,
       description,
       primaryButton,
-      secondaryButton
+      primaryButtonType,
+      primaryButtonLink,
+      secondaryButton,
+      secondaryButtonType,
+      secondaryButtonLink
     } = req.body;
 
     let hero = await Hero.findOne({ isActive: true });
@@ -59,7 +67,11 @@ exports.updateHero = async (req, res) => {
       hero.subTitle = subTitle || hero.subTitle;
       hero.description = description || hero.description;
       hero.primaryButton = primaryButton || hero.primaryButton;
+      hero.primaryButtonType = primaryButtonType || hero.primaryButtonType;
+      hero.primaryButtonLink = primaryButtonLink || hero.primaryButtonLink;
       hero.secondaryButton = secondaryButton || hero.secondaryButton;
+      hero.secondaryButtonType = secondaryButtonType || hero.secondaryButtonType;
+      hero.secondaryButtonLink = secondaryButtonLink || hero.secondaryButtonLink;
 
       await hero.save();
     }

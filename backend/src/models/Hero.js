@@ -1,4 +1,4 @@
-// models/Hero.js
+// backend/src/models/Hero.js
 const mongoose = require('mongoose');
 
 const heroSchema = new mongoose.Schema({
@@ -22,15 +22,35 @@ const heroSchema = new mongoose.Schema({
     required: true,
     default: 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience'
   },
+  // Primary Button
   primaryButton: {
     type: String,
     required: true,
     default: 'Explore Services'
   },
+  primaryButtonType: {
+    type: String,
+    enum: ['page', 'external'],
+    default: 'page'
+  },
+  primaryButtonLink: {
+    type: String,
+    default: '/services'
+  },
+  // Secondary Button
   secondaryButton: {
     type: String,
     required: true,
     default: 'Get in Touch'
+  },
+  secondaryButtonType: {
+    type: String,
+    enum: ['page', 'external'],
+    default: 'page'
+  },
+  secondaryButtonLink: {
+    type: String,
+    default: '/contact'
   },
   isActive: {
     type: Boolean,

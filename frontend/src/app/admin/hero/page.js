@@ -1,20 +1,12 @@
-// src/app/admin/hero/page.js - SIMPLIFIED (NO IMAGES)
+// src/app/admin/hero/page.js - FIXED SYNTAX
 'use client';
 import { useState, useEffect } from 'react';
-import { Save, Eye, Loader2, AlertCircle } from 'lucide-react';
+import { Save, Eye, Loader2, AlertCircle, Link as LinkIcon, ExternalLink } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function HeroManagement() {
-  const [heroData, setHeroData] = useState({
-    badge: 'Welcome to the Future',
-    mainTitle: 'Digital Innovation',
-    subTitle: 'Starts Here',
-    description: 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience',
-    primaryButton: 'Explore Services',
-    secondaryButton: 'Get in Touch'
-  });
-
+  const [heroData, setHeroData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -44,6 +36,19 @@ export default function HeroManagement() {
     } catch (err) {
       console.error('Error fetching hero data:', err);
       setError('Failed to load hero data. Using default values.');
+      // Set default data if API fails
+      setHeroData({
+        badge: 'Welcome to the Future',
+        mainTitle: 'Digital Innovation',
+        subTitle: 'Starts Here',
+        description: 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience',
+        primaryButton: 'Explore Services',
+        primaryButtonType: 'page',
+        primaryButtonLink: '/services',
+        secondaryButton: 'Get in Touch',
+        secondaryButtonType: 'page',
+        secondaryButtonLink: '/contact'
+      });
     } finally {
       setLoading(false);
     }
@@ -83,7 +88,7 @@ export default function HeroManagement() {
     }
   };
 
-  if (loading) {
+  if (loading || !heroData) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
@@ -99,7 +104,7 @@ export default function HeroManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Hero Section Management</h1>
-          <p className="text-gray-400">Manage your homepage hero content</p>
+          <p className="text-gray-400">Manage your homepage hero content and button links</p>
         </div>
         <div className="flex gap-3">
           <button className="px-4 py-2 bg-slate-800 border border-purple-500/20 rounded-lg text-white hover:bg-slate-700 transition-all flex items-center gap-2">
@@ -151,7 +156,7 @@ export default function HeroManagement() {
           <input
             type="text"
             name="badge"
-            value={heroData.badge}
+            value={heroData.badge || ''}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
             placeholder="Welcome to the Future"
@@ -164,7 +169,7 @@ export default function HeroManagement() {
             <input
               type="text"
               name="mainTitle"
-              value={heroData.mainTitle}
+              value={heroData.mainTitle || ''}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
               placeholder="Digital Innovation"
@@ -176,7 +181,7 @@ export default function HeroManagement() {
             <input
               type="text"
               name="subTitle"
-              value={heroData.subTitle}
+              value={heroData.subTitle || ''}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
               placeholder="Starts Here"
@@ -188,7 +193,7 @@ export default function HeroManagement() {
           <label className="block text-gray-300 mb-2 font-medium">Description</label>
           <textarea
             name="description"
-            value={heroData.description}
+            value={heroData.description || ''}
             onChange={handleChange}
             rows="4"
             className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 resize-none"
@@ -196,29 +201,95 @@ export default function HeroManagement() {
           />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-gray-300 mb-2 font-medium">Primary Button Text</label>
-            <input
-              type="text"
-              name="primaryButton"
-              value={heroData.primaryButton}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
-              placeholder="Explore Services"
-            />
+        {/* Primary Button Settings */}
+        <div className="border-t border-purple-500/20 pt-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <LinkIcon className="w-5 h-5 text-purple-400" />
+            Primary Button Settings
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">Button Text</label>
+              <input
+                type="text"
+                name="primaryButton"
+                value={heroData.primaryButton || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                placeholder="Explore Services"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">Link Type</label>
+              <select
+                name="primaryButtonType"
+                value={heroData.primaryButtonType || 'page'}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="page">Internal Page</option>
+                <option value="external">External URL</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">
+                {heroData.primaryButtonType === 'external' ? 'External URL' : 'Page Link'}
+              </label>
+              <input
+                type="text"
+                name="primaryButtonLink"
+                value={heroData.primaryButtonLink || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                placeholder={heroData.primaryButtonType === 'external' ? 'https://example.com' : '/services'}
+              />
+            </div>
           </div>
+        </div>
 
-          <div>
-            <label className="block text-gray-300 mb-2 font-medium">Secondary Button Text</label>
-            <input
-              type="text"
-              name="secondaryButton"
-              value={heroData.secondaryButton}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
-              placeholder="Get in Touch"
-            />
+        {/* Secondary Button Settings */}
+        <div className="border-t border-purple-500/20 pt-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <ExternalLink className="w-5 h-5 text-purple-400" />
+            Secondary Button Settings
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">Button Text</label>
+              <input
+                type="text"
+                name="secondaryButton"
+                value={heroData.secondaryButton || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                placeholder="Get in Touch"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">Link Type</label>
+              <select
+                name="secondaryButtonType"
+                value={heroData.secondaryButtonType || 'page'}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="page">Internal Page</option>
+                <option value="external">External URL</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">
+                {heroData.secondaryButtonType === 'external' ? 'External URL' : 'Page Link'}
+              </label>
+              <input
+                type="text"
+                name="secondaryButtonLink"
+                value={heroData.secondaryButtonLink || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                placeholder={heroData.secondaryButtonType === 'external' ? 'https://example.com' : '/contact'}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -238,12 +309,18 @@ export default function HeroManagement() {
               {heroData.description}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button className="px-6 py-2 bg-purple-500 text-white rounded-lg">
+              <button className="px-6 py-2 bg-purple-500 text-white rounded-lg flex items-center gap-2">
                 {heroData.primaryButton}
+                {heroData.primaryButtonType === 'external' && <ExternalLink className="w-4 h-4" />}
               </button>
-              <button className="px-6 py-2 bg-slate-700 text-white border border-purple-500/30 rounded-lg">
+              <button className="px-6 py-2 bg-slate-700 text-white border border-purple-500/30 rounded-lg flex items-center gap-2">
                 {heroData.secondaryButton}
+                {heroData.secondaryButtonType === 'external' && <ExternalLink className="w-4 h-4" />}
               </button>
+            </div>
+            <div className="mt-4 text-sm text-gray-400">
+              <p>Primary: {heroData.primaryButtonLink}</p>
+              <p>Secondary: {heroData.secondaryButtonLink}</p>
             </div>
           </div>
         </div>
