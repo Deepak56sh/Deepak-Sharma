@@ -1,9 +1,9 @@
-// ============================================
-// FILE: src/app/admin/hero/page.js
-// ============================================
+// src/app/admin/hero/page.js - SIMPLIFIED (NO IMAGES)
 'use client';
-import { useState } from 'react';
-import { Save, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, Eye, Loader2, AlertCircle } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function HeroManagement() {
   const [heroData, setHeroData] = useState({
@@ -15,19 +15,90 @@ export default function HeroManagement() {
     secondaryButton: 'Get in Touch'
   });
 
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Fetch hero data on component mount
+  useEffect(() => {
+    fetchHeroData();
+  }, []);
+
+  const fetchHeroData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`${API_URL}/api/hero`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch hero data');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setHeroData(result.data);
+      }
+    } catch (err) {
+      console.error('Error fetching hero data:', err);
+      setError('Failed to load hero data. Using default values.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     setHeroData({ ...heroData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    alert('Hero section updated! (In production, this will update the database)');
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccessMessage('');
+
+      const response = await fetch(`${API_URL}/api/hero`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(heroData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccessMessage('Hero section updated successfully! ✅');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        throw new Error(result.message || 'Failed to update');
+      }
+    } catch (err) {
+      console.error('Error saving hero data:', err);
+      setError('Failed to save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
+          <p className="text-gray-400">Loading hero data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Hero Section</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Hero Section Management</h1>
           <p className="text-gray-400">Manage your homepage hero content</p>
         </div>
         <div className="flex gap-3">
@@ -37,14 +108,43 @@ export default function HeroManagement() {
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+            disabled={saving}
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
           >
-            <Save className="w-4 h-4" />
-            Save Changes
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save Changes
+              </>
+            )}
           </button>
         </div>
       </div>
 
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4 flex items-center gap-3">
+          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-lg">✓</span>
+          </div>
+          <p className="text-green-300 font-medium">{successMessage}</p>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+          <p className="text-red-300">{error}</p>
+        </div>
+      )}
+
+      {/* Content Management Section */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6 space-y-6">
         <div>
           <label className="block text-gray-300 mb-2 font-medium">Badge Text</label>
@@ -54,6 +154,7 @@ export default function HeroManagement() {
             value={heroData.badge}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+            placeholder="Welcome to the Future"
           />
         </div>
 
@@ -66,6 +167,7 @@ export default function HeroManagement() {
               value={heroData.mainTitle}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="Digital Innovation"
             />
           </div>
 
@@ -77,6 +179,7 @@ export default function HeroManagement() {
               value={heroData.subTitle}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="Starts Here"
             />
           </div>
         </div>
@@ -89,6 +192,7 @@ export default function HeroManagement() {
             onChange={handleChange}
             rows="4"
             className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 resize-none"
+            placeholder="Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience"
           />
         </div>
 
@@ -101,6 +205,7 @@ export default function HeroManagement() {
               value={heroData.primaryButton}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="Explore Services"
             />
           </div>
 
@@ -112,7 +217,34 @@ export default function HeroManagement() {
               value={heroData.secondaryButton}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="Get in Touch"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Preview Section */}
+      <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Live Preview</h2>
+        <div className="bg-slate-900/50 rounded-lg p-6 border border-purple-500/10">
+          <div className="text-center">
+            <div className="inline-block mb-4 px-4 py-1 bg-purple-500/20 border border-purple-500/30 rounded-full">
+              <span className="text-purple-300 text-sm">{heroData.badge}</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              {heroData.mainTitle} <span className="text-purple-400">{heroData.subTitle}</span>
+            </h1>
+            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+              {heroData.description}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button className="px-6 py-2 bg-purple-500 text-white rounded-lg">
+                {heroData.primaryButton}
+              </button>
+              <button className="px-6 py-2 bg-slate-700 text-white border border-purple-500/30 rounded-lg">
+                {heroData.secondaryButton}
+              </button>
+            </div>
           </div>
         </div>
       </div>

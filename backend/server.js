@@ -64,6 +64,7 @@ app.use('/api/menu', require('./src/routes/menuRoutes'));
 app.use('/api/footer', require('./src/routes/footerRoutes'));
 app.use('/api/services', require('./src/routes/serviceRoutes'));
 app.use('/api/about', require('./src/routes/aboutRoutes'));
+app.use('/api/hero', require('./src/routes/heroRoutes'));
 
 // 404 handler - BEFORE error handler
 app.use('*', (req, res) => {
