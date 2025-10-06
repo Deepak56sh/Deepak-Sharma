@@ -1,9 +1,8 @@
-// ============================================
-// FILE: src/app/admin/settings/page.js
-// ============================================
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Mail, Phone, MapPin, Github, Twitter, Linkedin } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -21,6 +20,29 @@ export default function Settings() {
       sunday: 'Closed'
     }
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch settings on component mount
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${API_URL}/settings`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setSettings(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      alert('Failed to load settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setSettings({ ...settings, [e.target.name]: e.target.value });
@@ -33,9 +55,41 @@ export default function Settings() {
     });
   };
 
-  const handleSave = () => {
-    alert('Settings updated successfully! (In production, this will update the database)');
+  const handleSave = async () => {
+    setIsSaving(true);
+    
+    try {
+      const res = await fetch(`${API_URL}/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings)
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert('Settings updated successfully!');
+        setSettings(data.data);
+      } else {
+        alert(data.message || 'Failed to update settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-xl">Loading settings...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -46,10 +100,11 @@ export default function Settings() {
         </div>
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+          disabled={isSaving}
+          className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
-          Save Settings
+          {isSaving ? 'Saving...' : 'Save Settings'}
         </button>
       </div>
 

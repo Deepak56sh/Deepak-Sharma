@@ -1,60 +1,77 @@
-// ============================================
-// FILE: src/app/admin/contact-messages/page.js
-// ============================================
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Trash2, Eye, Search, Filter } from 'lucide-react';
 
-export default function ContactMessages() {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      subject: 'Web Development Inquiry',
-      message: 'I am interested in building a modern e-commerce website for my business. Can we schedule a call to discuss the requirements?',
-      date: '2024-01-15',
-      time: '10:30 AM',
-      status: 'unread'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      subject: 'Mobile App Development',
-      message: 'Looking for someone to develop a cross-platform mobile app for fitness tracking. What is your typical timeline and pricing?',
-      date: '2024-01-14',
-      time: '2:45 PM',
-      status: 'read'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      subject: 'UI/UX Design Services',
-      message: 'We need a complete redesign of our existing web application. Do you have availability in the next month?',
-      date: '2024-01-13',
-      time: '4:20 PM',
-      status: 'read'
-    }
-  ]);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+export default function ContactMessages() {
+  const [messages, setMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this message?')) {
-      setMessages(messages.filter(m => m.id !== id));
-      if (selectedMessage?.id === id) setSelectedMessage(null);
+  // Fetch messages on component mount
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(`${API_URL}/contact-messages`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setMessages(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      alert('Failed to fetch messages');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const markAsRead = (message) => {
-    setMessages(messages.map(m => 
-      m.id === message.id ? { ...m, status: 'read' } : m
-    ));
-    setSelectedMessage({ ...message, status: 'read' });
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+
+    try {
+      const res = await fetch(`${API_URL}/contact-messages/${id}`, {
+        method: 'DELETE'
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setMessages(messages.filter(m => m._id !== id));
+        if (selectedMessage?._id === id) setSelectedMessage(null);
+        alert('Message deleted successfully');
+      } else {
+        alert(data.message || 'Failed to delete message');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Failed to delete message');
+    }
+  };
+
+  const markAsRead = async (message) => {
+    try {
+      const res = await fetch(`${API_URL}/contact-messages/${message._id}`, {
+        method: 'PATCH'
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setMessages(messages.map(m => 
+          m._id === message._id ? data.data : m
+        ));
+        setSelectedMessage(data.data);
+      }
+    } catch (error) {
+      console.error('Error marking as read:', error);
+    }
   };
 
   const filteredMessages = messages.filter(msg => {
@@ -64,6 +81,14 @@ export default function ContactMessages() {
     const matchesFilter = filterStatus === 'all' || msg.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-xl">Loading messages...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -114,10 +139,10 @@ export default function ContactMessages() {
         <div className="lg:col-span-2 space-y-3">
           {filteredMessages.map((message) => (
             <div
-              key={message.id}
+              key={message._id}
               onClick={() => markAsRead(message)}
               className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                selectedMessage?.id === message.id
+                selectedMessage?._id === message._id
                   ? 'bg-purple-500/20 border-purple-500/50'
                   : message.status === 'unread'
                   ? 'bg-slate-800/80 border-purple-500/30'
@@ -167,7 +192,7 @@ export default function ContactMessages() {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDelete(selectedMessage.id)}
+                  onClick={() => handleDelete(selectedMessage._id)}
                   className="w-10 h-10 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-all flex items-center justify-center"
                 >
                   <Trash2 className="w-5 h-5" />

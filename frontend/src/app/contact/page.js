@@ -1,10 +1,9 @@
-// ============================================
-// FILE: src/app/contact/page.js (CONTACT PAGE)
-// ============================================
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -14,18 +13,63 @@ export default function ContactPage() {
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [error, setError] = useState('');
+
+  // Fetch settings on component mount
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${API_URL}/settings`);
+      const data = await res.json();
+      if (data.success) {
+        setSettings(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setIsSubmitted(true);
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setFormData({ name: '', email: '', subject: '', message: '' });
+        }, 3000);
+      } else {
+        setError(data.message || 'Failed to send message');
+      }
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,25 +101,25 @@ export default function ContactPage() {
                 />
               </div>
 
-              {/* Contact Cards */}
+              {/* Contact Cards - Dynamic from settings */}
               <div className="space-y-6">
                 {[
                   { 
                     icon: Mail, 
                     title: 'Email', 
-                    value: 'hello@nexgen.com',
-                    link: 'mailto:hello@nexgen.com'
+                    value: settings?.contactEmail || 'hello@nexgen.com',
+                    link: `mailto:${settings?.contactEmail || 'hello@nexgen.com'}`
                   },
                   { 
                     icon: Phone, 
                     title: 'Phone', 
-                    value: '+1 (555) 123-4567',
-                    link: 'tel:+15551234567'
+                    value: settings?.contactPhone || '+1 (555) 123-4567',
+                    link: `tel:${settings?.contactPhone || '+15551234567'}`
                   },
                   { 
                     icon: MapPin, 
                     title: 'Location', 
-                    value: 'San Francisco, CA',
+                    value: settings?.contactAddress || 'San Francisco, CA',
                     link: '#'
                   }
                 ].map((item, i) => (
@@ -95,21 +139,27 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              {/* Map or Additional Info */}
+              {/* Business Hours - Dynamic from settings */}
               <div className="p-8 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border border-purple-500/10">
                 <h3 className="text-2xl font-bold text-white mb-4">Business Hours</h3>
                 <div className="space-y-3 text-gray-400">
                   <div className="flex justify-between">
                     <span>Monday - Friday:</span>
-                    <span className="text-white font-semibold">9:00 AM - 6:00 PM</span>
+                    <span className="text-white font-semibold">
+                      {settings?.businessHours?.weekdays || '9:00 AM - 6:00 PM'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Saturday:</span>
-                    <span className="text-white font-semibold">10:00 AM - 4:00 PM</span>
+                    <span className="text-white font-semibold">
+                      {settings?.businessHours?.saturday || '10:00 AM - 4:00 PM'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sunday:</span>
-                    <span className="text-white font-semibold">Closed</span>
+                    <span className="text-white font-semibold">
+                      {settings?.businessHours?.sunday || 'Closed'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -130,7 +180,13 @@ export default function ContactPage() {
                   <p className="text-gray-400">We'll get back to you as soon as possible.</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-300 text-sm">
+                      {error}
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-gray-300 mb-2 font-medium">Your Name</label>
                     <input 
@@ -184,13 +240,14 @@ export default function ContactPage() {
                   </div>
 
                   <button 
-                    onClick={handleSubmit}
-                    className="w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Send Message
+                    {isLoading ? 'Sending...' : 'Send Message'}
                     <Send className="w-5 h-5" />
                   </button>
-                </div>
+                </form>
               )}
             </div>
           </AnimatedSection>
