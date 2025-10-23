@@ -32,7 +32,7 @@ const createDefaultAdmin = async () => {
                 name: 'Super Admin',
                 email: 'admin@nexgen.com',
                 password: 'admin123',
-                role: 'super_admin'
+                role: 'super-admin'
             });
             console.log('✅ Default admin created: admin@nexgen.com / admin123');
         } else {
