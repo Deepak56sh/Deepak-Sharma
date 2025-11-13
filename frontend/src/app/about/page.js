@@ -1,7 +1,7 @@
-// src/app/about/page.js - CONVERTED TO CLIENT COMPONENT
+// src/app/about/page.js - UPDATED WITH BETTER ERROR HANDLING
 'use client';
 import { useState, useEffect } from 'react';
-import { Users, Target, Award, TrendingUp } from 'lucide-react';
+import { Users, Target, Award, TrendingUp, AlertCircle } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
 // Icon mapping
@@ -12,9 +12,45 @@ const iconMap = {
   'Satisfaction Rate': TrendingUp
 };
 
+// Default about data
+const defaultAboutData = {
+  title: 'About Us',
+  subtitle: 'Crafting digital experiences that inspire and innovate',
+  mainHeading: 'We Build Digital Dreams',
+  description1: 'We\'re a passionate team of designers, developers, and innovators dedicated to pushing the boundaries of what\'s possible in the digital realm.',
+  description2: 'With years of experience and countless successful projects, we transform complex challenges into elegant solutions that drive real results for our clients.',
+  heroImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80',
+  teamImage: '',
+  additionalImages: [],
+  stats: [
+    { number: '500+', label: 'Projects Completed' },
+    { number: '50+', label: 'Happy Clients' },
+    { number: '15+', label: 'Awards Won' },
+    { number: '99%', label: 'Satisfaction Rate' }
+  ],
+  values: [
+    {
+      title: 'Innovation First',
+      description: 'We constantly push boundaries and explore new technologies to deliver cutting-edge solutions.',
+      emoji: '🚀'
+    },
+    {
+      title: 'Client Success',
+      description: 'Your success is our success. We are committed to exceeding expectations on every project.',
+      emoji: '🎯'
+    },
+    {
+      title: 'Quality Driven',
+      description: 'We never compromise on quality, ensuring every detail is perfect before delivery.',
+      emoji: '⭐'
+    }
+  ]
+};
+
 export default function AboutPage() {
   const [aboutData, setAboutData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // ✅ FUNCTION TO FIX IMAGE PATHS
   const getFullImageUrl = (imagePath) => {
@@ -31,67 +67,44 @@ export default function AboutPage() {
       return `${apiUrl}${imagePath}`;
     }
     
-    // If it's just a filename (without /uploads/)
-    if (imagePath.includes('about-')) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      return `${apiUrl}/uploads/${imagePath}`;
-    }
-    
     return imagePath;
   };
 
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/about`, {
-          cache: 'no-store',
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        console.log('🔍 Fetching from:', `${apiUrl}/api/about`);
+        
+        const res = await fetch(`${apiUrl}/api/about`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          // Remove cache to avoid stale data
+          cache: 'no-cache'
         });
 
+        console.log('🔍 Response status:', res.status);
+        
         if (!res.ok) {
-          throw new Error('Failed to fetch about data');
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
 
         const result = await res.json();
-        setAboutData(result.data);
+        console.log('🔍 API Response:', result);
+        
+        if (result.success && result.data) {
+          setAboutData(result.data);
+        } else {
+          throw new Error('Invalid response format');
+        }
+        
       } catch (error) {
-        console.error('Error fetching about data:', error);
+        console.error('❌ Error fetching about data:', error);
+        setError(error.message);
         // Set default data if API fails
-        setAboutData({
-          title: 'About Us',
-          subtitle: 'Crafting digital experiences that inspire and innovate',
-          mainHeading: 'We Build Digital Dreams',
-          description1: 'We\'re a passionate team of designers, developers, and innovators dedicated to pushing the boundaries of what\'s possible in the digital realm.',
-          description2: 'With years of experience and countless successful projects, we transform complex challenges into elegant solutions that drive real results for our clients.',
-          heroImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80',
-          teamImage: '',
-          additionalImages: [],
-          stats: [
-            { number: '500+', label: 'Projects Completed' },
-            { number: '50+', label: 'Happy Clients' },
-            { number: '15+', label: 'Awards Won' },
-            { number: '99%', label: 'Satisfaction Rate' }
-          ],
-          values: [
-            {
-              title: 'Innovation First',
-              description: 'We constantly push boundaries and explore new technologies to deliver cutting-edge solutions.',
-              emoji: '🚀'
-            },
-            {
-              title: 'Client Success',
-              description: 'Your success is our success. We are committed to exceeding expectations on every project.',
-              emoji: '🎯'
-            },
-            {
-              title: 'Quality Driven',
-              description: 'We never compromise on quality, ensuring every detail is perfect before delivery.',
-              emoji: '⭐'
-            }
-          ]
-        });
+        setAboutData(defaultAboutData);
       } finally {
         setLoading(false);
       }
@@ -99,6 +112,10 @@ export default function AboutPage() {
 
     fetchAboutData();
   }, []);
+
+  // ✅ USE THE FUNCTION TO GET CORRECT IMAGE URLs
+  const heroImageUrl = aboutData ? getFullImageUrl(aboutData.heroImage) : '';
+  const teamImageUrl = aboutData ? getFullImageUrl(aboutData.teamImage) : '';
 
   if (loading) {
     return (
@@ -115,24 +132,42 @@ export default function AboutPage() {
     return (
       <div className="pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-red-400">Failed to load about page data</p>
+          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-6 max-w-md mx-auto">
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <p className="text-red-400 text-lg mb-2">Failed to load about page</p>
+            <p className="text-gray-400 text-sm">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // ✅ USE THE FUNCTION TO GET CORRECT IMAGE URLs
-  const heroImageUrl = getFullImageUrl(aboutData.heroImage);
-  const teamImageUrl = getFullImageUrl(aboutData.teamImage);
-
   return (
     <div className="pt-32 pb-20 px-6">
       <div className="max-w-7xl mx-auto">
+        
+        {/* Error Banner - Show but still display content */}
+        {error && (
+          <div className="mb-8 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
+            <p className="text-yellow-400 text-sm">
+              Using demo data - API Error: {error}
+            </p>
+          </div>
+        )}
+
         {/* Header */}
         <AnimatedSection>
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-7xl font-black mb-6">
-              <span className="text-gradient">{aboutData.title}</span>
+              <span className="text-gradient bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                {aboutData.title}
+              </span>
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
               {aboutData.subtitle}
@@ -145,7 +180,6 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
-              {/* ✅ NOW CAN USE onError SINCE IT'S CLIENT COMPONENT */}
               <img 
                 src={heroImageUrl} 
                 alt="Team collaboration" 
@@ -169,26 +203,6 @@ export default function AboutPage() {
             </div>
           </div>
         </AnimatedSection>
-
-        {/* Team Image Section */}
-        {/* {teamImageUrl && (
-          <AnimatedSection>
-            <div className="mb-20">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <img 
-                  src={teamImageUrl} 
-                  alt="Our team" 
-                  className="relative rounded-3xl shadow-2xl w-full h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  onError={(e) => {
-                    console.error('Team image failed to load:', teamImageUrl);
-                    e.target.style.display = 'none';
-                  }}
-                />
-              </div>
-            </div>
-          </AnimatedSection>
-        )} */}
 
         {/* Additional Images Gallery */}
         {aboutData.additionalImages && aboutData.additionalImages.length > 0 && (
@@ -238,7 +252,7 @@ export default function AboutPage() {
                       <IconComponent className="w-6 h-6 text-white" />
                     </div>
                   </div>
-                  <div className="text-4xl font-bold text-gradient mb-2">{stat.number}</div>
+                  <div className="text-4xl font-bold text-white mb-2">{stat.number}</div>
                   <div className="text-gray-400 text-sm">{stat.label}</div>
                 </div>
               );

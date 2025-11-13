@@ -1,9 +1,9 @@
 // ============================================
-// FILE: src/app/services/page.js (SERVICES PAGE - Connected to Backend)
+// FILE: src/app/services/page.js (UPDATED)
 // ============================================
 'use client';
 import { useState, useEffect } from 'react';
-import { ArrowRight, Code, Smartphone, Palette, Cloud, Brain, TrendingUp, Database, Lock, Globe, Zap, Loader2 } from 'lucide-react';
+import { ArrowRight, Code, Smartphone, Palette, Cloud, Brain, TrendingUp, Database, Lock, Globe, Zap, Loader2, Search, Filter } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
 // Icon mapping
@@ -16,6 +16,7 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Default services data - will show when API has no data or fails
   const defaultServices = [
@@ -113,19 +114,41 @@ export default function ServicesPage() {
 
   useEffect(() => {
     fetchServices();
-  }, [selectedCategory]);
+  }, [selectedCategory, searchQuery]);
 
   const fetchServices = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const query = selectedCategory !== 'all' ? `?category=${selectedCategory}&active=true` : '?active=true';
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/services${query}`);
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+      if (searchQuery) params.append('search', searchQuery);
+      params.append('active', 'true'); // Only show active services
+      params.append('limit', '50');
       
-      if (!res.ok) throw new Error('Failed to fetch services');
+      const queryString = params.toString();
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services${queryString ? `?${queryString}` : ''}`;
+      
+      console.log('Fetching services from:', url); // Debug log
+      
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Remove cache to avoid stale data
+        cache: 'no-cache'
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch services: ${res.status}`);
+      }
       
       const data = await res.json();
+      console.log('Services API response:', data); // Debug log
+      
       const apiServices = data.data || [];
       
       // If API returns services, use them. Otherwise use default services.
@@ -142,10 +165,20 @@ export default function ServicesPage() {
       console.error('Error fetching services, using default data:', err);
       setError('Using demo data - API unavailable');
       
-      // Use default services filtered by category
-      const filteredDefault = selectedCategory !== 'all' 
+      // Use default services filtered by category and search
+      let filteredDefault = selectedCategory !== 'all' 
         ? defaultServices.filter(service => service.category === selectedCategory)
         : defaultServices;
+      
+      // Apply search filter to default data
+      if (searchQuery) {
+        filteredDefault = filteredDefault.filter(service =>
+          service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          service.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      }
+      
       setServices(filteredDefault);
     } finally {
       setLoading(false);
@@ -154,19 +187,28 @@ export default function ServicesPage() {
 
   const categories = ['all', 'Development', 'Design', 'Marketing', 'Cloud', 'AI', 'Other'];
 
-  // Show services even when there's an error (since we have default data)
-  const displayServices = services.length > 0 ? services : defaultServices;
+  // Handle search input with debounce
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
 
   return (
-    <div className="pt-32 pb-20 px-6">
+    <div className="pt-32 pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <AnimatedSection>
           <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-7xl font-black mb-6">
-              <span className="text-gradient">Our Services</span>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6">
+              <span className="text-gradient bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                Our Services
+              </span>
             </h1>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
               Comprehensive solutions tailored to your unique business needs
             </p>
           </div>
@@ -175,30 +217,60 @@ export default function ServicesPage() {
         {/* Error Banner */}
         {error && (
           <AnimatedSection>
-            <div className="mb-8 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
-              <p className="text-yellow-400">
+            <div className="mb-8 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center max-w-2xl mx-auto">
+              <p className="text-yellow-400 text-sm">
                 {error} - Showing demo services
               </p>
             </div>
           </AnimatedSection>
         )}
 
-        {/* Category Filter */}
+        {/* Search and Filter Section */}
         <AnimatedSection>
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                    : 'bg-slate-800/50 text-gray-400 hover:text-white border border-purple-500/20'
-                }`}
-              >
-                {cat === 'all' ? 'All Services' : cat}
-              </button>
-            ))}
+          <div className="mb-12 space-y-4">
+            {/* Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
+              <div className="relative flex-1 w-full sm:max-w-md">
+                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search services..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2 text-gray-400">
+                <Filter className="w-5 h-5" />
+                <span className="text-sm">Filter by:</span>
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 sm:px-6 py-2 rounded-full font-semibold text-sm sm:text-base transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                      : 'bg-slate-800/50 text-gray-400 hover:text-white border border-purple-500/20 hover:border-purple-500/40'
+                  }`}
+                >
+                  {cat === 'all' ? 'All Services' : cat}
+                </button>
+              ))}
+            </div>
           </div>
         </AnimatedSection>
 
@@ -206,18 +278,19 @@ export default function ServicesPage() {
         {loading && (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
+            <span className="ml-3 text-gray-400">Loading services...</span>
           </div>
         )}
 
         {/* Services Grid */}
-        {!loading && displayServices.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayServices.map((service, i) => {
+        {!loading && services.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {services.map((service, i) => {
               const IconComponent = iconMap[service.icon] || Code;
               
               return (
-                <AnimatedSection key={service._id} delay={i * 100}>
-                  <div className="group relative overflow-hidden rounded-2xl bg-slate-800/50 border border-purple-500/10 hover:border-purple-500/30 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20">
+                <AnimatedSection key={service._id || service.id} delay={i * 100}>
+                  <div className="group relative overflow-hidden rounded-2xl bg-slate-800/50 border border-purple-500/10 hover:border-purple-500/30 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20 h-full flex flex-col">
                     {/* Image Section */}
                     <div className="relative h-48 overflow-hidden">
                       <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-60 group-hover:opacity-40 transition-opacity duration-500`}></div>
@@ -243,23 +316,28 @@ export default function ServicesPage() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-6">
-                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">
+                    <div className="p-6 flex-1 flex flex-col">
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors line-clamp-2">
                         {service.title}
                       </h3>
-                      <p className="text-gray-400 leading-relaxed mb-4">
+                      <p className="text-gray-400 leading-relaxed mb-4 flex-1 line-clamp-3">
                         {service.description}
                       </p>
 
                       {/* Features List */}
                       {service.features && service.features.length > 0 && (
                         <ul className="space-y-2 mb-4">
-                          {service.features.map((feature, idx) => (
+                          {service.features.slice(0, 3).map((feature, idx) => (
                             <li key={idx} className="flex items-center text-sm text-gray-400">
-                              <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-2"></div>
-                              {feature}
+                              <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-2 flex-shrink-0"></div>
+                              <span className="line-clamp-1">{feature}</span>
                             </li>
                           ))}
+                          {service.features.length > 3 && (
+                            <li className="text-xs text-gray-500 pl-3.5">
+                              +{service.features.length - 3} more features
+                            </li>
+                          )}
                         </ul>
                       )}
 
@@ -273,7 +351,7 @@ export default function ServicesPage() {
                         )}
                       </div>
 
-                      <button className="text-purple-400 font-semibold flex items-center gap-2 group-hover:gap-4 transition-all">
+                      <button className="mt-auto text-purple-400 font-semibold flex items-center gap-2 group-hover:gap-4 transition-all hover:text-purple-300">
                         Learn More <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -284,25 +362,42 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Empty State - Only show if both API and default data are empty */}
-        {!loading && displayServices.length === 0 && (
+        {/* Empty State */}
+        {!loading && services.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-xl mb-4">No services found in this category</p>
-            <p className="text-gray-500 text-sm">
-              Try selecting a different category or check back later
+            <div className="w-24 h-24 mx-auto mb-4 bg-slate-800/50 rounded-full flex items-center justify-center">
+              <Search className="w-10 h-10 text-gray-500" />
+            </div>
+            <p className="text-gray-400 text-xl mb-2">No services found</p>
+            <p className="text-gray-500 text-sm mb-6">
+              {searchQuery || selectedCategory !== 'all' 
+                ? 'Try adjusting your search or filters' 
+                : 'No services available at the moment'
+              }
             </p>
+            {(searchQuery || selectedCategory !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                }}
+                className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         )}
 
         {/* Process Section */}
         <AnimatedSection>
           <div className="mt-20 text-center">
-            <h2 className="text-4xl font-bold text-white mb-4">Our Process</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Our Process</h2>
             <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
               A streamlined approach to deliver exceptional results
             </p>
 
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[
                 { step: '01', title: 'Discovery', desc: 'Understanding your vision and goals' },
                 { step: '02', title: 'Planning', desc: 'Strategic roadmap and architecture' },
@@ -311,14 +406,17 @@ export default function ServicesPage() {
               ].map((process, i) => (
                 <div 
                   key={i}
-                  className="relative p-6 bg-slate-800/50 rounded-2xl border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300"
+                  className="relative p-6 bg-slate-800/50 rounded-2xl border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300 group"
                 >
-                  <div className="text-6xl font-black text-purple-500/20 mb-4">{process.step}</div>
-                  <h3 className="text-xl font-bold text-white mb-2">{process.title}</h3>
-                  <p className="text-gray-400 text-sm">{process.desc}</p>
+                  <div className="text-4xl sm:text-5xl font-black text-purple-500/20 mb-4 group-hover:text-purple-500/30 transition-colors">
+                    {process.step}
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{process.title}</h3>
+                  <p className="text-gray-400 text-sm sm:text-base">{process.desc}</p>
                   
+                  {/* Connector lines for desktop */}
                   {i < 3 && (
-                    <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-purple-500 to-transparent"></div>
+                    <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-purple-500 to-transparent"></div>
                   )}
                 </div>
               ))}

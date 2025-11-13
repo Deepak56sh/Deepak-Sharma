@@ -1,6 +1,4 @@
-// ============================================
-// FILE: routes/serviceRoutes.js
-// ============================================
+// routes/serviceRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -21,14 +19,16 @@ router.get('/', getAllServices);
 router.get('/:id', getService);
 
 // Admin routes - all protected
-router.use(protect); // Apply authentication to all routes below
-router.use(authorize('admin', 'superadmin')); // Only admin and superadmin can access
+router.use(protect);
+
+// ✅ FIX: Allow both 'admin' and 'super-admin' roles
+router.use(authorize('admin', 'super-admin')); // Changed from 'superadmin' to 'super-admin'
 
 router.post('/', createService);
 router.put('/:id', updateService);
 router.delete('/:id', deleteService);
 router.patch('/:id/toggle', toggleServiceStatus);
-router.put('/reorder/all', reorderServices);
+router.put('/reorder', reorderServices);
 router.get('/stats/all', getServiceStats);
 
 module.exports = router;
