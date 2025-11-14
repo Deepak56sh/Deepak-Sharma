@@ -1,5 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Import controllers
 const {
   getAbout,
   updateAbout,
@@ -12,19 +17,51 @@ const {
 } = require('../controllers/aboutController');
 
 const { protect, authorize } = require('../middleware/auth');
-const upload = require('../utils/multerConfig'); // Make sure you have this
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'about-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 
 // Public routes
 router.get('/', getAbout);
 
-// Admin routes - Protected
+// Protected Admin routes
 router.use(protect);
 router.use(authorize('admin', 'super-admin'));
 
 // Main update route
 router.put('/', updateAbout);
 
-// Image upload route
+// Image upload route - Fixed upload.single usage
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
@@ -34,19 +71,23 @@ router.post('/upload', upload.single('image'), (req, res) => {
       });
     }
 
+    // Return the image URL that can be used in the frontend
     const imageUrl = `/uploads/${req.file.filename}`;
     
     res.json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        filename: req.file.filename
       }
     });
   } catch (error) {
+    console.error('Image upload error:', error);
     res.status(500).json({
       success: false,
-      message: 'Image upload failed'
+      message: 'Image upload failed',
+      error: error.message
     });
   }
 });

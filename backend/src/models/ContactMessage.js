@@ -26,8 +26,16 @@ const contactMessageSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['unread', 'read'],
+    enum: ['unread', 'read', 'replied'],
     default: 'unread'
+  },
+  adminReply: {
+    message: String,
+    repliedAt: Date,
+    repliedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
   },
   date: {
     type: String,
@@ -40,5 +48,8 @@ const contactMessageSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Add index for better performance
+contactMessageSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('ContactMessage', contactMessageSchema);
