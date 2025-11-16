@@ -82,7 +82,7 @@ export default function ContactPage() {
               <span className="text-gradient">Get In Touch</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Let's create something amazing together. We're here to help bring your vision to life.
+              Let&apos;s create something amazing together. We're here to help bring your vision to life.
             </p>
           </div>
         </AnimatedSection>
@@ -177,7 +177,7 @@ export default function ContactPage() {
                     <CheckCircle className="w-10 h-10 text-green-400" />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-2">Message Sent!</h3>
-                  <p className="text-gray-400">We'll get back to you as soon as possible.</p>
+                  <p className="text-gray-400">We&apos;ll get back to you as soon as possible.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">

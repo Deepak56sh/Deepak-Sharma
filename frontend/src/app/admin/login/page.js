@@ -203,12 +203,12 @@ export default function AdminLogin() {
 
         {/* Back to Website Link */}
         <div className="text-center mt-6">
-          <a 
+          <Link
             href="/" 
             className="text-gray-400 hover:text-white transition-colors text-sm inline-flex items-center gap-2"
           >
             ← Back to website
-          </a>
+          </Link>
         </div>
       </div>
     </div>
