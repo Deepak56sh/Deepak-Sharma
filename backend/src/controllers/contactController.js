@@ -27,6 +27,14 @@ exports.createContactMessage = async (req, res) => {
       message
     });
 
+    // ✅ Send notification email to ADMIN
+    try {
+      await sendAdminNotification(name, email, subject, message);
+    } catch (emailError) {
+      console.error('Admin notification email failed:', emailError);
+      // Continue even if email fails
+    }
+
     res.status(201).json({
       success: true,
       message: 'Message sent successfully',
@@ -165,15 +173,15 @@ exports.replyToMessage = async (req, res) => {
     message.adminReply = {
       message: replyMessage,
       repliedAt: new Date(),
-      repliedBy: req.user._id
+      repliedBy: req.user ? req.user._id : 'admin'
     };
     message.status = 'replied';
 
     await message.save();
 
-    // Send email reply using Resend.com (FREE)
+    // ✅ Send email reply to USER
     try {
-      await sendReplyEmailResend(message.email, message.name, message.subject, replyMessage);
+      await sendReplyEmailToUser(message.email, message.name, message.subject, replyMessage);
       
       res.status(200).json({
         success: true,
@@ -231,15 +239,81 @@ exports.deleteMessage = async (req, res) => {
   }
 };
 
-// Helper function to send email using Resend.com
-const sendReplyEmailResend = async (toEmail, toName, originalSubject, replyMessage) => {
-  // Check if Resend API key is available
+// ✅ Helper function to send ADMIN NOTIFICATION email
+const sendAdminNotification = async (name, email, subject, message) => {
   if (!process.env.RESEND_API_KEY) {
-    throw new Error('Resend API key not configured. Please set RESEND_API_KEY in .env file');
+    throw new Error('Resend API key not configured');
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@yourcompany.com'; // Set this in .env
+
+  const { data, error } = await resend.emails.send({
+    from: 'Website Contact <onboarding@resend.dev>',
+    to: [adminEmail],
+    subject: `📧 New Contact Message: ${subject}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background: white; }
+          .header { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); padding: 30px; text-align: center; color: white; }
+          .content { padding: 30px; background: #f9f9f9; }
+          .message-box { background: white; padding: 20px; border-left: 4px solid #ff6b6b; margin: 20px 0; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+          .footer { background: #333; color: white; padding: 20px; text-align: center; font-size: 12px; }
+          .button { display: inline-block; padding: 12px 24px; background: #ff6b6b; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📨 New Contact Message</h1>
+          </div>
+          <div class="content">
+            <p><strong>You have received a new message from your website contact form:</strong></p>
+            
+            <div class="message-box">
+              <p><strong>From:</strong> ${name} (${email})</p>
+              <p><strong>Subject:</strong> ${subject}</p>
+              <p><strong>Message:</strong></p>
+              <p>${message.replace(/\n/g, '<br>')}</p>
+            </div>
+            
+            <p>
+              <a href="${process.env.ADMIN_URL || 'http://localhost:3000/admin'}/contact-messages" class="button">
+                View in Admin Panel
+              </a>
+            </p>
+            
+            <p><em>This is an automated notification from your website.</em></p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Your Company Name</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  console.log('📧 Admin notification sent to:', adminEmail);
+  return data;
+};
+
+// ✅ Helper function to send REPLY email to USER
+const sendReplyEmailToUser = async (toEmail, toName, originalSubject, replyMessage) => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('Resend API key not configured');
   }
 
   const { data, error } = await resend.emails.send({
-    from: 'Your Company <onboarding@resend.dev>', // Resend provides this domain for testing
+    from: 'Your Company <onboarding@resend.dev>',
     to: [toEmail],
     subject: `Re: ${originalSubject}`,
     html: `
@@ -277,17 +351,14 @@ const sendReplyEmailResend = async (toEmail, toName, originalSubject, replyMessa
         </div>
       </body>
       </html>
-    `,
-    text: `Hello ${toName},\n\nThank you for reaching out to us. Here is our response to your message:\n\n${replyMessage}\n\nIf you have any further questions, feel free to reply to this email.\n\nBest regards,\nYour Team`
+    `
   });
 
   if (error) {
     throw error;
   }
 
-  console.log('📧 Reply email sent successfully via Resend to:', toEmail);
-  console.log('Resend Email ID:', data.id);
-  
+  console.log('📧 Reply email sent to user:', toEmail);
   return data;
 };
 
@@ -297,16 +368,29 @@ exports.testEmailConfig = async (req, res) => {
     if (!process.env.RESEND_API_KEY) {
       return res.status(400).json({
         success: false,
-        message: 'Resend API key not configured in environment variables'
+        message: 'Resend API key not configured'
       });
     }
 
-    // Test by sending a simple email
+    // Test both admin notification and user reply
+    const adminEmail = process.env.ADMIN_EMAIL || 'test@example.com';
+    
     const { data, error } = await resend.emails.send({
       from: 'Test <onboarding@resend.dev>',
-      to: ['test@example.com'],  // Yahan tum apna test email daal sakte ho
-      subject: 'Test Email Configuration - Your Company',
-      html: '<p>If you receive this, Resend email configuration is working perfectly!</p>'
+      to: [adminEmail],
+      subject: 'Test Email Configuration - Working!',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color: #667eea;">✅ Email Configuration Test</h2>
+          <p>If you receive this, your Resend email configuration is working perfectly!</p>
+          <p><strong>Features tested:</strong></p>
+          <ul>
+            <li>✅ Admin notifications for new contact messages</li>
+            <li>✅ Reply emails to users</li>
+            <li>✅ HTML email templates</li>
+          </ul>
+        </div>
+      `
     });
 
     if (error) {
@@ -315,18 +399,19 @@ exports.testEmailConfig = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Resend email configuration is working!',
+      message: 'Email configuration is working! Both admin notifications and user replies will work.',
       data: {
         emailId: data.id,
+        adminEmail: adminEmail,
         status: 'Ready to send emails'
       }
     });
     
   } catch (error) {
-    console.error('Resend configuration test failed:', error);
+    console.error('Email configuration test failed:', error);
     res.status(500).json({
       success: false,
-      message: 'Resend configuration test failed',
+      message: 'Email configuration test failed',
       error: error.message
     });
   }
