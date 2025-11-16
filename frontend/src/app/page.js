@@ -172,19 +172,19 @@ export default function HomePage() {
               { 
                 icon: Zap,
                 title: 'Lightning Fast', 
-                desc: 'Optimized performance for seamless user experiences that load instantly',
+                desc: 'Every website I build is optimized for speed, performance, and seamless user experience — ensuring your visitors stay longer and convert better.',
                 color: 'from-blue-500 to-cyan-500'
               },
               { 
                 icon: Shield,
                 title: 'Secure & Reliable', 
-                desc: 'Enterprise-grade security protocols you can trust with your data',
+                desc: 'Clean, scalable, and well-structured code with best industry practices, ensuring long-term stability and security for your business.',
                 color: 'from-purple-500 to-pink-500'
               },
               { 
                 icon: Globe,
                 title: 'Global Reach', 
-                desc: 'Connect with audiences worldwide through scalable solutions',
+                desc: 'Connect with audiences I build responsive, cross-platform, and SEO-friendly websites that help businesses connect with audiences anywhere in the world. through scalable solutions',
                 color: 'from-emerald-500 to-teal-500'
               }
             ].map((item, i) => (
@@ -208,10 +208,10 @@ export default function HomePage() {
         <AnimatedSection>
           <div className="max-w-4xl mx-auto text-center bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-3xl p-12 backdrop-blur-sm">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Ready to Start Your Project?
+              Ready to Build Something Exceptional?
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Let&apos;s collaborate and bring your ideas to life with innovative solutions
+              Let&apos;s collaborate and turn your vision into a powerful digital presence with stunning frontend development.
             </p>
             <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105">
               Get Started Today
