@@ -82,7 +82,7 @@ export default function ContactPage() {
               <span className="text-gradient">Get In Touch</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Let&apos;s create something amazing together. We're here to help bring your vision to life.
+              Let&apos;s create something exceptional together. I’m here to help bring your ideas to life with modern, high-quality frontend development.
             </p>
           </div>
         </AnimatedSection>
@@ -267,19 +267,19 @@ export default function ContactPage() {
               {[
                 {
                   q: 'What is your typical project timeline?',
-                  a: 'Project timelines vary based on scope, but typically range from 4-12 weeks for most web and mobile projects.'
+                  a: 'Project time depends on the scope, but most websites and applications take 1–4 weeks to complete.'
                 },
                 {
                   q: 'Do you offer ongoing support?',
-                  a: 'Yes! We provide maintenance packages and ongoing support to ensure your project continues to perform optimally.'
+                  a: 'Yes, I provide maintenance & support packages to keep your website secure, updated, and performing well.'
                 },
                 {
                   q: 'What technologies do you work with?',
-                  a: 'We specialize in React, Next.js, Node.js, React Native, and various cloud platforms like AWS and Azure.'
+                  a: 'I specialize in React, Next.js, HTML, CSS, JavaScript, Tailwind, and API integrations.'
                 },
                 {
                   q: 'How do you handle project pricing?',
-                  a: 'We offer both fixed-price and hourly billing options. Contact us for a custom quote based on your needs.'
+                  a: 'I offer both fixed-price and hourly models depending on project requirements. Contact me for a custom quote.'
                 }
               ].map((faq, i) => (
                 <div 
