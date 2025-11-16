@@ -1,5 +1,5 @@
 // ============================================
-// FILE: src/components/admin/ManageServices.js (UPDATED)
+// FILE: src/components/admin/ManageServices.js (FULLY RESPONSIVE)
 // ============================================
 'use client';
 import { useState, useEffect } from 'react';
@@ -198,7 +198,7 @@ export default function ManageServices() {
   const SortableHeader = ({ children, sortKey }) => (
     <button
       onClick={() => handleSort(sortKey)}
-      className="flex items-center gap-1 hover:text-white transition-colors text-left"
+      className="flex items-center gap-1 hover:text-white transition-colors text-left text-xs sm:text-sm"
     >
       {children}
       <ArrowUpDown className="w-3 h-3" />
@@ -206,61 +206,61 @@ export default function ManageServices() {
   );
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6 p-4 sm:p-5 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Manage Services</h1>
-          <p className="text-gray-400 text-sm sm:text-base">Add, edit, and organize your services</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">Manage Services</h1>
+          <p className="text-gray-400 text-xs sm:text-sm">Add, edit, and organize your services</p>
         </div>
         <button
           onClick={() => {
             setEditingService(null);
             setShowModal(true);
           }}
-          className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap text-sm sm:text-base"
+          className="px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap text-sm sm:text-base"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
           Add New Service
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-4 sm:p-6 hover:border-purple-500/40 transition-all">
-          <p className="text-gray-400 text-sm mb-1">Total Services</p>
-          <p className="text-2xl sm:text-3xl font-bold text-white">{stats?.total || 0}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-3 sm:p-4 lg:p-6 hover:border-purple-500/40 transition-all">
+          <p className="text-gray-400 text-xs sm:text-sm mb-1">Total Services</p>
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{stats?.total || 0}</p>
         </div>
-        <div className="bg-slate-800/50 rounded-xl border border-green-500/20 p-4 sm:p-6 hover:border-green-500/40 transition-all">
-          <p className="text-gray-400 text-sm mb-1">Active Services</p>
-          <p className="text-2xl sm:text-3xl font-bold text-green-400">{stats?.active || 0}</p>
+        <div className="bg-slate-800/50 rounded-xl border border-green-500/20 p-3 sm:p-4 lg:p-6 hover:border-green-500/40 transition-all">
+          <p className="text-gray-400 text-xs sm:text-sm mb-1">Active Services</p>
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-400">{stats?.active || 0}</p>
         </div>
-        <div className="bg-slate-800/50 rounded-xl border border-red-500/20 p-4 sm:p-6 hover:border-red-500/40 transition-all">
-          <p className="text-gray-400 text-sm mb-1">Inactive Services</p>
-          <p className="text-2xl sm:text-3xl font-bold text-red-400">{stats?.inactive || 0}</p>
+        <div className="bg-slate-800/50 rounded-xl border border-red-500/20 p-3 sm:p-4 lg:p-6 hover:border-red-500/40 transition-all">
+          <p className="text-gray-400 text-xs sm:text-sm mb-1">Inactive Services</p>
+          <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-400">{stats?.inactive || 0}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-slate-800/30 p-4 rounded-xl border border-purple-500/10">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 bg-slate-800/30 p-3 sm:p-4 rounded-xl border border-purple-500/10">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
           <input
             type="text"
             placeholder="Search services by title or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-all text-sm sm:text-base"
+            className="w-full pl-8 sm:pl-9 lg:pl-10 pr-4 py-1.5 sm:py-2 lg:py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-all text-xs sm:text-sm lg:text-base"
           />
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 lg:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Filter className="text-gray-400 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-all min-w-[140px] sm:min-w-[150px] text-sm sm:text-base"
+              className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-all min-w-[120px] sm:min-w-[140px] lg:min-w-[150px] text-xs sm:text-sm lg:text-base"
             >
               <option value="all">All Categories</option>
               <option value="Development">Development</option>
@@ -275,7 +275,7 @@ export default function ManageServices() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-all min-w-[140px] sm:min-w-[150px] text-sm sm:text-base"
+            className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-all min-w-[120px] sm:min-w-[140px] lg:min-w-[150px] text-xs sm:text-sm lg:text-base"
           >
             <option value="all">All Status</option>
             <option value="active">Active Only</option>
@@ -287,34 +287,34 @@ export default function ManageServices() {
       {/* Services Table */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center items-center py-16 sm:py-20">
-            <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 animate-spin" />
-            <span className="ml-3 text-gray-400 text-sm sm:text-base">Loading services...</span>
+          <div className="flex justify-center items-center py-12 sm:py-16 lg:py-20">
+            <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-purple-500 animate-spin" />
+            <span className="ml-2 sm:ml-3 text-gray-400 text-xs sm:text-sm lg:text-base">Loading services...</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead className="bg-slate-900/50">
                 <tr>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">
+                  <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">
                     <SortableHeader sortKey="title">Service</SortableHeader>
                   </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">
+                  <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">
                     <SortableHeader sortKey="category">Category</SortableHeader>
                   </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">Status</th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">
+                  <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">Status</th>
+                  <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-300">
                     <SortableHeader sortKey="order">Order</SortableHeader>
                   </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-gray-300">Actions</th>
+                  <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-right text-xs sm:text-sm font-semibold text-gray-300">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-purple-500/10">
                 {filteredServices.map((service) => (
                   <tr key={service._id} className="hover:bg-slate-900/30 transition-colors group">
-                    <td className="px-4 sm:px-6 py-3 sm:py-4">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-purple-500/20 group-hover:border-purple-500/40 transition-all flex-shrink-0">
+                    <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
+                      <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+                        <div className="relative w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-purple-500/20 group-hover:border-purple-500/40 transition-all flex-shrink-0">
                           <img 
                             src={service.image} 
                             alt={service.title}
@@ -325,58 +325,58 @@ export default function ManageServices() {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-white font-semibold text-sm sm:text-base group-hover:text-purple-300 transition-colors truncate">
+                          <p className="text-white font-semibold text-xs sm:text-sm lg:text-base group-hover:text-purple-300 transition-colors truncate">
                             {service.title}
                           </p>
-                          <p className="text-gray-400 text-xs sm:text-sm line-clamp-2">
+                          <p className="text-gray-400 text-xs line-clamp-2">
                             {service.description}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4">
-                      <span className="px-2 sm:px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-semibold border border-purple-500/30 whitespace-nowrap">
+                    <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
+                      <span className="px-1.5 sm:px-2 lg:px-3 py-0.5 sm:py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-semibold border border-purple-500/30 whitespace-nowrap">
                         {service.category}
                       </span>
                     </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
                       <button
                         onClick={() => handleToggleStatus(service._id)}
-                        className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition-all hover:scale-105 ${
+                        className={`px-1.5 sm:px-2 lg:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition-all hover:scale-105 ${
                           service.isActive 
                             ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
                             : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
                         }`}
                       >
-                        {service.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                        <span className="hidden sm:inline">
+                        {service.isActive ? <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <EyeOff className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
+                        <span className="hidden xs:inline">
                           {service.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </button>
                     </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4">
-                      <span className="text-gray-400 font-mono bg-slate-900/50 px-2 py-1 rounded text-xs sm:text-sm">
+                    <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
+                      <span className="text-gray-400 font-mono bg-slate-900/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm">
                         {service.order || 0}
                       </span>
                     </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4">
+                    <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
                       <div className="flex items-center justify-end gap-1 sm:gap-2">
                         <button
                           onClick={() => {
                             setEditingService(service);
                             setShowModal(true);
                           }}
-                          className="p-1 sm:p-2 hover:bg-purple-500/20 rounded-lg text-purple-400 hover:text-purple-300 transition-all group/btn"
+                          className="p-1 sm:p-1.5 lg:p-2 hover:bg-purple-500/20 rounded-lg text-purple-400 hover:text-purple-300 transition-all group/btn"
                           title="Edit Service"
                         >
-                          <Edit className="w-3 h-3 sm:w-4 sm:h-4 group-hover/btn:scale-110 transition-transform" />
+                          <Edit className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 group-hover/btn:scale-110 transition-transform" />
                         </button>
                         <button
                           onClick={() => handleDelete(service._id)}
-                          className="p-1 sm:p-2 hover:bg-red-500/20 rounded-lg text-red-400 hover:text-red-300 transition-all group/btn"
+                          className="p-1 sm:p-1.5 lg:p-2 hover:bg-red-500/20 rounded-lg text-red-400 hover:text-red-300 transition-all group/btn"
                           title="Delete Service"
                         >
-                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 group-hover/btn:scale-110 transition-transform" />
+                          <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4 group-hover/btn:scale-110 transition-transform" />
                         </button>
                       </div>
                     </td>
@@ -386,14 +386,14 @@ export default function ManageServices() {
             </table>
             
             {filteredServices.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-400 mb-2 text-sm sm:text-base">
+              <div className="text-center py-8 sm:py-10 lg:py-12">
+                <div className="text-gray-400 mb-1.5 sm:mb-2 text-xs sm:text-sm lg:text-base">
                   {services.length === 0 ? 'No services found' : 'No services match your filters'}
                 </div>
                 {services.length === 0 && (
                   <button
                     onClick={() => setShowModal(true)}
-                    className="text-purple-400 hover:text-purple-300 font-semibold text-sm sm:text-base"
+                    className="text-purple-400 hover:text-purple-300 font-semibold text-xs sm:text-sm lg:text-base"
                   >
                     Create your first service
                   </button>
@@ -565,28 +565,28 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 rounded-xl sm:rounded-2xl border border-purple-500/20 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-slate-900 border-b border-purple-500/20 p-4 sm:p-6 flex items-center justify-between">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-3 lg:p-4 overflow-y-auto">
+      <div className="bg-slate-900 rounded-lg sm:rounded-xl lg:rounded-2xl border border-purple-500/20 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-slate-900 border-b border-purple-500/20 p-3 sm:p-4 lg:p-6 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
             {service ? 'Edit Service' : 'Add New Service'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 sm:p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-white transition-all"
+            className="p-1 sm:p-1.5 lg:p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-white transition-all"
           >
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Image Upload Section */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Service Image</label>
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
+            <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Service Image</label>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start">
               {/* Image Preview */}
               <div className="flex-shrink-0">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
                   {imagePreview ? (
                     <img 
                       src={imagePreview} 
@@ -595,21 +595,21 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-gray-500" />
+                      <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500" />
                     </div>
                   )}
                 </div>
               </div>
               
               {/* Upload Controls */}
-              <div className="flex-1 space-y-3">
+              <div className="flex-1 space-y-2 sm:space-y-3">
                 <div>
                   <label className="block text-gray-400 text-xs sm:text-sm mb-1">Upload Image</label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30"
+                    className="w-full text-xs sm:text-sm text-gray-400 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30"
                   />
                 </div>
                 
@@ -622,7 +622,7 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
                       setFormData({ ...formData, image: e.target.value });
                       setImagePreview(e.target.value);
                     }}
-                    className={`w-full px-3 py-2 bg-slate-800/50 border rounded-lg text-white focus:outline-none transition-all text-sm ${
+                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border rounded-lg text-white focus:outline-none transition-all text-xs sm:text-sm ${
                       errors.image ? 'border-red-500' : 'border-purple-500/20 focus:border-purple-500'
                     }`}
                     placeholder="https://example.com/image.jpg"
@@ -634,15 +634,15 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
           </div>
 
           {/* Basic Information */}
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Service Title *</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Service Title *</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className={`w-full px-3 py-2 bg-slate-800/50 border rounded-lg text-white focus:outline-none transition-all text-sm ${
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border rounded-lg text-white focus:outline-none transition-all text-xs sm:text-sm ${
                   errors.title ? 'border-red-500' : 'border-purple-500/20 focus:border-purple-500'
                 }`}
                 placeholder="e.g., Web Development"
@@ -651,12 +651,12 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Category *</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Category *</label>
               <select
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
               >
                 <option value="Development">Development</option>
                 <option value="Design">Design</option>
@@ -670,13 +670,13 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
 
           {/* Description */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Description *</label>
+            <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Description *</label>
             <textarea
               required
               rows="3"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className={`w-full px-3 py-2 bg-slate-800/50 border rounded-lg text-white focus:outline-none transition-all text-sm ${
+              className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border rounded-lg text-white focus:outline-none transition-all text-xs sm:text-sm ${
                 errors.description ? 'border-red-500' : 'border-purple-500/20 focus:border-purple-500'
               }`}
               placeholder="Brief description of the service"
@@ -688,13 +688,13 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
           </div>
 
           {/* Icon and Color */}
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Icon</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Icon</label>
               <select
                 value={formData.icon}
                 onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
               >
                 {iconOptions.map(icon => (
                   <option key={icon} value={icon}>{icon}</option>
@@ -703,11 +703,11 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Color Gradient</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Color Gradient</label>
               <select
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
               >
                 {colorOptions.map(color => (
                   <option key={color} value={color}>{color.replace('from-', '').replace('-to-', ' to ')}</option>
@@ -717,25 +717,25 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
           </div>
 
           {/* Price and Duration */}
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Price</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Price</label>
               <input
                 type="text"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
                 placeholder="e.g., $500 - $5000"
               />
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Duration</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Duration</label>
               <input
                 type="text"
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
                 placeholder="e.g., 2-4 weeks"
               />
             </div>
@@ -743,22 +743,22 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
 
           {/* Features */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Features</label>
-            <div className="space-y-2">
+            <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Features</label>
+            <div className="space-y-1.5 sm:space-y-2">
               {formData.features.map((feature, index) => (
-                <div key={index} className="flex gap-2">
+                <div key={index} className="flex gap-1.5 sm:gap-2">
                   <input
                     type="text"
                     value={feature}
                     onChange={(e) => handleFeatureChange(index, e.target.value)}
-                    className="flex-1 px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                    className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
                     placeholder={`Feature ${index + 1}`}
                   />
                   {formData.features.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeFeature(index)}
-                      className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-sm"
+                      className="px-2 sm:px-3 py-1.5 sm:py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-xs sm:text-sm"
                     >
                       Remove
                     </button>
@@ -768,63 +768,63 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
               <button
                 type="button"
                 onClick={addFeature}
-                className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors text-sm flex items-center gap-2"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                 Add Feature
               </button>
             </div>
           </div>
 
           {/* Tags and Order */}
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Tags</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Tags</label>
               <input
                 type="text"
                 value={formData.tags}
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
                 placeholder="web, development, react (comma separated)"
               />
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2 font-medium text-sm sm:text-base">Display Order</label>
+              <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-xs sm:text-sm lg:text-base">Display Order</label>
               <input
                 type="number"
                 value={formData.order}
                 onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
                 min="0"
               />
             </div>
           </div>
 
           {/* Status */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <input
               type="checkbox"
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4 text-purple-500 bg-slate-800 border-purple-500/30 rounded focus:ring-purple-500 focus:ring-2"
+              className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500 bg-slate-800 border-purple-500/30 rounded focus:ring-purple-500 focus:ring-2"
             />
-            <label htmlFor="isActive" className="text-gray-300 text-sm sm:text-base">
+            <label htmlFor="isActive" className="text-gray-300 text-xs sm:text-sm lg:text-base">
               Active Service (Visible on website)
             </label>
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6 border-t border-purple-500/10">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 lg:pt-6 border-t border-purple-500/10">
             <button
               type="submit"
               disabled={saving || uploadingImage}
-              className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="flex-1 px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base"
             >
               {saving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                   {service ? 'Updating...' : 'Creating...'}
                 </>
               ) : (
@@ -835,7 +835,7 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 sm:px-6 py-2 sm:py-3 bg-slate-800 rounded-lg text-gray-300 font-semibold hover:bg-slate-700 transition-all disabled:opacity-50 text-sm sm:text-base"
+              className="px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 bg-slate-800 rounded-lg text-gray-300 font-semibold hover:bg-slate-700 transition-all disabled:opacity-50 text-xs sm:text-sm lg:text-base"
             >
               Cancel
             </button>
