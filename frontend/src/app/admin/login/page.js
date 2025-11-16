@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
 
