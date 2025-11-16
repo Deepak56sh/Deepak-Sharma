@@ -1,4 +1,4 @@
-// src/app/admin/about/page.js - FULLY RESPONSIVE VERSION
+// src/app/admin/about/page.js - CORRECTED VERSION
 'use client';
 import { useState, useEffect } from 'react';
 import { Save, Plus, Trash2, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
@@ -7,6 +7,7 @@ export default function ManageAbout() {
   const [aboutData, setAboutData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // Get token function
@@ -70,33 +71,91 @@ export default function ManageAbout() {
     }));
   };
 
+  // ✅ CORRECTED: Image Upload Function
   const handleImageUpload = async (file, imageType) => {
+    if (!file) {
+      setMessage({ type: 'error', text: 'Please select an image file' });
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: 'Please select a valid image file (JPEG, PNG, etc.)' });
+      return;
+    }
+
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'Image size should be less than 5MB' });
+      return;
+    }
+
+    setUploading(true);
+    setMessage({ type: '', text: '' });
+
     try {
       const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
       const formData = new FormData();
       formData.append('image', file);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about/upload`, {
+      console.log('🔼 Starting image upload...', file.name);
+
+      const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about/upload`;
+      console.log('📡 Upload URL:', uploadUrl);
+
+      const res = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          // ❌ DON'T set Content-Type - let browser set it with boundary
         },
         body: formData
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      console.log('📡 Upload response status:', res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('❌ Upload failed:', errorText);
+        throw new Error(`Upload failed: ${res.status}`);
+      }
+
+      const result = await res.json();
+      console.log('✅ Upload response:', result);
+
+      if (result.success && result.data) {
+        // ✅ Use the imageUrl from backend
+        const imageUrl = result.data.imageUrl;
+        
+        // ✅ Update the state with the new image URL
         setAboutData(prev => ({
           ...prev,
-          [imageType]: data.data.imageUrl
+          [imageType]: imageUrl
         }));
-        setMessage({ type: 'success', text: 'Image uploaded successfully' });
+
+        setMessage({ 
+          type: 'success', 
+          text: `Image uploaded successfully! Don't forget to save changes.` 
+        });
+
+        console.log('🖼️ Image updated in state:', imageType, imageUrl);
+
       } else {
-        throw new Error('Image upload failed');
+        throw new Error(result.message || 'Upload failed');
       }
+
     } catch (error) {
-      console.error('Image upload error:', error);
-      setMessage({ type: 'error', text: 'Image upload failed' });
+      console.error('❌ Image upload error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Upload failed: ${error.message}` 
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -106,6 +165,12 @@ export default function ManageAbout() {
 
     try {
       const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      console.log('💾 Saving about data:', aboutData);
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about`, {
         method: 'PUT',
         headers: {
@@ -115,18 +180,50 @@ export default function ManageAbout() {
         body: JSON.stringify(aboutData)
       });
 
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'About page updated successfully' });
+      const result = await res.json();
+      console.log('💾 Save response:', result);
+
+      if (res.ok && result.success) {
+        setMessage({ 
+          type: 'success', 
+          text: 'About page updated successfully!' 
+        });
+        
+        // Refresh data to get latest from server
+        setTimeout(() => {
+          fetchAboutData();
+        }, 1000);
+        
       } else {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Update failed');
+        throw new Error(result.message || 'Update failed');
       }
     } catch (error) {
-      console.error('Save error:', error);
-      setMessage({ type: 'error', text: error.message });
+      console.error('❌ Save error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Save failed: ${error.message}` 
+      });
     } finally {
       setSaving(false);
     }
+  };
+
+  // ✅ Function to get full image URL for display
+  const getFullImageUrl = (imagePath) => {
+    if (!imagePath) return '/placeholder-image.jpg';
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // If it's a relative path, construct full URL
+    if (imagePath.startsWith('/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
+      return `${baseUrl}${imagePath}`;
+    }
+    
+    return imagePath;
   };
 
   if (loading) {
@@ -142,6 +239,12 @@ export default function ManageAbout() {
     return (
       <div className="text-center py-12 sm:py-16 lg:py-20">
         <p className="text-red-400 text-sm sm:text-base">Failed to load about data</p>
+        <button 
+          onClick={fetchAboutData}
+          className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -188,25 +291,52 @@ export default function ManageAbout() {
           <div>
             <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Hero Image</label>
             <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-3 sm:p-4 text-center">
-              <img 
-                src={aboutData.heroImage} 
-                alt="Hero preview" 
-                className="w-full h-32 sm:h-36 lg:h-48 object-cover rounded-lg mb-2 sm:mb-3"
-              />
+              {aboutData.heroImage ? (
+                <img 
+                  src={getFullImageUrl(aboutData.heroImage)} 
+                  alt="Hero preview" 
+                  className="w-full h-32 sm:h-36 lg:h-48 object-cover rounded-lg mb-2 sm:mb-3"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/400x300/1f2937/9ca3af?text=Image+Not+Found';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-32 sm:h-36 lg:h-48 bg-slate-700 rounded-lg flex items-center justify-center mb-2 sm:mb-3">
+                  <ImageIcon className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" />
+                </div>
+              )}
+              
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files[0];
-                  if (file) handleImageUpload(file, 'heroImage');
+                  if (file) {
+                    console.log('📁 Selected file:', file.name, file.size);
+                    handleImageUpload(file, 'heroImage');
+                  }
+                  e.target.value = ''; // Reset input
                 }}
                 className="hidden"
                 id="heroImage"
+                disabled={uploading}
               />
-              <label htmlFor="heroImage" className="cursor-pointer text-purple-400 hover:text-purple-300 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
-                <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
-                Change Hero Image
+              <label 
+                htmlFor="heroImage" 
+                className={`cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm ${
+                  uploading 
+                    ? 'text-gray-500 cursor-not-allowed' 
+                    : 'text-purple-400 hover:text-purple-300'
+                }`}
+              >
+                {uploading ? (
+                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                ) : (
+                  <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
+                )}
+                {uploading ? 'Uploading...' : 'Change Hero Image'}
               </label>
+              <p className="text-gray-500 text-xs mt-1">JPEG, PNG, WebP (Max 5MB)</p>
             </div>
           </div>
 
@@ -216,9 +346,10 @@ export default function ManageAbout() {
               <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Title</label>
               <input
                 type="text"
-                value={aboutData.title}
+                value={aboutData.title || ''}
                 onChange={(e) => setAboutData(prev => ({ ...prev, title: e.target.value }))}
                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+                placeholder="About Us"
               />
             </div>
 
@@ -226,9 +357,10 @@ export default function ManageAbout() {
               <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Subtitle</label>
               <input
                 type="text"
-                value={aboutData.subtitle}
+                value={aboutData.subtitle || ''}
                 onChange={(e) => setAboutData(prev => ({ ...prev, subtitle: e.target.value }))}
                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+                placeholder="Crafting digital experiences that inspire"
               />
             </div>
 
@@ -236,9 +368,10 @@ export default function ManageAbout() {
               <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Main Heading</label>
               <input
                 type="text"
-                value={aboutData.mainHeading}
+                value={aboutData.mainHeading || ''}
                 onChange={(e) => setAboutData(prev => ({ ...prev, mainHeading: e.target.value }))}
                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+                placeholder="We Build Digital Dreams"
               />
             </div>
           </div>
@@ -253,20 +386,22 @@ export default function ManageAbout() {
           <div>
             <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Description 1</label>
             <textarea
-              rows="3"
-              value={aboutData.description1}
+              rows="4"
+              value={aboutData.description1 || ''}
               onChange={(e) => setAboutData(prev => ({ ...prev, description1: e.target.value }))}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base resize-vertical"
+              placeholder="First paragraph of description..."
             />
           </div>
 
           <div>
             <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Description 2</label>
             <textarea
-              rows="3"
-              value={aboutData.description2}
+              rows="4"
+              value={aboutData.description2 || ''}
               onChange={(e) => setAboutData(prev => ({ ...prev, description2: e.target.value }))}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base resize-vertical"
+              placeholder="Second paragraph of description..."
             />
           </div>
         </div>
@@ -358,7 +493,7 @@ export default function ManageAbout() {
                 value={value.description}
                 onChange={(e) => handleArrayChange('values', index, 'description', e.target.value)}
                 rows="2"
-                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-600 border border-purple-500/20 rounded text-white focus:outline-none focus:border-purple-500 text-sm"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-600 border border-purple-500/20 rounded text-white focus:outline-none focus:border-purple-500 text-sm resize-vertical"
               />
             </div>
           ))}

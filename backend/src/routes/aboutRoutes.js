@@ -18,10 +18,11 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
+// ✅ FIXED: Correct uploads directory path (project root level)
+const uploadsDir = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Uploads directory created:', uploadsDir);
 }
 
 // Configure multer for file uploads
@@ -51,6 +52,44 @@ const upload = multer({
   }
 });
 
+// ✅ FIXED: Better upload route with error handling
+router.post('/upload', upload.single('image'), (req, res) => {
+  try {
+    console.log('📤 Upload request received');
+    console.log('📁 File:', req.file);
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file provided'
+      });
+    }
+
+    // ✅ FIXED: Return full URL for frontend
+    const imageUrl = `/uploads/${req.file.filename}`;
+    const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+    
+    console.log('✅ Image uploaded successfully:', imageUrl);
+    
+    res.json({
+      success: true,
+      message: 'Image uploaded successfully',
+      data: {
+        imageUrl: imageUrl,  // Relative path
+        fullImageUrl: fullImageUrl, // Full URL
+        filename: req.file.filename
+      }
+    });
+  } catch (error) {
+    console.error('❌ Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Image upload failed',
+      error: error.message
+    });
+  }
+});
+
 // Public routes
 router.get('/', getAbout);
 
@@ -60,37 +99,6 @@ router.use(authorize('admin', 'super-admin'));
 
 // Main update route
 router.put('/', updateAbout);
-
-// Image upload route - Fixed upload.single usage
-router.post('/upload', upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No image file provided'
-      });
-    }
-
-    // Return the image URL that can be used in the frontend
-    const imageUrl = `/uploads/${req.file.filename}`;
-    
-    res.json({
-      success: true,
-      message: 'Image uploaded successfully',
-      data: {
-        imageUrl: imageUrl,
-        filename: req.file.filename
-      }
-    });
-  } catch (error) {
-    console.error('Image upload error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Image upload failed',
-      error: error.message
-    });
-  }
-});
 
 // Additional images routes
 router.post('/additional-images', addAdditionalImage);
