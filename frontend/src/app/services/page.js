@@ -205,12 +205,11 @@ export default function ServicesPage() {
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6">
               <span className="text-gradient bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                Our Services
+                My Services
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
-              Comprehensive solutions tailored to your unique business needs
-            </p>
+High-quality frontend development services designed to bring your ideas to life with speed, precision, and modern UI.            </p>
           </div>
         </AnimatedSection>
 
