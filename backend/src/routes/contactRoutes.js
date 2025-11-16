@@ -6,7 +6,8 @@ const {
   getUnreadCount,
   markAsRead,
   replyToMessage,
-  deleteMessage
+  deleteMessage,
+  testEmailConfig
 } = require('../controllers/contactController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -20,7 +21,8 @@ router.get('/unread-count', protect, authorize('admin', 'super-admin'), getUnrea
 router.patch('/messages/:id/read', protect, authorize('admin', 'super-admin'), markAsRead);
 router.post('/messages/:id/reply', protect, authorize('admin', 'super-admin'), replyToMessage);
 router.delete('/messages/:id', protect, authorize('admin', 'super-admin'), deleteMessage);
-// Add this route for testing email configuration
+
+// Test email configuration route
 router.get('/test-email', protect, authorize('admin', 'super-admin'), testEmailConfig);
 
 module.exports = router;

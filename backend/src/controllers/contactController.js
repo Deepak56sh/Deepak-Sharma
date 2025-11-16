@@ -1,17 +1,8 @@
-// controllers/contactController.js
 const ContactMessage = require('../models/ContactMessage');
-const nodemailer = require('nodemailer');
 
-// Gmail Transporter Setup (FREE - 500 emails/day)
-const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER, // Your Gmail address
-      pass: process.env.GMAIL_APP_PASSWORD // Gmail App Password (16 characters)
-    }
-  });
-};
+// Resend.com setup (100 emails/month FREE)
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // @desc    Create new contact message
 // @route   POST /api/contact
@@ -180,9 +171,9 @@ exports.replyToMessage = async (req, res) => {
 
     await message.save();
 
-    // Send email reply using Gmail (FREE)
+    // Send email reply using Resend.com (FREE)
     try {
-      await sendReplyEmail(message.email, message.name, message.subject, replyMessage);
+      await sendReplyEmailResend(message.email, message.name, message.subject, replyMessage);
       
       res.status(200).json({
         success: true,
@@ -240,21 +231,16 @@ exports.deleteMessage = async (req, res) => {
   }
 };
 
-// Helper function to send email using Gmail SMTP
-const sendReplyEmail = async (toEmail, toName, originalSubject, replyMessage) => {
-  // Check if Gmail credentials are available
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    throw new Error('Gmail credentials not configured. Please set GMAIL_USER and GMAIL_APP_PASSWORD in .env file');
+// Helper function to send email using Resend.com
+const sendReplyEmailResend = async (toEmail, toName, originalSubject, replyMessage) => {
+  // Check if Resend API key is available
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('Resend API key not configured. Please set RESEND_API_KEY in .env file');
   }
 
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: {
-      name: 'Your Company', // Change this to your company name
-      address: process.env.GMAIL_USER
-    },
-    to: toEmail,
+  const { data, error } = await resend.emails.send({
+    from: 'Your Company <onboarding@resend.dev>', // Resend provides this domain for testing
+    to: [toEmail],
     subject: `Re: ${originalSubject}`,
     html: `
       <!DOCTYPE html>
@@ -262,12 +248,12 @@ const sendReplyEmail = async (toEmail, toName, originalSubject, replyMessage) =>
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; border-radius: 10px 10px 0 0; }
-          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-          .reply-box { background: white; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
-          .footer { background: #333; color: white; padding: 20px; text-align: center; font-size: 12px; border-radius: 0 0 10px 10px; }
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background: white; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; }
+          .content { padding: 30px; background: #f9f9f9; }
+          .reply-box { background: white; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+          .footer { background: #333; color: white; padding: 20px; text-align: center; font-size: 12px; }
         </style>
       </head>
       <body>
@@ -293,45 +279,54 @@ const sendReplyEmail = async (toEmail, toName, originalSubject, replyMessage) =>
       </html>
     `,
     text: `Hello ${toName},\n\nThank you for reaching out to us. Here is our response to your message:\n\n${replyMessage}\n\nIf you have any further questions, feel free to reply to this email.\n\nBest regards,\nYour Team`
-  };
+  });
 
-  // Send email
-  const result = await transporter.sendMail(mailOptions);
-  console.log('📧 Reply email sent successfully to:', toEmail);
-  console.log('Message ID:', result.messageId);
+  if (error) {
+    throw error;
+  }
+
+  console.log('📧 Reply email sent successfully via Resend to:', toEmail);
+  console.log('Resend Email ID:', data.id);
   
-  return result;
+  return data;
 };
 
 // Test email configuration
 exports.testEmailConfig = async (req, res) => {
   try {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       return res.status(400).json({
         success: false,
-        message: 'Gmail credentials not configured in environment variables'
+        message: 'Resend API key not configured in environment variables'
       });
     }
 
-    const transporter = createTransporter();
-    
-    // Verify connection configuration
-    await transporter.verify();
-    
+    // Test by sending a simple email
+    const { data, error } = await resend.emails.send({
+      from: 'Test <onboarding@resend.dev>',
+      to: ['test@example.com'],  // Yahan tum apna test email daal sakte ho
+      subject: 'Test Email Configuration - Your Company',
+      html: '<p>If you receive this, Resend email configuration is working perfectly!</p>'
+    });
+
+    if (error) {
+      throw error;
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Email configuration is correct',
+      message: 'Resend email configuration is working!',
       data: {
-        gmailUser: process.env.GMAIL_USER,
+        emailId: data.id,
         status: 'Ready to send emails'
       }
     });
     
   } catch (error) {
-    console.error('Email configuration test failed:', error);
+    console.error('Resend configuration test failed:', error);
     res.status(500).json({
       success: false,
-      message: 'Email configuration test failed',
+      message: 'Resend configuration test failed',
       error: error.message
     });
   }
