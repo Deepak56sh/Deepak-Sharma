@@ -209,7 +209,7 @@ export default function ServicesPage() {
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
-High-quality frontend development services designed to bring your ideas to life with speed, precision, and modern UI.            </p>
+High-quality frontend development services designed to bring your ideas to life with speed, precision, and modern UI.. From responsive websites to advanced interfaces, I help brands stand out with clean, user-focused, and high-performance web experiences.            </p>
           </div>
         </AnimatedSection>
 
