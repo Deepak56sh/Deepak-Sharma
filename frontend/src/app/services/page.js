@@ -1,5 +1,5 @@
 // ============================================
-// FILE: src/app/services/page.js (UPDATED)
+// FILE: src/app/services/page.js (FULLY RESPONSIVE)
 // ============================================
 'use client';
 import { useState, useEffect } from 'react';
@@ -198,26 +198,27 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="pt-32 pb-20 px-4 sm:px-6">
+    <div className="pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <AnimatedSection>
-          <div className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-4 sm:mb-6">
               <span className="text-gradient bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
                 My Services
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
-High-quality frontend development services designed to bring your ideas to life with speed, precision, and modern UI.. From responsive websites to advanced interfaces, I help brands stand out with clean, user-focused, and high-performance web experiences. </p>
+            <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-400 max-w-3xl mx-auto px-2 sm:px-0">
+              High-quality frontend development services designed to bring your ideas to life with speed, precision, and modern UI. From responsive websites to advanced interfaces, I help brands stand out with clean, user-focused, and high-performance web experiences.
+            </p>
           </div>
         </AnimatedSection>
 
         {/* Error Banner */}
         {error && (
           <AnimatedSection>
-            <div className="mb-8 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center max-w-2xl mx-auto">
-              <p className="text-yellow-400 text-sm">
+            <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center max-w-2xl mx-auto">
+              <p className="text-yellow-400 text-xs sm:text-sm">
                 {error} - Showing demo services
               </p>
             </div>
@@ -226,41 +227,41 @@ High-quality frontend development services designed to bring your ideas to life 
 
         {/* Search and Filter Section */}
         <AnimatedSection>
-          <div className="mb-12 space-y-4">
+          <div className="mb-8 sm:mb-10 lg:mb-12 space-y-3 sm:space-y-4">
             {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center max-w-2xl mx-auto">
               <div className="relative flex-1 w-full sm:max-w-md">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search services..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className="w-full pl-10 pr-10 py-3 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-9 sm:pl-10 pr-8 sm:pr-10 py-2.5 sm:py-3 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
                 />
                 {searchQuery && (
                   <button
                     onClick={clearSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white text-sm"
                   >
                     ✕
                   </button>
                 )}
               </div>
               
-              <div className="flex items-center gap-2 text-gray-400">
-                <Filter className="w-5 h-5" />
-                <span className="text-sm">Filter by:</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 text-gray-400">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-xs sm:text-sm">Filter by:</span>
               </div>
             </div>
 
             {/* Category Filter */}
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 lg:gap-3">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 sm:px-6 py-2 rounded-full font-semibold text-sm sm:text-base transition-all ${
+                  className={`px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm transition-all ${
                     selectedCategory === cat
                       ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
                       : 'bg-slate-800/50 text-gray-400 hover:text-white border border-purple-500/20 hover:border-purple-500/40'
@@ -275,23 +276,23 @@ High-quality frontend development services designed to bring your ideas to life 
 
         {/* Loading State */}
         {loading && (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
-            <span className="ml-3 text-gray-400">Loading services...</span>
+          <div className="flex justify-center items-center py-12 sm:py-16 lg:py-20">
+            <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-purple-500 animate-spin" />
+            <span className="ml-2 sm:ml-3 text-gray-400 text-sm sm:text-base">Loading services...</span>
           </div>
         )}
 
         {/* Services Grid */}
         {!loading && services.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {services.map((service, i) => {
               const IconComponent = iconMap[service.icon] || Code;
               
               return (
                 <AnimatedSection key={service._id || service.id} delay={i * 100}>
-                  <div className="group relative overflow-hidden rounded-2xl bg-slate-800/50 border border-purple-500/10 hover:border-purple-500/30 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20 h-full flex flex-col">
+                  <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/50 border border-purple-500/10 hover:border-purple-500/20 sm:hover:border-purple-500/30 transition-all duration-500 transform hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-lg sm:hover:shadow-xl lg:hover:shadow-2xl hover:shadow-purple-500/20 h-full flex flex-col">
                     {/* Image Section */}
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-40 sm:h-48 lg:h-52 overflow-hidden">
                       <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-60 group-hover:opacity-40 transition-opacity duration-500`}></div>
                       <img 
                         src={service.image} 
@@ -302,38 +303,38 @@ High-quality frontend development services designed to bring your ideas to life 
                           e.target.src = 'https://images.unsplash.com/photo-1556655848-f3a7049761e4?w=600&q=80';
                         }}
                       />
-                      <div className="absolute top-4 right-4 w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-white" />
+                      <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                        <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
                       </div>
                       
                       {/* Category Badge */}
-                      <div className="absolute bottom-4 left-4">
-                        <span className="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs text-white font-semibold">
+                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4">
+                        <span className="px-2 sm:px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs text-white font-semibold">
                           {service.category}
                         </span>
                       </div>
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-6 flex-1 flex flex-col">
-                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors line-clamp-2">
+                    <div className="p-4 sm:p-5 lg:p-6 flex-1 flex flex-col">
+                      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 sm:mb-3 group-hover:text-purple-400 transition-colors line-clamp-2">
                         {service.title}
                       </h3>
-                      <p className="text-gray-400 leading-relaxed mb-4 flex-1 line-clamp-3">
+                      <p className="text-gray-400 text-sm sm:text-base leading-relaxed mb-3 sm:mb-4 flex-1 line-clamp-3">
                         {service.description}
                       </p>
 
                       {/* Features List */}
                       {service.features && service.features.length > 0 && (
-                        <ul className="space-y-2 mb-4">
+                        <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                           {service.features.slice(0, 3).map((feature, idx) => (
-                            <li key={idx} className="flex items-center text-sm text-gray-400">
-                              <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-2 flex-shrink-0"></div>
+                            <li key={idx} className="flex items-center text-xs sm:text-sm text-gray-400">
+                              <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"></div>
                               <span className="line-clamp-1">{feature}</span>
                             </li>
                           ))}
                           {service.features.length > 3 && (
-                            <li className="text-xs text-gray-500 pl-3.5">
+                            <li className="text-xs text-gray-500 pl-3 sm:pl-3.5">
                               +{service.features.length - 3} more features
                             </li>
                           )}
@@ -341,7 +342,7 @@ High-quality frontend development services designed to bring your ideas to life 
                       )}
 
                       {/* Price and Duration */}
-                      <div className="flex items-center justify-between mb-4 text-sm">
+                      <div className="flex items-center justify-between mb-3 sm:mb-4 text-xs sm:text-sm">
                         {service.price && (
                           <span className="text-purple-400 font-semibold">{service.price}</span>
                         )}
@@ -350,8 +351,8 @@ High-quality frontend development services designed to bring your ideas to life 
                         )}
                       </div>
 
-                      <button className="mt-auto text-purple-400 font-semibold flex items-center gap-2 group-hover:gap-4 transition-all hover:text-purple-300">
-                        Learn More <ArrowRight className="w-4 h-4" />
+                      <button className="mt-auto text-purple-400 font-semibold flex items-center gap-1.5 sm:gap-2 group-hover:gap-3 sm:group-hover:gap-4 transition-all hover:text-purple-300 text-sm sm:text-base">
+                        Learn More <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   </div>
@@ -363,12 +364,12 @@ High-quality frontend development services designed to bring your ideas to life 
 
         {/* Empty State */}
         {!loading && services.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-4 bg-slate-800/50 rounded-full flex items-center justify-center">
-              <Search className="w-10 h-10 text-gray-500" />
+          <div className="text-center py-12 sm:py-16 lg:py-20">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-3 sm:mb-4 bg-slate-800/50 rounded-full flex items-center justify-center">
+              <Search className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-gray-500" />
             </div>
-            <p className="text-gray-400 text-xl mb-2">No services found</p>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-400 text-lg sm:text-xl lg:text-2xl mb-1.5 sm:mb-2">No services found</p>
+            <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6 max-w-md mx-auto px-4">
               {searchQuery || selectedCategory !== 'all' 
                 ? 'Try adjusting your search or filters' 
                 : 'No services available at the moment'
@@ -380,7 +381,7 @@ High-quality frontend development services designed to bring your ideas to life 
                   setSearchQuery('');
                   setSelectedCategory('all');
                 }}
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors"
+                className="px-4 sm:px-6 py-1.5 sm:py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors text-sm sm:text-base"
               >
                 Clear Filters
               </button>
@@ -390,13 +391,13 @@ High-quality frontend development services designed to bring your ideas to life 
 
         {/* Process Section */}
         <AnimatedSection>
-          <div className="mt-20 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Our Process</h2>
-            <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
+          <div className="mt-12 sm:mt-16 lg:mt-20 text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">Our Process</h2>
+            <p className="text-gray-400 text-sm sm:text-base mb-8 sm:mb-10 lg:mb-12 max-w-2xl mx-auto px-4">
               A streamlined approach to deliver exceptional results
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               {[
                 { step: '01', title: 'Discovery', desc: 'Understanding your vision and goals' },
                 { step: '02', title: 'Planning', desc: 'Strategic roadmap and architecture' },
@@ -405,17 +406,17 @@ High-quality frontend development services designed to bring your ideas to life 
               ].map((process, i) => (
                 <div 
                   key={i}
-                  className="relative p-6 bg-slate-800/50 rounded-2xl border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300 group"
+                  className="relative p-4 sm:p-5 lg:p-6 bg-slate-800/50 rounded-xl sm:rounded-2xl border border-purple-500/10 hover:border-purple-500/20 sm:hover:border-purple-500/30 transition-all duration-300 group"
                 >
-                  <div className="text-4xl sm:text-5xl font-black text-purple-500/20 mb-4 group-hover:text-purple-500/30 transition-colors">
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-purple-500/20 mb-3 sm:mb-4 group-hover:text-purple-500/30 transition-colors">
                     {process.step}
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{process.title}</h3>
-                  <p className="text-gray-400 text-sm sm:text-base">{process.desc}</p>
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-1.5 sm:mb-2">{process.title}</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm lg:text-base">{process.desc}</p>
                   
                   {/* Connector lines for desktop */}
                   {i < 3 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-purple-500 to-transparent"></div>
+                    <div className="hidden lg:block absolute top-1/2 -right-3 w-4 sm:w-6 h-0.5 bg-gradient-to-r from-purple-500 to-transparent"></div>
                   )}
                 </div>
               ))}
