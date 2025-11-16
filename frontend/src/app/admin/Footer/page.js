@@ -25,7 +25,7 @@ export default function AdminFooterManager() {
   const fetchFooterData = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/footer', {
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/footer', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -46,7 +46,7 @@ export default function AdminFooterManager() {
     setSaving(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/footer', {
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/footer', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -6,7 +6,7 @@ import ProfilePopup from './ProfilePopup';
 import SettingsPopup from './SettingsPopup';
 
 // API Base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 export default function AdminHeader({ toggleSidebar }) {
   const router = useRouter();

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Mail, Trash2, Eye, Search, Filter, Reply, CheckCircle, RefreshCw } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 export default function ContactMessages() {
   const [messages, setMessages] = useState([]);

@@ -88,7 +88,7 @@ export default function Footer() {
 
   const fetchFooterData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/footer');
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/footer');
       const data = await response.json();
       
       if (data.success) {

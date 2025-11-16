@@ -63,7 +63,7 @@ export default function AboutPage() {
     
     // If it's a relative path starting with /uploads
     if (imagePath.startsWith('/uploads/')) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
       return `${apiUrl}${imagePath}`;
     }
     
@@ -73,7 +73,7 @@ export default function AboutPage() {
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
         console.log('🔍 Fetching from:', `${apiUrl}/api/about`);
         
         const res = await fetch(`${apiUrl}/api/about`, {

@@ -22,7 +22,7 @@ export default function ManageAbout() {
 
   const fetchAboutData = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/about`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about`);
       
       if (!res.ok) throw new Error('Failed to fetch about data');
       
@@ -75,7 +75,7 @@ export default function ManageAbout() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/about/upload`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -105,7 +105,7 @@ export default function ManageAbout() {
 
     try {
       const token = getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/about`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

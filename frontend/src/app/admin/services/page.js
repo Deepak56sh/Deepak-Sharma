@@ -39,7 +39,7 @@ export default function ManageServices() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/services`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ export default function ManageServices() {
   const fetchStats = async () => {
     try {
       const token = getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services/admin/stats`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/services/admin/stats`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -92,7 +92,7 @@ export default function ManageServices() {
     
     try {
       const token = getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/services/${id}`, {
         method: 'DELETE',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -117,7 +117,7 @@ export default function ManageServices() {
   const handleToggleStatus = async (id) => {
     try {
       const token = getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services/${id}/toggle`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/services/${id}/toggle`, {
         method: 'PATCH',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -479,8 +479,8 @@ function ServiceModal({ service, onClose, onSuccess, onImageUpload, uploadingIma
     try {
       const token = localStorage.getItem('adminToken');
       const url = service
-        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services/${service._id}`
-        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services`;
+        ? `${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/services/${service._id}`
+        : `${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/services`;
       
       const method = service ? 'PUT' : 'POST';
 

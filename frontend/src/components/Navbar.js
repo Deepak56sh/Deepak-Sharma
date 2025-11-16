@@ -109,7 +109,7 @@ export default function Navbar() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/menu');
+        const response = await fetch('https://my-site-backend-0661.onrender.com/api/menu');
         const data = await response.json();
         
         if (data.success) {

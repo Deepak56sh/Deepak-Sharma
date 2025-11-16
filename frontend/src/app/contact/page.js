@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

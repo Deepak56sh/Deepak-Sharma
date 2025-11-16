@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Eye, Loader2, AlertCircle, Link as LinkIcon, ExternalLink } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
 
 export default function HeroManagement() {
   const [heroData, setHeroData] = useState(null);

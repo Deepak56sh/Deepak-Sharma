@@ -41,7 +41,7 @@ export default function AdminMenuManager() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/menu/all', {
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/menu/all', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -88,7 +88,7 @@ export default function AdminMenuManager() {
         password: 'admin123'
       };
 
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export default function AdminMenuManager() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/menu', {
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/menu', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ export default function AdminMenuManager() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`http://localhost:5000/api/menu/${editingItem._id}`, {
+      const response = await fetch(`https://my-site-backend-0661.onrender.com/api/menu/${editingItem._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ export default function AdminMenuManager() {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`http://localhost:5000/api/menu/${id}`, {
+      const response = await fetch(`https://my-site-backend-0661.onrender.com/api/menu/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -241,7 +241,7 @@ export default function AdminMenuManager() {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/menu/reorder', {
+      const response = await fetch('https://my-site-backend-0661.onrender.com/api/menu/reorder', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
