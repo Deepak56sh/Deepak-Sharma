@@ -177,13 +177,13 @@ export default function AboutPage() {
 
         {/* Main Content */}
         <AnimatedSection>
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+          <div className="grid md:grid-cols-2 gap-12 mb-20">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
               <img 
                 src={heroImageUrl} 
                 alt="Team collaboration" 
-                className="relative rounded-3xl shadow-2xl w-full h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
+                className="relative rounded-3xl h-full shadow-2xl w-full h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
                 onError={(e) => {
                   console.error('Image failed to load:', heroImageUrl);
                   // Fallback to default image
