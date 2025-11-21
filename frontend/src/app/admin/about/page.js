@@ -1,4 +1,4 @@
-// src/app/admin/about/page.js - CORRECTED VERSION
+// src/app/admin/about/page.js - FIXED VERSION
 'use client';
 import { useState, useEffect } from 'react';
 import { Save, Plus, Trash2, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
@@ -7,7 +7,7 @@ export default function ManageAbout() {
   const [aboutData, setAboutData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // Get token function
@@ -35,6 +35,96 @@ export default function ManageAbout() {
       setMessage({ type: 'error', text: 'Failed to load about data' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ FIXED: Service page jaisa image upload function
+  const uploadImage = async (file) => {
+    setUploadingImage(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      console.log('🔼 Starting image upload...', file.name);
+
+      const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about/upload`;
+      
+      const res = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData
+      });
+
+      console.log('📡 Upload response status:', res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Upload failed: ${res.status}`);
+      }
+
+      const result = await res.json();
+      console.log('✅ Upload response:', result);
+
+      if (result.success && result.data) {
+        return result.data.imageUrl; // Return image URL
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+
+    } catch (error) {
+      console.error('❌ Image upload error:', error);
+      throw new Error(`Upload failed: ${error.message}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // ✅ FIXED: Service page jaisa image change handler
+  const handleImageChange = async (e, imageType) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // File validation
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: 'Please select a valid image file' });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'Image size should be less than 5MB' });
+      return;
+    }
+
+    setMessage({ type: '', text: '' });
+
+    try {
+      // Upload image
+      const imageUrl = await uploadImage(file);
+      
+      // Update state with uploaded image URL
+      setAboutData(prev => ({
+        ...prev,
+        [imageType]: imageUrl
+      }));
+
+      setMessage({ 
+        type: 'success', 
+        text: 'Image uploaded successfully! Click Save to update.' 
+      });
+
+    } catch (error) {
+      console.error('❌ Image processing error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Image upload failed: ${error.message}` 
+      });
     }
   };
 
@@ -71,94 +161,6 @@ export default function ManageAbout() {
     }));
   };
 
-  // ✅ CORRECTED: Image Upload Function
-  const handleImageUpload = async (file, imageType) => {
-    if (!file) {
-      setMessage({ type: 'error', text: 'Please select an image file' });
-      return;
-    }
-
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: 'Please select a valid image file (JPEG, PNG, etc.)' });
-      return;
-    }
-
-    // Check file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'Image size should be less than 5MB' });
-      return;
-    }
-
-    setUploading(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const formData = new FormData();
-      formData.append('image', file);
-
-      console.log('🔼 Starting image upload...', file.name);
-
-      const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about/upload`;
-      console.log('📡 Upload URL:', uploadUrl);
-
-      const res = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // ❌ DON'T set Content-Type - let browser set it with boundary
-        },
-        body: formData
-      });
-
-      console.log('📡 Upload response status:', res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('❌ Upload failed:', errorText);
-        throw new Error(`Upload failed: ${res.status}`);
-      }
-
-      const result = await res.json();
-      console.log('✅ Upload response:', result);
-
-      if (result.success && result.data) {
-        // ✅ Use the imageUrl from backend
-        const imageUrl = result.data.imageUrl;
-        
-        // ✅ Update the state with the new image URL
-        setAboutData(prev => ({
-          ...prev,
-          [imageType]: imageUrl
-        }));
-
-        setMessage({ 
-          type: 'success', 
-          text: `Image uploaded successfully! Don't forget to save changes.` 
-        });
-
-        console.log('🖼️ Image updated in state:', imageType, imageUrl);
-
-      } else {
-        throw new Error(result.message || 'Upload failed');
-      }
-
-    } catch (error) {
-      console.error('❌ Image upload error:', error);
-      setMessage({ 
-        type: 'error', 
-        text: `Upload failed: ${error.message}` 
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSave = async () => {
     setSaving(true);
     setMessage({ type: '', text: '' });
@@ -189,7 +191,6 @@ export default function ManageAbout() {
           text: 'About page updated successfully!' 
         });
         
-        // Refresh data to get latest from server
         setTimeout(() => {
           fetchAboutData();
         }, 1000);
@@ -210,14 +211,12 @@ export default function ManageAbout() {
 
   // ✅ Function to get full image URL for display
   const getFullImageUrl = (imagePath) => {
-    if (!imagePath) return '/placeholder-image.jpg';
+    if (!imagePath) return '';
     
-    // If it's already a full URL, return as is
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
     
-    // If it's a relative path, construct full URL
     if (imagePath.startsWith('/')) {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
       return `${baseUrl}${imagePath}`;
@@ -282,62 +281,70 @@ export default function ManageAbout() {
         </div>
       )}
 
-      {/* Hero Section */}
+      {/* Hero Section - FIXED Image Upload */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-4 sm:p-5 lg:p-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-4 sm:mb-5 lg:mb-6">Hero Section</h2>
         
         <div className="grid lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-          {/* Hero Image */}
+          {/* ✅ FIXED: Hero Image Upload (Service page jaisa) */}
           <div>
             <label className="block text-gray-300 mb-1.5 sm:mb-2 font-medium text-sm sm:text-base">Hero Image</label>
-            <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-3 sm:p-4 text-center">
-              {aboutData.heroImage ? (
-                <img 
-                  src={getFullImageUrl(aboutData.heroImage)} 
-                  alt="Hero preview" 
-                  className="w-full h-32 sm:h-36 lg:h-48 object-cover rounded-lg mb-2 sm:mb-3"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/400x300/1f2937/9ca3af?text=Image+Not+Found';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-32 sm:h-36 lg:h-48 bg-slate-700 rounded-lg flex items-center justify-center mb-2 sm:mb-3">
-                  <ImageIcon className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" />
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start">
+              {/* Image Preview */}
+              <div className="flex-shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
+                  {getFullImageUrl(aboutData.heroImage) ? (
+                    <img 
+                      src={getFullImageUrl(aboutData.heroImage)} 
+                      alt="Hero preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500" />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
               
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    console.log('📁 Selected file:', file.name, file.size);
-                    handleImageUpload(file, 'heroImage');
-                  }
-                  e.target.value = ''; // Reset input
-                }}
-                className="hidden"
-                id="heroImage"
-                disabled={uploading}
-              />
-              <label 
-                htmlFor="heroImage" 
-                className={`cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm ${
-                  uploading 
-                    ? 'text-gray-500 cursor-not-allowed' 
-                    : 'text-purple-400 hover:text-purple-300'
-                }`}
-              >
-                {uploading ? (
-                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                ) : (
-                  <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
+              {/* Upload Controls */}
+              <div className="flex-1 space-y-2 sm:space-y-3">
+                <div>
+                  <label className="block text-gray-400 text-xs sm:text-sm mb-1">Upload Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(e, 'heroImage')}
+                    disabled={uploadingImage}
+                    className="w-full text-xs sm:text-sm text-gray-400 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 disabled:opacity-50"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-400 text-xs sm:text-sm mb-1">Or Enter Image URL</label>
+                  <input
+                    type="url"
+                    value={aboutData.heroImage || ''}
+                    onChange={(e) => setAboutData(prev => ({ ...prev, heroImage: e.target.value }))}
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs sm:text-sm"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+                
+                {uploadingImage && (
+                  <div className="flex items-center gap-2 text-purple-400 text-xs">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Uploading image...
+                  </div>
                 )}
-                {uploading ? 'Uploading...' : 'Change Hero Image'}
-              </label>
-              <p className="text-gray-500 text-xs mt-1">JPEG, PNG, WebP (Max 5MB)</p>
+              </div>
             </div>
+            
+            <p className="text-gray-500 text-xs mt-2">JPEG, PNG, WebP (Max 5MB)</p>
           </div>
 
           {/* Text Content */}
