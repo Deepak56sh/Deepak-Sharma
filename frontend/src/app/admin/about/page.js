@@ -1,4 +1,4 @@
-// src/app/admin/about/page.js - ONLY TEAM IMAGE
+// src/app/admin/about/page.js - FIXED IMAGE UPLOAD
 'use client';
 import { useState, useEffect } from 'react';
 import { Save, Plus, Trash2, Image as ImageIcon, Loader2 } from 'lucide-react';
@@ -9,6 +9,11 @@ export default function ManageAbout() {
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  // ✅ Get API URL - consistent helper
+  const getApiUrl = () => {
+    return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
+  };
 
   const getToken = () => {
     if (typeof window !== 'undefined') {
@@ -23,11 +28,12 @@ export default function ManageAbout() {
 
   const fetchAboutData = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about`);
+      const res = await fetch(`${getApiUrl()}/api/about`);
       
       if (!res.ok) throw new Error('Failed to fetch about data');
       
       const data = await res.json();
+      console.log('📥 Fetched about data:', data.data);
       setAboutData(data.data);
     } catch (error) {
       console.error('Error fetching about data:', error);
@@ -39,16 +45,22 @@ export default function ManageAbout() {
 
   const uploadImage = async (file) => {
     setUploadingImage(true);
+    setMessage({ type: '', text: '' });
+    
     try {
       const token = getToken();
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error('Authentication token not found. Please login again.');
       }
+
+      console.log('📤 Starting upload...');
+      console.log('📁 File:', file.name, file.type, file.size);
 
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about/upload`;
+      const uploadUrl = `${getApiUrl()}/api/about/upload`;
+      console.log('🔗 Upload URL:', uploadUrl);
       
       const res = await fetch(uploadUrl, {
         method: 'POST',
@@ -58,21 +70,26 @@ export default function ManageAbout() {
         body: formData
       });
 
+      console.log('📡 Response status:', res.status);
+
       if (!res.ok) {
-        throw new Error(`Upload failed: ${res.status}`);
+        const errorText = await res.text();
+        console.error('❌ Upload failed:', errorText);
+        throw new Error(`Upload failed: ${res.status} - ${errorText}`);
       }
 
       const result = await res.json();
+      console.log('✅ Upload result:', result);
 
-      if (result.success && result.data) {
-        return result.data.imageUrl;
+      if (result.success && result.data && result.data.imageUrl) {
+        return result.data.imageUrl; // Return relative path: /uploads/about-123.png
       } else {
-        throw new Error(result.message || 'Upload failed');
+        throw new Error(result.message || 'Upload failed - no image URL returned');
       }
 
     } catch (error) {
       console.error('❌ Image upload error:', error);
-      throw new Error(`Upload failed: ${error.message}`);
+      throw error;
     } finally {
       setUploadingImage(false);
     }
@@ -81,6 +98,8 @@ export default function ManageAbout() {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    console.log('🖼️ Image selected:', file.name);
 
     if (!file.type.startsWith('image/')) {
       setMessage({ type: 'error', text: 'Please select a valid image file' });
@@ -92,10 +111,10 @@ export default function ManageAbout() {
       return;
     }
 
-    setMessage({ type: '', text: '' });
-
     try {
       const imageUrl = await uploadImage(file);
+      
+      console.log('✅ Image URL received:', imageUrl);
       
       setAboutData(prev => ({
         ...prev,
@@ -104,16 +123,49 @@ export default function ManageAbout() {
 
       setMessage({ 
         type: 'success', 
-        text: 'Image uploaded successfully! Click Save to update.' 
+        text: '✅ Image uploaded successfully! Click Save to update.' 
       });
 
     } catch (error) {
       console.error('❌ Image processing error:', error);
       setMessage({ 
         type: 'error', 
-        text: `Image upload failed: ${error.message}` 
+        text: `❌ Upload failed: ${error.message}` 
       });
     }
+  };
+
+  // ✅ FIXED: Better image URL handling
+  const getFullImageUrl = (imagePath) => {
+    if (!imagePath) {
+      console.log('⚠️ No image path provided');
+      return '';
+    }
+    
+    console.log('🔍 Processing image path:', imagePath);
+    
+    // If it's already a full URL
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      console.log('✅ Full URL:', imagePath);
+      return imagePath;
+    }
+    
+    // If it's a relative path starting with /uploads/
+    if (imagePath.startsWith('/uploads/')) {
+      const fullUrl = `${getApiUrl()}${imagePath}`;
+      console.log('✅ Converted to full URL:', fullUrl);
+      return fullUrl;
+    }
+    
+    // If it's just the filename
+    if (!imagePath.startsWith('/')) {
+      const fullUrl = `${getApiUrl()}/uploads/${imagePath}`;
+      console.log('✅ Added /uploads/ prefix:', fullUrl);
+      return fullUrl;
+    }
+    
+    console.log('⚠️ Unexpected image path format:', imagePath);
+    return imagePath;
   };
 
   const handleArrayChange = (arrayName, index, field, value) => {
@@ -149,7 +201,9 @@ export default function ManageAbout() {
         throw new Error('Authentication token not found');
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api'}/about`, {
+      console.log('💾 Saving about data:', aboutData);
+
+      const res = await fetch(`${getApiUrl()}/api/about`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -159,11 +213,12 @@ export default function ManageAbout() {
       });
 
       const result = await res.json();
+      console.log('💾 Save result:', result);
 
       if (res.ok && result.success) {
         setMessage({ 
           type: 'success', 
-          text: 'About page updated successfully!' 
+          text: '✅ About page updated successfully!' 
         });
         
         setTimeout(() => {
@@ -177,26 +232,11 @@ export default function ManageAbout() {
       console.error('❌ Save error:', error);
       setMessage({ 
         type: 'error', 
-        text: `Save failed: ${error.message}` 
+        text: `❌ Save failed: ${error.message}` 
       });
     } finally {
       setSaving(false);
     }
-  };
-
-  const getFullImageUrl = (imagePath) => {
-    if (!imagePath) return '';
-    
-    if (imagePath.startsWith('http')) {
-      return imagePath;
-    }
-    
-    if (imagePath.startsWith('/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
-      return `${baseUrl}${imagePath}`;
-    }
-    
-    return imagePath;
   };
 
   if (loading) {
@@ -303,13 +343,17 @@ export default function ManageAbout() {
           {/* Image Preview */}
           <div className="flex-shrink-0">
             <div className="w-48 h-48 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
-              {getFullImageUrl(aboutData.teamImage) ? (
+              {aboutData.teamImage ? (
                 <img 
                   src={getFullImageUrl(aboutData.teamImage)} 
                   alt="Team preview" 
                   className="w-full h-full object-cover"
                   onError={(e) => {
+                    console.error('❌ Image failed to load:', e.target.src);
                     e.target.src = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
+                  }}
+                  onLoad={() => {
+                    console.log('✅ Image loaded successfully');
                   }}
                 />
               ) : (
@@ -317,6 +361,11 @@ export default function ManageAbout() {
                   <ImageIcon className="w-12 h-12 text-gray-500" />
                 </div>
               )}
+            </div>
+            {/* Debug Info */}
+            <div className="mt-2 p-2 bg-slate-900 rounded text-xs text-gray-500 break-all">
+              <div>Path: {aboutData.teamImage || 'None'}</div>
+              <div className="mt-1">Full: {getFullImageUrl(aboutData.teamImage).substring(0, 50)}...</div>
             </div>
           </div>
           
@@ -340,7 +389,7 @@ export default function ManageAbout() {
                 value={aboutData.teamImage || ''}
                 onChange={(e) => setAboutData(prev => ({ ...prev, teamImage: e.target.value }))}
                 className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
-                placeholder="https://example.com/image.jpg"
+                placeholder="https://example.com/image.jpg or /uploads/image.jpg"
               />
             </div>
             

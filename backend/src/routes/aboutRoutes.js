@@ -11,9 +11,7 @@ const {
   addStat,
   deleteStat,
   addValue,
-  deleteValue,
-  addAdditionalImage,
-  deleteAdditionalImage
+  deleteValue
 } = require('../controllers/aboutController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -29,15 +27,19 @@ if (!fs.existsSync(uploadsDir)) {
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log('📁 Saving to directory:', uploadsDir);
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'about-' + uniqueSuffix + path.extname(file.originalname));
+    const filename = 'about-' + uniqueSuffix + path.extname(file.originalname);
+    console.log('📝 Generated filename:', filename);
+    cb(null, filename);
   }
 });
 
 const fileFilter = (req, file, cb) => {
+  console.log('🔍 Checking file type:', file.mimetype);
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -53,31 +55,51 @@ const upload = multer({
   }
 });
 
-// ✅ Image upload route with proper error handling
+// ===== PUBLIC ROUTES =====
+router.get('/', getAbout);
+
+// ===== PROTECTED ROUTES (Need Authentication) =====
+router.use(protect);
+router.use(authorize('admin', 'super-admin'));
+
+// ✅ FIXED: Upload route with authentication and detailed logging
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
-    console.log('📤 Upload request received');
-    console.log('📁 File:', req.file);
+    console.log('=== UPLOAD REQUEST START ===');
+    console.log('📤 Headers:', req.headers);
+    console.log('👤 User:', req.user ? req.user.email : 'Not authenticated');
+    console.log('📁 File received:', req.file);
+    console.log('📍 Upload directory:', uploadsDir);
     
     if (!req.file) {
+      console.log('❌ No file in request');
       return res.status(400).json({
         success: false,
         message: 'No image file provided'
       });
     }
 
+    // Check if file actually exists
+    const filePath = path.join(uploadsDir, req.file.filename);
+    const fileExists = fs.existsSync(filePath);
+    console.log('📂 File exists on disk:', fileExists);
+    console.log('📂 Full file path:', filePath);
+
     // ✅ Return relative URL that matches server.js static path
     const imageUrl = `/uploads/${req.file.filename}`;
-    const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const fullImageUrl = `${baseUrl}${imageUrl}`;
     
-    console.log('✅ Image uploaded successfully:', imageUrl);
+    console.log('✅ Image URL:', imageUrl);
+    console.log('✅ Full Image URL:', fullImageUrl);
+    console.log('=== UPLOAD REQUEST END ===');
     
     res.json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        imageUrl: imageUrl,
-        fullImageUrl: fullImageUrl,
+        imageUrl: imageUrl,           // Relative: /uploads/about-123.png
+        fullImageUrl: fullImageUrl,   // Full: https://domain.com/uploads/about-123.png
         filename: req.file.filename
       }
     });
@@ -91,19 +113,8 @@ router.post('/upload', upload.single('image'), (req, res) => {
   }
 });
 
-// Public routes
-router.get('/', getAbout);
-
-// Protected Admin routes
-router.use(protect);
-router.use(authorize('admin', 'super-admin'));
-
 // Main update route
 router.put('/', updateAbout);
-
-// Additional images routes
-router.post('/additional-images', addAdditionalImage);
-router.delete('/additional-images/:index', deleteAdditionalImage);
 
 // Stats routes
 router.post('/stats', addStat);
