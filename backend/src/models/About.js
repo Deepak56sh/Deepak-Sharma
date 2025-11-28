@@ -1,4 +1,4 @@
-// models/About.js
+// models/About.js - ONLY TEAM IMAGE
 const mongoose = require('mongoose');
 
 const aboutSchema = new mongoose.Schema({
@@ -25,20 +25,11 @@ const aboutSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // New image fields
-  heroImage: {
+  // ✅ ONLY ONE IMAGE FIELD - Team Image
+  teamImage: {
     type: String,
     default: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80'
   },
-  teamImage: {
-    type: String,
-    default: ''
-  },
-  additionalImages: [{
-    url: String,
-    caption: String,
-    altText: String
-  }],
   stats: [{
     number: {
       type: String,
