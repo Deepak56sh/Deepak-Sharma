@@ -18,8 +18,9 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// ✅ FIXED: Correct uploads directory path (project root level)
-const uploadsDir = path.join(__dirname, '../../uploads');
+// ✅ CORRECTED: Match the path in server.js (public/uploads)
+const uploadsDir = path.join(__dirname, '../../public/uploads');
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('✅ Uploads directory created:', uploadsDir);
@@ -52,7 +53,7 @@ const upload = multer({
   }
 });
 
-// ✅ FIXED: Better upload route with error handling
+// ✅ Image upload route with proper error handling
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
     console.log('📤 Upload request received');
@@ -65,7 +66,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
       });
     }
 
-    // ✅ FIXED: Return full URL for frontend
+    // ✅ Return relative URL that matches server.js static path
     const imageUrl = `/uploads/${req.file.filename}`;
     const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
     
@@ -75,8 +76,8 @@ router.post('/upload', upload.single('image'), (req, res) => {
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        imageUrl: imageUrl,  // Relative path
-        fullImageUrl: fullImageUrl, // Full URL
+        imageUrl: imageUrl,
+        fullImageUrl: fullImageUrl,
         filename: req.file.filename
       }
     });
