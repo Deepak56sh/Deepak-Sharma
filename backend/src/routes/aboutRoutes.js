@@ -15,9 +15,9 @@ const {
 } = require('../controllers/aboutController');
 
 const { protect, authorize } = require('../middleware/auth');
-const uploadsDir = 'C:/react-learn/next/Deepak-Sharma/backend/public/uploads';
+
 // ✅ CORRECTED: Match the path in server.js (public/uploads)
-// const uploadsDir = path.join(__dirname, '../../public/uploads');
+const uploadsDir = path.join(__dirname, '../../public/uploads');
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
