@@ -14,7 +14,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/hero`, {
+        const res = await fetch(`${API_URL}/hero`, {
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
