@@ -12,7 +12,7 @@ export default function ManageAbout() {
 
   // ✅ Get API URL - consistent helper
   const getApiUrl = () => {
-    return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
+    return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
   };
 
   const getToken = () => {
@@ -29,9 +29,9 @@ export default function ManageAbout() {
   const fetchAboutData = async () => {
     try {
       const res = await fetch(`${getApiUrl()}/about`);
-      
+
       if (!res.ok) throw new Error('Failed to fetch about data');
-      
+
       const data = await res.json();
       console.log('📥 Fetched about data:', data.data);
       setAboutData(data.data);
@@ -46,7 +46,7 @@ export default function ManageAbout() {
   const uploadImage = async (file) => {
     setUploadingImage(true);
     setMessage({ type: '', text: '' });
-    
+
     try {
       const token = getToken();
       if (!token) {
@@ -61,7 +61,7 @@ export default function ManageAbout() {
 
       const uploadUrl = `${getApiUrl()}/about/upload`;
       console.log('🔗 Upload URL:', uploadUrl);
-      
+
       const res = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
@@ -113,24 +113,24 @@ export default function ManageAbout() {
 
     try {
       const imageUrl = await uploadImage(file);
-      
+
       console.log('✅ Image URL received:', imageUrl);
-      
+
       setAboutData(prev => ({
         ...prev,
         teamImage: imageUrl
       }));
 
-      setMessage({ 
-        type: 'success', 
-        text: '✅ Image uploaded successfully! Click Save to update.' 
+      setMessage({
+        type: 'success',
+        text: '✅ Image uploaded successfully! Click Save to update.'
       });
 
     } catch (error) {
       console.error('❌ Image processing error:', error);
-      setMessage({ 
-        type: 'error', 
-        text: `❌ Upload failed: ${error.message}` 
+      setMessage({
+        type: 'error',
+        text: `❌ Upload failed: ${error.message}`
       });
     }
   };
@@ -138,40 +138,33 @@ export default function ManageAbout() {
   // ✅ FIXED: Better image URL handling
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) {
-      console.log('⚠️ No image path provided');
-      return '';
+      return 'https://via.placeholder.com/200/1f2937/9ca3af?text=No+Image';
     }
-    
-    console.log('🔍 Processing image path:', imagePath);
-    
-    // If it's already a full URL
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      console.log('✅ Full URL:', imagePath);
+
+    // If already full URL
+    if (imagePath.startsWith('http')) {
       return imagePath;
     }
-    
-    // If it's a relative path starting with /uploads/
-    if (imagePath.startsWith('/uploads/')) {
-      const fullUrl = `${getApiUrl()}${imagePath}`;
-      console.log('✅ Converted to full URL:', fullUrl);
-      return fullUrl;
+
+    // Get base URL WITHOUT /api
+    const BASE_URL = 'https://my-site-backend-0661.onrender.com';
+
+    // Clean image path
+    let cleanPath = imagePath;
+    if (cleanPath.startsWith('/api')) {
+      cleanPath = cleanPath.replace('/api', '');
     }
-    
-    // If it's just the filename
-    if (!imagePath.startsWith('/')) {
-      const fullUrl = `${getApiUrl()}/uploads/${imagePath}`;
-      console.log('✅ Added /uploads/ prefix:', fullUrl);
-      return fullUrl;
+    if (!cleanPath.startsWith('/uploads/')) {
+      cleanPath = '/uploads/' + cleanPath.replace(/^\/+/, '');
     }
-    
-    console.log('⚠️ Unexpected image path format:', imagePath);
-    return imagePath;
+
+    return BASE_URL + cleanPath;
   };
 
   const handleArrayChange = (arrayName, index, field, value) => {
     setAboutData(prev => ({
       ...prev,
-      [arrayName]: prev[arrayName].map((item, i) => 
+      [arrayName]: prev[arrayName].map((item, i) =>
         i === index ? { ...item, [field]: value } : item
       )
     }));
@@ -216,23 +209,23 @@ export default function ManageAbout() {
       console.log('💾 Save result:', result);
 
       if (res.ok && result.success) {
-        setMessage({ 
-          type: 'success', 
-          text: '✅ About page updated successfully!' 
+        setMessage({
+          type: 'success',
+          text: '✅ About page updated successfully!'
         });
-        
+
         setTimeout(() => {
           fetchAboutData();
         }, 1000);
-        
+
       } else {
         throw new Error(result.message || 'Update failed');
       }
     } catch (error) {
       console.error('❌ Save error:', error);
-      setMessage({ 
-        type: 'error', 
-        text: `❌ Save failed: ${error.message}` 
+      setMessage({
+        type: 'error',
+        text: `❌ Save failed: ${error.message}`
       });
     } finally {
       setSaving(false);
@@ -252,7 +245,7 @@ export default function ManageAbout() {
     return (
       <div className="text-center py-20">
         <p className="text-red-400">Failed to load about data</p>
-        <button 
+        <button
           onClick={fetchAboutData}
           className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
         >
@@ -286,11 +279,10 @@ export default function ManageAbout() {
 
       {/* Message */}
       {message.text && (
-        <div className={`p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+        <div className={`p-4 rounded-lg ${message.type === 'success'
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
             : 'bg-red-500/20 text-red-400 border border-red-500/30'
-        }`}>
+          }`}>
           {message.text}
         </div>
       )}
@@ -298,7 +290,7 @@ export default function ManageAbout() {
       {/* Content Section */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Content</h2>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-gray-300 mb-2 font-medium">Title</label>
@@ -338,22 +330,25 @@ export default function ManageAbout() {
       {/* Team Image Section */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Team Image</h2>
-        
+
         <div className="flex gap-6 items-start">
           {/* Image Preview */}
           <div className="flex-shrink-0">
             <div className="w-48 h-48 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
               {aboutData.teamImage ? (
-                <img 
-                  src={getFullImageUrl(aboutData.teamImage)} 
-                  alt="Team preview" 
+                <img
+                  src={getFullImageUrl(aboutData.teamImage)}
+                  alt="Team preview"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.error('❌ Image failed to load:', e.target.src);
-                    e.target.src = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
+                    const placeholder = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
+                    if (e.target.src !== placeholder) {
+                      console.error('❌ Image failed to load:', e.target.src);
+                      e.target.src = placeholder;
+                    }
                   }}
                   onLoad={() => {
-                    console.log('✅ Image loaded successfully');
+                    console.log('✅ Image loaded successfully:', e.target.src);
                   }}
                 />
               ) : (
@@ -368,7 +363,7 @@ export default function ManageAbout() {
               <div className="mt-1">Full: {getFullImageUrl(aboutData.teamImage).substring(0, 50)}...</div>
             </div>
           </div>
-          
+
           {/* Upload Controls */}
           <div className="flex-1 space-y-3">
             <div>
@@ -381,7 +376,7 @@ export default function ManageAbout() {
                 className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 disabled:opacity-50"
               />
             </div>
-            
+
             <div>
               <label className="block text-gray-400 text-sm mb-2">Or Enter Image URL</label>
               <input
@@ -392,7 +387,7 @@ export default function ManageAbout() {
                 placeholder="https://example.com/image.jpg or /uploads/image.jpg"
               />
             </div>
-            
+
             {uploadingImage && (
               <div className="flex items-center gap-2 text-purple-400 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -401,14 +396,14 @@ export default function ManageAbout() {
             )}
           </div>
         </div>
-        
+
         <p className="text-gray-500 text-xs mt-3">JPEG, PNG, WebP (Max 5MB)</p>
       </div>
 
       {/* Description Section */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Description</h2>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-gray-300 mb-2 font-medium">Description 1</label>
