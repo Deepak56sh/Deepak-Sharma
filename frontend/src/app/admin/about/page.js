@@ -28,7 +28,7 @@ export default function ManageAbout() {
 
   const fetchAboutData = async () => {
     try {
-      const res = await fetch(`${getApiUrl()}/api/about`);
+      const res = await fetch(`${getApiUrl()}/about`);
       
       if (!res.ok) throw new Error('Failed to fetch about data');
       
@@ -59,7 +59,7 @@ export default function ManageAbout() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadUrl = `${getApiUrl()}/api/about/upload`;
+      const uploadUrl = `${getApiUrl()}/about/upload`;
       console.log('🔗 Upload URL:', uploadUrl);
       
       const res = await fetch(uploadUrl, {
@@ -203,7 +203,7 @@ export default function ManageAbout() {
 
       console.log('💾 Saving about data:', aboutData);
 
-      const res = await fetch(`${getApiUrl()}/api/about`, {
+      const res = await fetch(`${getApiUrl()}/about`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
