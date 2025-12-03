@@ -22,7 +22,7 @@ export default function HeroManagement() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_URL}/api/hero`);
+      const response = await fetch(`${API_URL}/hero`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch hero data');
