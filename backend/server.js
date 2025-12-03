@@ -17,8 +17,6 @@ app.use(cors({
     // List of allowed origins
     const allowedOrigins = [
       'http://localhost:3000',
-      'https://deepak-sharma-gddk.vercel.app',
-      'https://deepak-sharma-gddk.vercel.app/',
       'https://my-site-backend-0661.onrender.com'
     ];
     
