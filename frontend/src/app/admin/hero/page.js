@@ -64,7 +64,7 @@ export default function HeroManagement() {
       setError(null);
       setSuccessMessage('');
 
-      const response = await fetch(`${API_URL}./hero`, {
+      const response = await fetch(`${API_URL}/hero`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
