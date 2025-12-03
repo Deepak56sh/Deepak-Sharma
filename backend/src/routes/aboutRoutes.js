@@ -16,7 +16,6 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// ✅ CORRECTED: Match the path in server.js (public/uploads)
 const uploadsDir = path.join(__dirname, '../../public/uploads');
 
 if (!fs.existsSync(uploadsDir)) {
