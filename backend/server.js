@@ -12,6 +12,25 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
+// ✅ FIX: Increase payload size limit (ADD THIS AT THE TOP - BEFORE CORS)
+app.use(express.json({ limit: '50mb' })); // 50MB limit for JSON
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '50mb'  // 50MB limit for URL-encoded
+}));
+
+// ✅ FIXED CORS MIDDLEWARE - ABHI ADD KAREN (app defined hone ke baad)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://deepakch.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // ✅ FIX: Detect Render.com properly
 const isRender = process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production';
 
@@ -65,20 +84,16 @@ const createUploadsDirectory = () => {
 
 const actualUploadsPath = createUploadsDirectory();
 
-// ✅ FIX: Increase payload size limit (ADD THIS AT THE TOP - BEFORE CORS)
-app.use(express.json({ limit: '50mb' })); // 50MB limit for JSON
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: '50mb'  // 50MB limit for URL-encoded
-}));
-
-// ✅ FIX: Simple CORS configuration
+// ✅ FIX: CRITICAL - ALSO KEEP THE CORS PACKAGE CONFIGURATION
+// YEH APNE FRONTEND DOMAINS KE LIYE IMPORTANT HAI
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://my-site-backend-0661.onrender.com'],
-  credentials: true
+  origin: ['http://localhost:3000', 'https://deepakch.vercel.app'], // ✅ YAHAN CHANGE KAREN
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ CRITICAL FIX: Static file serving - SIMPLE AND CLEAN
+// ✅ FIX: Static file serving - SIMPLE AND CLEAN
 app.use('/uploads', express.static(actualUploadsPath, {
   setHeaders: (res, filePath) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
