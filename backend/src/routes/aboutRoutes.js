@@ -16,8 +16,8 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// ✅ Setup uploads directory
-const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+// ✅ CORRECT: Use __dirname to get absolute path
+const uploadsDir = path.join(__dirname, '..', '..', 'public', 'uploads');
 
 // Ensure directory exists
 if (!fs.existsSync(uploadsDir)) {
@@ -28,7 +28,7 @@ if (!fs.existsSync(uploadsDir)) {
 // ✅ Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log('📁 Multer saving to:', uploadsDir);
+    console.log('📁 Multer destination:', uploadsDir);
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {

@@ -4,12 +4,20 @@ const dotenv = require('dotenv');
 const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const path = require('path');
+const fs = require('fs'); // Add this line
 
 // Load env vars FIRST
 dotenv.config();
 
 // Initialize express app
 const app = express();
+
+// ✅ FIX: Create uploads directory if it doesn't exist
+const uploadsPath = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+  console.log('✅ Created uploads directory:', uploadsPath);
+}
 
 // ✅ FIXED CORS Configuration - Allow multiple origins
 app.use(cors({
@@ -34,16 +42,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// ✅ ALTERNATIVE SIMPLE FIX - Allow all origins (temporary)
-// app.use(cors({
-//   origin: "*", // Sabko allow karo temporarily
-//   credentials: true
-// }));
-
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ CRITICAL FIX: Static files MUST be before API routes
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
   setHeaders: function(res, path) {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -116,6 +119,7 @@ connectDB()
       console.log(`🔗 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
       console.log(`💾 Database: MongoDB Atlas Connected`);
       console.log(`📁 Uploads: http://localhost:${PORT}/uploads/`);
+      console.log(`📂 Uploads Directory: ${uploadsPath}`);
       console.log(`✨ ==============================================\n`);
     });
 

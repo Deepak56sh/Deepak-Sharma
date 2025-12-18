@@ -13,6 +13,12 @@ export default function ManageAbout() {
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
   };
+
+  const getBaseUrl = () => {
+    // Base URL for static files (WITHOUT /api path)
+    return process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
+  };
+
   const getToken = () => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('adminToken');
