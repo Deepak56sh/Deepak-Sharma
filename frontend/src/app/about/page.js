@@ -1,3 +1,4 @@
+// src/app/about/page.js - ONLY TEAM IMAGE
 'use client';
 import { useState, useEffect } from 'react';
 import { Users, Target, Award, TrendingUp, AlertCircle } from 'lucide-react';
@@ -47,20 +48,16 @@ export default function AboutPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ FIXED: Correct URL construction
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) return '';
     
-    // If already full URL (external image)
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
     
-    // If it's a relative path from backend
     if (imagePath.startsWith('/uploads/')) {
-      // Get base backend URL WITHOUT /api
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
-      return `${backendUrl}${imagePath}`;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
+      return `${apiUrl}${imagePath}`;
     }
     
     return imagePath;
@@ -69,8 +66,7 @@ export default function AboutPage() {
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
-        // API URL includes /api for endpoints
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
         
         const res = await fetch(`${apiUrl}/about`, {
           method: 'GET',
@@ -87,7 +83,6 @@ export default function AboutPage() {
         const result = await res.json();
         
         if (result.success && result.data) {
-          console.log('✅ About data loaded:', result.data);
           setAboutData(result.data);
         } else {
           throw new Error('Invalid response format');
@@ -106,7 +101,6 @@ export default function AboutPage() {
   }, []);
 
   const teamImageUrl = aboutData ? getFullImageUrl(aboutData.teamImage) : '';
-  console.log('🖼️ Team image URL:', teamImageUrl);
 
   if (loading) {
     return (
@@ -175,11 +169,8 @@ export default function AboutPage() {
                 alt="Our Team" 
                 className="relative rounded-3xl shadow-2xl w-full h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
                 onError={(e) => {
-                  console.error('❌ Image failed to load:', teamImageUrl);
+                  console.error('Image failed to load:', teamImageUrl);
                   e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80';
-                }}
-                onLoad={() => {
-                  console.log('✅ Image loaded successfully:', teamImageUrl);
                 }}
               />
             </div>

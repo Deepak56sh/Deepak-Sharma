@@ -9,12 +9,10 @@ export default function ManageAbout() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // ✅ API URL for endpoints (includes /api)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
-  
-  // ✅ Backend URL for static files (NO /api)
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
-
+  // ✅ CRITICAL FIX: Separate API URL (with /api) from Base URL (without /api)
+  const getApiUrl = () => {
+    return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+  };
   const getToken = () => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('adminToken');
@@ -28,7 +26,7 @@ export default function ManageAbout() {
 
   const fetchAboutData = async () => {
     try {
-      const res = await fetch(`${API_URL}/about`);
+      const res = await fetch(`${getApiUrl()}/about`);
 
       if (!res.ok) throw new Error('Failed to fetch about data');
 
@@ -59,7 +57,7 @@ export default function ManageAbout() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const uploadUrl = `${API_URL}/about/upload`;
+      const uploadUrl = `${getApiUrl()}/about/upload`;
       console.log('🔗 Upload URL:', uploadUrl);
 
       const res = await fetch(uploadUrl, {
@@ -82,8 +80,7 @@ export default function ManageAbout() {
       console.log('✅ Upload result:', result);
 
       if (result.success && result.data && result.data.imageUrl) {
-        // Backend returns: /uploads/about-123.jpg
-        return result.data.imageUrl;
+        return result.data.imageUrl; // Should be: /uploads/about-123.png
       } else {
         throw new Error(result.message || 'Upload failed - no image URL returned');
       }
@@ -114,17 +111,17 @@ export default function ManageAbout() {
 
     try {
       const imageUrl = await uploadImage(file);
+
       console.log('✅ Image URL received:', imageUrl);
 
-      // Save the relative path to state
       setAboutData(prev => ({
         ...prev,
-        teamImage: imageUrl  // /uploads/about-123.jpg
+        teamImage: imageUrl
       }));
 
       setMessage({
         type: 'success',
-        text: '✅ Image uploaded! Click "Save Changes" to apply.'
+        text: '✅ Image uploaded successfully! Click Save to update.'
       });
 
     } catch (error) {
@@ -136,28 +133,42 @@ export default function ManageAbout() {
     }
   };
 
-  // ✅ FIXED: Construct full URL for display
+  // ✅ CRITICAL FIX: Use base URL without /api for image access
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) {
       return 'https://via.placeholder.com/200/1f2937/9ca3af?text=No+Image';
     }
 
-    // If already full URL (external)
+    // If already full URL
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
 
-    // If relative path from backend
-    if (imagePath.startsWith('/uploads/')) {
-      const fullUrl = `${BACKEND_URL}${imagePath}`;
-      console.log('🖼️ Image URL:', {
-        stored: imagePath,
-        full: fullUrl
-      });
-      return fullUrl;
+    // ✅ Use BASE URL (without /api) for static files
+    const BASE_URL = getBaseUrl();
+
+    // Clean the path
+    let cleanPath = imagePath;
+    
+    // Remove /api if present (shouldn't be, but just in case)
+    if (cleanPath.startsWith('/api')) {
+      cleanPath = cleanPath.replace('/api', '');
+    }
+    
+    // Ensure /uploads/ prefix
+    if (!cleanPath.startsWith('/uploads/')) {
+      cleanPath = '/uploads/' + cleanPath.replace(/^\/+/, '');
     }
 
-    return imagePath;
+    const finalUrl = BASE_URL + cleanPath;
+    console.log('🖼️ Constructing image URL:', {
+      input: imagePath,
+      baseUrl: BASE_URL,
+      cleanPath: cleanPath,
+      output: finalUrl
+    });
+    
+    return finalUrl;
   };
 
   const handleArrayChange = (arrayName, index, field, value) => {
@@ -195,7 +206,7 @@ export default function ManageAbout() {
 
       console.log('💾 Saving about data:', aboutData);
 
-      const res = await fetch(`${API_URL}/about`, {
+      const res = await fetch(`${getApiUrl()}/about`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -330,47 +341,45 @@ export default function ManageAbout() {
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Team Image</h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="flex gap-6 items-start">
           {/* Image Preview */}
-          <div>
-            <label className="block text-gray-400 text-sm mb-2">Preview</label>
-            <div className="w-full h-64 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
+          <div className="flex-shrink-0">
+            <div className="w-48 h-48 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
               {aboutData.teamImage ? (
                 <img
                   src={getFullImageUrl(aboutData.teamImage)}
                   alt="Team preview"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    const placeholder = 'https://via.placeholder.com/400/1f2937/9ca3af?text=Load+Error';
+                    const placeholder = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
                     if (e.target.src !== placeholder) {
                       console.error('❌ Image failed to load:', e.target.src);
                       e.target.src = placeholder;
                     }
                   }}
                   onLoad={(e) => {
-                    console.log('✅ Image loaded:', e.target.src);
+                    console.log('✅ Image loaded successfully:', e.target.src);
                   }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <ImageIcon className="w-16 h-16 text-gray-500" />
+                  <ImageIcon className="w-12 h-12 text-gray-500" />
                 </div>
               )}
             </div>
-            
             {/* Debug Info */}
-            <div className="mt-3 p-3 bg-slate-900 rounded text-xs font-mono space-y-1">
-              <div className="text-gray-500">Stored Path:</div>
+            <div className="mt-2 p-2 bg-slate-900 rounded text-xs font-mono">
+              <div className="text-gray-500">Stored path:</div>
               <div className="text-purple-400 break-all">{aboutData.teamImage || 'None'}</div>
-              <div className="text-gray-500 mt-2">Full URL:</div>
+              <div className="text-gray-500 mt-1">Full URL:</div>
               <div className="text-green-400 break-all text-[10px]">
-                {getFullImageUrl(aboutData.teamImage)}
+                {getFullImageUrl(aboutData.teamImage).substring(0, 60)}...
               </div>
             </div>
           </div>
 
           {/* Upload Controls */}
-          <div className="space-y-4">
+          <div className="flex-1 space-y-3">
             <div>
               <label className="block text-gray-400 text-sm mb-2">Upload New Image</label>
               <input
@@ -378,35 +387,32 @@ export default function ManageAbout() {
                 accept="image/*"
                 onChange={handleImageChange}
                 disabled={uploadingImage}
-                className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 disabled:opacity-50 cursor-pointer"
+                className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 disabled:opacity-50"
               />
-              <p className="text-xs text-gray-500 mt-2">
-                JPEG, PNG, WebP • Max 5MB
-              </p>
             </div>
 
-            <div className="relative">
+            <div>
               <label className="block text-gray-400 text-sm mb-2">Or Enter Image URL</label>
               <input
                 type="url"
                 value={aboutData.teamImage || ''}
                 onChange={(e) => setAboutData(prev => ({ ...prev, teamImage: e.target.value }))}
-                className="w-full px-3 py-2 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
-                placeholder="https://example.com/image.jpg"
+                className="w-full px-3 py-2 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500 text-sm"
+                placeholder="https://example.com/image.jpg or /uploads/image.jpg"
               />
             </div>
 
             {uploadingImage && (
-              <div className="flex items-center gap-2 text-purple-400 text-sm bg-purple-500/10 p-3 rounded-lg">
+              <div className="flex items-center gap-2 text-purple-400 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Uploading image...</span>
+                Uploading image...
               </div>
             )}
 
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-              <p className="text-blue-400 text-xs">
-                ℹ️ After uploading, click <strong>"Save Changes"</strong> to update the page.
-              </p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <div>✓ Accepted: JPEG, PNG, WebP</div>
+              <div>✓ Max size: 5MB</div>
+              <div className="text-yellow-500">⚠ Click "Save Changes" after upload</div>
             </div>
           </div>
         </div>
@@ -506,7 +512,7 @@ export default function ManageAbout() {
                   placeholder="Emoji"
                   value={value.emoji}
                   onChange={(e) => handleArrayChange('values', index, 'emoji', e.target.value)}
-                  className="w-16 px-3 py-2 bg-slate-600 border border-purple-500/20 rounded text-white focus:outline-none focus:border-purple-500 text-center text-2xl"
+                  className="w-16 px-3 py-2 bg-slate-600 border border-purple-500/20 rounded text-white focus:outline-none focus:border-purple-500 text-center"
                 />
                 <input
                   type="text"
