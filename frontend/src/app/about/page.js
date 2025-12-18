@@ -1,4 +1,3 @@
-// src/app/about/page.js - ONLY TEAM IMAGE
 'use client';
 import { useState, useEffect } from 'react';
 import { Users, Target, Award, TrendingUp, AlertCircle } from 'lucide-react';
@@ -48,16 +47,47 @@ export default function AboutPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ FIXED: Correct image URL construction
   const getFullImageUrl = (imagePath) => {
-    if (!imagePath) return '';
+    console.log('🖼️ Original image path:', imagePath);
     
+    if (!imagePath) {
+      return 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80';
+    }
+    
+    // If already full URL, return as is
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
     
+    // ✅ FIX: For /uploads paths, construct proper URL
     if (imagePath.startsWith('/uploads/')) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
-      return `${apiUrl}${imagePath}`;
+      // Remove /api if present (for consistency)
+      let cleanPath = imagePath;
+      if (cleanPath.startsWith('/api')) {
+        cleanPath = cleanPath.replace('/api', '');
+      }
+      
+      // ✅ Use BASE URL (without /api) for static files
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
+      
+      // Ensure no double slashes
+      const finalUrl = BASE_URL + cleanPath.replace(/^\/+/, '/');
+      
+      console.log('🖼️ Constructed URL:', {
+        input: imagePath,
+        base: BASE_URL,
+        cleanPath: cleanPath,
+        output: finalUrl
+      });
+      
+      return finalUrl;
+    }
+    
+    // If it's just a filename, assume it's in uploads
+    if (!imagePath.includes('/')) {
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
+      return `${BASE_URL}/uploads/${imagePath}`;
     }
     
     return imagePath;
@@ -66,7 +96,8 @@ export default function AboutPage() {
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
+        // ✅ FIXED: Use correct API endpoint
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
         
         const res = await fetch(`${apiUrl}/about`, {
           method: 'GET',
@@ -76,13 +107,17 @@ export default function AboutPage() {
           cache: 'no-cache'
         });
         
+        console.log('📥 Fetch response status:', res.status);
+        
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
 
         const result = await res.json();
+        console.log('📥 Fetched about data:', result);
         
         if (result.success && result.data) {
+          console.log('🖼️ Team image from API:', result.data.teamImage);
           setAboutData(result.data);
         } else {
           throw new Error('Invalid response format');
@@ -100,8 +135,6 @@ export default function AboutPage() {
     fetchAboutData();
   }, []);
 
-  const teamImageUrl = aboutData ? getFullImageUrl(aboutData.teamImage) : '';
-
   if (loading) {
     return (
       <div className="pt-32 pb-20 px-6">
@@ -113,25 +146,8 @@ export default function AboutPage() {
     );
   }
 
-  if (!aboutData) {
-    return (
-      <div className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-6 max-w-md mx-auto">
-            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <p className="text-red-400 text-lg mb-2">Failed to load about page</p>
-            <p className="text-gray-400 text-sm">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const dataToUse = aboutData || defaultAboutData;
+  const teamImageUrl = getFullImageUrl(dataToUse.teamImage);
 
   return (
     <div className="pt-32 pb-20 px-6">
@@ -150,11 +166,11 @@ export default function AboutPage() {
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6">
               <span className="text-gradient bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                {aboutData.title}
+                {dataToUse.title}
               </span>
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              {aboutData.subtitle}
+              {dataToUse.subtitle}
             </p>
           </div>
         </AnimatedSection>
@@ -169,19 +185,24 @@ export default function AboutPage() {
                 alt="Our Team" 
                 className="relative rounded-3xl shadow-2xl w-full h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
                 onError={(e) => {
-                  console.error('Image failed to load:', teamImageUrl);
+                  console.error('❌ Image failed to load:', teamImageUrl);
                   e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80';
                 }}
+                onLoad={() => console.log('✅ Image loaded:', teamImageUrl)}
               />
+              {/* Debug info */}
+              <div className="mt-2 text-xs text-gray-500">
+                <div className="truncate">URL: {teamImageUrl.substring(0, 50)}...</div>
+              </div>
             </div>
 
             <div className="space-y-6">
-              <h2 className="text-4xl font-bold text-white">{aboutData.mainHeading}</h2>
+              <h2 className="text-4xl font-bold text-white">{dataToUse.mainHeading}</h2>
               <p className="text-gray-300 text-lg leading-relaxed">
-                {aboutData.description1}
+                {dataToUse.description1}
               </p>
               <p className="text-gray-300 text-lg leading-relaxed">
-                {aboutData.description2}
+                {dataToUse.description2}
               </p>
             </div>
           </div>
@@ -190,7 +211,7 @@ export default function AboutPage() {
         {/* Stats */}
         <AnimatedSection>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-            {aboutData.stats.map((stat, i) => {
+            {dataToUse.stats.map((stat, i) => {
               const IconComponent = iconMap[stat.label] || Award;
               return (
                 <div 
@@ -220,7 +241,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {aboutData.values.map((value, i) => (
+            {dataToUse.values.map((value, i) => (
               <div 
                 key={i}
                 className="p-8 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300"
