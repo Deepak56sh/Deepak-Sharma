@@ -1,7 +1,5 @@
 const Service = require('../models/Service');
 const asyncHandler = require('express-async-handler');
-const path = require('path');
-const fs = require('fs');
 
 // @desc    Get all services (Public)
 // @route   GET /api/services
@@ -43,18 +41,18 @@ exports.getAllServices = asyncHandler(async (req, res) => {
   
   // Filter featured services
   if (featured === 'true') {
-    query.order = { $lte: 6 }; // Assuming first 6 are featured
+    query.order = { $lte: 6 };
   }
   
   const skip = (parseInt(page) - 1) * parseInt(limit);
-  const limitNum = parseInt(limit) > 100 ? 100 : parseInt(limit); // Prevent too large limits
+  const limitNum = parseInt(limit) > 100 ? 100 : parseInt(limit);
   
   // Get services with pagination
   const services = await Service.find(query)
     .sort({ order: 1, createdAt: -1 })
     .limit(limitNum)
     .skip(skip)
-    .select('-__v'); // Exclude version key
+    .select('-__v');
   
   const total = await Service.countDocuments(query);
   
@@ -113,12 +111,12 @@ exports.createService = asyncHandler(async (req, res) => {
     title,
     description,
     image,
-    icon,
-    color,
+    icon = 'Code',
+    color = 'from-purple-500 to-pink-500',
     features = [],
-    category,
-    price,
-    duration,
+    category = 'Other',
+    price = 'Contact for pricing',
+    duration = 'Varies',
     isActive = true,
     order = 0,
     metaTitle,
@@ -126,17 +124,54 @@ exports.createService = asyncHandler(async (req, res) => {
     tags = []
   } = req.body;
   
-  // Validate required fields
-  if (!title || !description || !image) {
+  // ✅ FIX: Validate and sanitize input data
+  if (!title || !title.trim()) {
     return res.status(400).json({
       success: false,
-      message: 'Title, description, and image are required'
+      message: 'Service title is required'
     });
   }
   
-  // Check if service with similar title exists
+  if (!description || !description.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Service description is required'
+    });
+  }
+  
+  if (!image || !image.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Service image URL is required'
+    });
+  }
+  
+  // Trim and limit all fields
+  const cleanTitle = title.trim().substring(0, 100);
+  const cleanDescription = description.trim().substring(0, 500); // Increased to 500 chars
+  const cleanImage = image.trim();
+  
+  // Process features
+  let cleanFeatures = [];
+  if (Array.isArray(features)) {
+    cleanFeatures = features
+      .filter(f => f && typeof f === 'string' && f.trim().length > 0)
+      .map(f => f.trim().substring(0, 100))
+      .slice(0, 10); // Max 10 features
+  }
+  
+  // Process tags
+  let cleanTags = [];
+  if (Array.isArray(tags)) {
+    cleanTags = tags
+      .filter(t => t && typeof t === 'string' && t.trim().length > 0)
+      .map(t => t.trim().substring(0, 50))
+      .slice(0, 10);
+  }
+  
+  // Check for duplicate title
   const existingService = await Service.findOne({ 
-    title: { $regex: new RegExp(`^${title}$`, 'i') } 
+    title: { $regex: new RegExp(`^${cleanTitle}$`, 'i') } 
   });
   
   if (existingService) {
@@ -148,21 +183,21 @@ exports.createService = asyncHandler(async (req, res) => {
   
   // Create service
   const service = await Service.create({
-    title,
-    description: description.substring(0, 500), // Ensure length limit
-    image,
-    icon: icon || 'Code',
-    color: color || 'from-purple-500 to-pink-500',
-    features: Array.isArray(features) ? features.filter(f => f.trim()) : [],
-    category: category || 'Other',
-    price: price || 'Contact for pricing',
-    duration: duration || 'Varies',
-    isActive,
+    title: cleanTitle,
+    description: cleanDescription,
+    image: cleanImage,
+    icon: icon.trim() || 'Code',
+    color: color.trim() || 'from-purple-500 to-pink-500',
+    features: cleanFeatures,
+    category: category.trim() || 'Other',
+    price: price.trim() || 'Contact for pricing',
+    duration: duration.trim() || 'Varies',
+    isActive: Boolean(isActive),
     order: parseInt(order) || 0,
-    metaTitle: metaTitle || title,
-    metaDescription: metaDescription || description.substring(0, 160),
-    tags: Array.isArray(tags) ? tags : typeof tags === 'string' ? tags.split(',').map(t => t.trim()).filter(t => t) : [],
-    createdBy: req.admin.id
+    metaTitle: metaTitle ? metaTitle.trim().substring(0, 100) : cleanTitle.substring(0, 100),
+    metaDescription: metaDescription ? metaDescription.trim().substring(0, 160) : cleanDescription.substring(0, 160),
+    tags: cleanTags,
+    createdBy: req.admin?.id || 'admin'
   });
   
   res.status(201).json({
@@ -187,38 +222,108 @@ exports.updateService = asyncHandler(async (req, res) => {
     });
   }
   
-  // Check if title is being changed and if new title already exists
-  if (req.body.title && req.body.title !== service.title) {
-    const existingService = await Service.findOne({ 
-      title: { $regex: new RegExp(`^${req.body.title}$`, 'i') },
-      _id: { $ne: id }
-    });
-    
-    if (existingService) {
-      return res.status(400).json({
-        success: false,
-        message: 'Service with this title already exists'
-      });
-    }
-  }
-  
-  // Prepare update data
+  // Prepare update data with sanitization
   const updateData = { ...req.body };
   
-  // Process arrays properly
-  if (updateData.features && typeof updateData.features === 'string') {
-    updateData.features = updateData.features.split(',').map(f => f.trim()).filter(f => f);
+  // Sanitize title
+  if (updateData.title !== undefined) {
+    if (!updateData.title || !updateData.title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service title cannot be empty'
+      });
+    }
+    
+    const cleanTitle = updateData.title.trim().substring(0, 100);
+    
+    // Check if new title already exists (excluding current service)
+    if (cleanTitle !== service.title) {
+      const existingService = await Service.findOne({ 
+        title: { $regex: new RegExp(`^${cleanTitle}$`, 'i') },
+        _id: { $ne: id }
+      });
+      
+      if (existingService) {
+        return res.status(400).json({
+          success: false,
+          message: 'Service with this title already exists'
+        });
+      }
+    }
+    
+    updateData.title = cleanTitle;
   }
   
-  if (updateData.tags && typeof updateData.tags === 'string') {
-    updateData.tags = updateData.tags.split(',').map(t => t.trim()).filter(t => t);
+  // Sanitize description
+  if (updateData.description !== undefined) {
+    if (!updateData.description || !updateData.description.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Description cannot be empty'
+      });
+    }
+    
+    updateData.description = updateData.description.trim().substring(0, 500);
   }
   
-  // Ensure order is number
-  if (updateData.order) {
-    updateData.order = parseInt(updateData.order);
+  // Sanitize features
+  if (updateData.features !== undefined) {
+    let cleanFeatures = [];
+    if (Array.isArray(updateData.features)) {
+      cleanFeatures = updateData.features
+        .filter(f => f && typeof f === 'string' && f.trim().length > 0)
+        .map(f => f.trim().substring(0, 100))
+        .slice(0, 10);
+    }
+    updateData.features = cleanFeatures;
   }
   
+  // Sanitize tags
+  if (updateData.tags !== undefined) {
+    let cleanTags = [];
+    if (Array.isArray(updateData.tags)) {
+      cleanTags = updateData.tags
+        .filter(t => t && typeof t === 'string' && t.trim().length > 0)
+        .map(t => t.trim().substring(0, 50))
+        .slice(0, 10);
+    }
+    updateData.tags = cleanTags;
+  }
+  
+  // Sanitize other fields
+  if (updateData.image !== undefined) {
+    updateData.image = updateData.image ? updateData.image.trim() : service.image;
+  }
+  
+  if (updateData.icon !== undefined) {
+    updateData.icon = updateData.icon ? updateData.icon.trim() : 'Code';
+  }
+  
+  if (updateData.color !== undefined) {
+    updateData.color = updateData.color ? updateData.color.trim() : 'from-purple-500 to-pink-500';
+  }
+  
+  if (updateData.category !== undefined) {
+    updateData.category = updateData.category ? updateData.category.trim() : 'Other';
+  }
+  
+  if (updateData.price !== undefined) {
+    updateData.price = updateData.price ? updateData.price.trim() : 'Contact for pricing';
+  }
+  
+  if (updateData.duration !== undefined) {
+    updateData.duration = updateData.duration ? updateData.duration.trim() : 'Varies';
+  }
+  
+  if (updateData.order !== undefined) {
+    updateData.order = parseInt(updateData.order) || 0;
+  }
+  
+  if (updateData.isActive !== undefined) {
+    updateData.isActive = Boolean(updateData.isActive);
+  }
+  
+  // Update service
   service = await Service.findByIdAndUpdate(
     id,
     updateData,
@@ -294,7 +399,6 @@ exports.reorderServices = asyncHandler(async (req, res) => {
   }
   
   try {
-    // Update all services in bulk
     const bulkOps = services.map(item => ({
       updateOne: {
         filter: { _id: item.id },
@@ -317,7 +421,7 @@ exports.reorderServices = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get service statistics
-// @route   GET /api/services/stats
+// @route   GET /api/services/stats/all
 // @access  Public/Private
 exports.getServiceStats = asyncHandler(async (req, res) => {
   try {
@@ -340,7 +444,6 @@ exports.getServiceStats = asyncHandler(async (req, res) => {
       }
     ]);
     
-    // Get recent services
     const recentServices = await Service.find()
       .sort({ createdAt: -1 })
       .limit(5)
@@ -362,29 +465,4 @@ exports.getServiceStats = asyncHandler(async (req, res) => {
       message: 'Error fetching service statistics'
     });
   }
-});
-
-// @desc    Upload service image
-// @route   POST /api/services/upload
-// @access  Private/Admin
-exports.uploadServiceImage = asyncHandler(async (req, res) => {
-  // This is a placeholder for image upload functionality
-  // You'll need to integrate with Multer, Cloudinary, or AWS S3
-  
-  if (!req.body.imageUrl) {
-    return res.status(400).json({
-      success: false,
-      message: 'Image URL is required'
-    });
-  }
-  
-  // For now, we'll just return the provided URL
-  // In production, you should handle actual file uploads
-  res.status(200).json({
-    success: true,
-    message: 'Image URL processed successfully',
-    data: {
-      imageUrl: req.body.imageUrl
-    }
-  });
 });
