@@ -193,13 +193,13 @@ export default function AdminLogin() {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+          {/* <div className="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
             <p className="text-gray-400 text-xs mb-2 font-semibold">Demo Credentials:</p>
             <div className="space-y-1 text-xs">
               <p className="text-gray-300">Email: <span className="text-purple-400 font-mono">admin@nexgen.com</span></p>
               <p className="text-gray-300">Password: <span className="text-purple-400 font-mono">admin123</span></p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Back to Website Link */}
