@@ -138,8 +138,7 @@ export default function AdminLogin() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="admin@nexgen.com"
-                  required
+                  placeholder="Hello januu" required
                   disabled={loading}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
