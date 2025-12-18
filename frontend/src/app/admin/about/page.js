@@ -9,7 +9,7 @@ export default function ManageAbout() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // ✅ FIXED: Correct API URL
+  // ✅ CRITICAL FIX: Separate API URL (with /api) from Base URL (without /api)
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
   };
@@ -139,7 +139,7 @@ export default function ManageAbout() {
     }
   };
 
-  // ✅ FIXED: Simplified image URL construction
+  // ✅ CRITICAL FIX: Use base URL without /api for image access
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) {
       return 'https://via.placeholder.com/200/1f2937/9ca3af?text=No+Image';
@@ -153,17 +153,19 @@ export default function ManageAbout() {
     // ✅ Use BASE URL (without /api) for static files
     const BASE_URL = getBaseUrl();
 
-    // Clean the path - ensure it starts with /uploads/
-    let cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    // Clean the path
+    let cleanPath = imagePath;
     
-    // If it doesn't start with /uploads/, add it
+    // Remove /api if present (shouldn't be, but just in case)
+    if (cleanPath.startsWith('/api')) {
+      cleanPath = cleanPath.replace('/api', '');
+    }
+    
+    // Ensure /uploads/ prefix
     if (!cleanPath.startsWith('/uploads/')) {
-      cleanPath = '/uploads' + (cleanPath.startsWith('/') ? '' : '/') + cleanPath;
+      cleanPath = '/uploads/' + cleanPath.replace(/^\/+/, '');
     }
 
-    // Remove any double slashes
-    cleanPath = cleanPath.replace(/([^:]\/)\/+/g, '$1');
-    
     const finalUrl = BASE_URL + cleanPath;
     console.log('🖼️ Constructing image URL:', {
       input: imagePath,
@@ -175,7 +177,100 @@ export default function ManageAbout() {
     return finalUrl;
   };
 
-  // ... rest of your admin code remains the same (handleArrayChange, addArrayItem, etc.)
+  const handleArrayChange = (arrayName, index, field, value) => {
+    setAboutData(prev => ({
+      ...prev,
+      [arrayName]: prev[arrayName].map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    }));
+  };
+
+  const addArrayItem = (arrayName, template) => {
+    setAboutData(prev => ({
+      ...prev,
+      [arrayName]: [...prev[arrayName], template]
+    }));
+  };
+
+  const removeArrayItem = (arrayName, index) => {
+    setAboutData(prev => ({
+      ...prev,
+      [arrayName]: prev[arrayName].filter((_, i) => i !== index)
+    }));
+  };
+
+  // ✅ FIXED: Added missing handleSave function
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      console.log('💾 Saving about data:', aboutData);
+
+      const res = await fetch(`${getApiUrl()}/about`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(aboutData)
+      });
+
+      const result = await res.json();
+      console.log('💾 Save result:', result);
+
+      if (res.ok && result.success) {
+        setMessage({
+          type: 'success',
+          text: '✅ About page updated successfully!'
+        });
+
+        setTimeout(() => {
+          fetchAboutData();
+        }, 1000);
+
+      } else {
+        throw new Error(result.message || 'Update failed');
+      }
+    } catch (error) {
+      console.error('❌ Save error:', error);
+      setMessage({
+        type: 'error',
+        text: `❌ Save failed: ${error.message}`
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+        <span className="ml-3 text-gray-400">Loading about data...</span>
+      </div>
+    );
+  }
+
+  if (!aboutData) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-red-400">Failed to load about data</p>
+        <button
+          onClick={fetchAboutData}
+          className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -209,7 +304,47 @@ export default function ManageAbout() {
         </div>
       )}
 
-      {/* Team Image Section - Updated with better debug info */}
+      {/* Content Section */}
+      <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">Content</h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">Title</label>
+            <input
+              type="text"
+              value={aboutData.title || ''}
+              onChange={(e) => setAboutData(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full px-4 py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="About Us"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">Subtitle</label>
+            <input
+              type="text"
+              value={aboutData.subtitle || ''}
+              onChange={(e) => setAboutData(prev => ({ ...prev, subtitle: e.target.value }))}
+              className="w-full px-4 py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="Crafting digital experiences that inspire"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">Main Heading</label>
+            <input
+              type="text"
+              value={aboutData.mainHeading || ''}
+              onChange={(e) => setAboutData(prev => ({ ...prev, mainHeading: e.target.value }))}
+              className="w-full px-4 py-3 bg-slate-700 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              placeholder="We Build Digital Dreams"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Team Image Section */}
       <div className="bg-slate-800/50 rounded-xl border border-purple-500/20 p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Team Image</h2>
 
@@ -217,16 +352,21 @@ export default function ManageAbout() {
           {/* Image Preview */}
           <div className="flex-shrink-0">
             <div className="w-48 h-48 rounded-lg border-2 border-dashed border-purple-500/30 bg-slate-800/50 overflow-hidden">
-              {aboutData?.teamImage ? (
+              {aboutData.teamImage ? (
                 <img
                   src={getFullImageUrl(aboutData.teamImage)}
                   alt="Team preview"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.error('❌ Image failed to load:', e.target.src);
-                    e.target.src = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
+                    const placeholder = 'https://via.placeholder.com/200/1f2937/9ca3af?text=Image+Error';
+                    if (e.target.src !== placeholder) {
+                      console.error('❌ Image failed to load:', e.target.src);
+                      e.target.src = placeholder;
+                    }
                   }}
-                  onLoad={() => console.log('✅ Admin image loaded successfully')}
+                  onLoad={(e) => {
+                    console.log('✅ Image loaded successfully:', e.target.src);
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -234,13 +374,13 @@ export default function ManageAbout() {
                 </div>
               )}
             </div>
-            {/* Debug Info - Enhanced */}
+            {/* Debug Info */}
             <div className="mt-2 p-2 bg-slate-900 rounded text-xs font-mono">
               <div className="text-gray-500">Stored path:</div>
-              <div className="text-purple-400 break-all">{aboutData?.teamImage || 'None'}</div>
-              <div className="text-gray-500 mt-1">Constructed URL:</div>
-              <div className="text-green-400 break-all">
-                {aboutData?.teamImage ? getFullImageUrl(aboutData.teamImage) : 'No image'}
+              <div className="text-purple-400 break-all">{aboutData.teamImage || 'None'}</div>
+              <div className="text-gray-500 mt-1">Full URL:</div>
+              <div className="text-green-400 break-all text-[10px]">
+                {getFullImageUrl(aboutData.teamImage).substring(0, 60)}...
               </div>
             </div>
           </div>

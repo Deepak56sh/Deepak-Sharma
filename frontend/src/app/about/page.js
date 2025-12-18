@@ -191,9 +191,9 @@ export default function AboutPage() {
                 onLoad={() => console.log('✅ Image loaded:', teamImageUrl)}
               />
               {/* Debug info */}
-              <div className="mt-2 text-xs text-gray-500">
+              {/* <div className="mt-2 text-xs text-gray-500">
                 <div className="truncate">URL: {teamImageUrl.substring(0, 50)}...</div>
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-6">
