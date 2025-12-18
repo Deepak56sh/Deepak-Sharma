@@ -16,31 +16,28 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// ✅ FIX: CORRECT path for Windows
-const uploadsDir = path.join(__dirname, '..', '..', 'public', 'uploads');
+// ✅ CRITICAL FIX: Use SAME detection as server.js
+const isRender = process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production';
 
-console.log('📂 AboutRoutes - __dirname:', __dirname);
-console.log('📂 AboutRoutes - uploadsDir:', uploadsDir);
-console.log('📂 AboutRoutes - Directory exists?', fs.existsSync(uploadsDir));
+let uploadsDir;
+
+if (isRender) {
+  // Render.com uses /tmp/uploads (SAME as server.js)
+  uploadsDir = '/tmp/uploads';
+  console.log('🚀 Running on Render.com - Using /tmp/uploads');
+} else {
+  // Local development
+  uploadsDir = path.join(__dirname, '..', '..', 'public', 'uploads');
+  console.log('💻 Running locally');
+}
+
+console.log('📂 Uploads directory:', uploadsDir);
+console.log('📂 Directory exists?', fs.existsSync(uploadsDir));
 
 // Ensure directory exists
-try {
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('✅ Created uploads directory:', uploadsDir);
-  }
-  
-  // Test if directory is writable
-  fs.accessSync(uploadsDir, fs.constants.W_OK);
-  console.log('✅ Directory is writable');
-} catch (error) {
-  console.error('❌ Directory error:', error.message);
-  // Fallback to current working directory
-  const fallbackDir = path.join(process.cwd(), 'temp_uploads');
-  if (!fs.existsSync(fallbackDir)) {
-    fs.mkdirSync(fallbackDir, { recursive: true });
-  }
-  console.log('⚠️ Using fallback directory:', fallbackDir);
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Created uploads directory:', uploadsDir);
 }
 
 // ✅ Configure multer storage
@@ -51,7 +48,8 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = 'about-' + uniqueSuffix + path.extname(file.originalname);
+    const ext = path.extname(file.originalname).toLowerCase();
+    const filename = 'about-' + uniqueSuffix + ext;
     console.log('📝 Generated filename:', filename);
     cb(null, filename);
   }
@@ -59,7 +57,9 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   console.log('🔍 File type check:', file.mimetype);
-  if (file.mimetype.startsWith('image/')) {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  
+  if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new Error('Only image files are allowed!'), false);
@@ -81,16 +81,17 @@ router.get('/', getAbout);
 router.use(protect);
 router.use(authorize('admin', 'super-admin'));
 
-// ✅ FIXED: Image upload route with detailed logging
+// ✅ FIXED: Image upload route
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
     console.log('=== IMAGE UPLOAD START ===');
     console.log('👤 User:', req.user ? req.user.email : 'Not authenticated');
-    console.log('📁 Req.file:', req.file);
-    console.log('📁 Req.body:', req.body);
+    console.log('📁 File received:', req.file ? req.file.filename : 'No file');
+    console.log('📁 Is Render environment?', isRender);
+    console.log('📁 Uploads directory:', uploadsDir);
     
     if (!req.file) {
-      console.log('❌ No file in request');
+      console.log('❌ No file uploaded');
       return res.status(400).json({
         success: false,
         message: 'No image file provided'
@@ -99,40 +100,54 @@ router.post('/upload', upload.single('image'), (req, res) => {
 
     // Verify file exists
     const filePath = path.join(uploadsDir, req.file.filename);
-    console.log('📂 Expected path:', filePath);
-    
     const exists = fs.existsSync(filePath);
+    
+    console.log('📂 File path:', filePath);
     console.log('📂 File exists?', exists);
     
-    // List files in directory
+    // List all files in uploads directory for debugging
     try {
       const files = fs.readdirSync(uploadsDir);
-      console.log('📂 Files in uploadsDir:', files);
+      console.log('📂 All files in uploads directory:', files);
+      console.log('📂 Total files:', files.length);
     } catch (err) {
-      console.log('❌ Cannot read uploads directory:', err.message);
+      console.log('⚠️ Cannot list uploads directory:', err.message);
     }
 
     if (!exists) {
-      console.error('❌ File was not saved! Check permissions.');
+      console.error('❌ ERROR: File was not saved!');
+      
+      // Additional debugging
+      console.log('🔍 Checking parent directory:', path.dirname(filePath));
+      console.log('🔍 Parent exists?', fs.existsSync(path.dirname(filePath)));
+      
       return res.status(500).json({
         success: false,
         message: 'File was not saved to disk',
-        details: {
-          expectedPath: filePath,
-          directory: uploadsDir
+        debug: {
+          uploadsDir: uploadsDir,
+          filename: req.file.filename,
+          isRender: isRender,
+          filePath: filePath,
+          directoryExists: fs.existsSync(uploadsDir),
+          env: {
+            NODE_ENV: process.env.NODE_ENV,
+            RENDER: process.env.RENDER,
+            RENDER_EXTERNAL_URL: process.env.RENDER_EXTERNAL_URL
+          }
         }
       });
     }
 
     // Get file stats
     const stats = fs.statSync(filePath);
-    console.log('📂 File stats:', {
+    console.log('✅ File saved successfully:', {
       size: stats.size,
-      created: stats.birthtime,
-      modified: stats.mtime
+      path: filePath,
+      created: stats.birthtime
     });
 
-    // ✅ Return ONLY the relative path
+    // ✅ Return image URL
     const imageUrl = `/uploads/${req.file.filename}`;
     
     console.log('✅ Image URL:', imageUrl);
@@ -145,16 +160,21 @@ router.post('/upload', upload.single('image'), (req, res) => {
         imageUrl: imageUrl,
         filename: req.file.filename,
         size: stats.size,
-        mimetype: req.file.mimetype
+        mimetype: req.file.mimetype,
+        path: filePath,
+        url: `https://${req.get('host')}${imageUrl}`
       }
     });
   } catch (error) {
     console.error('❌ Upload error:', error);
+    console.error('❌ Error stack:', error.stack);
+    
     res.status(500).json({
       success: false,
       message: 'Image upload failed',
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      isRender: isRender,
+      uploadsDir: uploadsDir
     });
   }
 });
