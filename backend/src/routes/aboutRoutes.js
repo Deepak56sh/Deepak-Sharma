@@ -16,19 +16,37 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// ✅ CORRECT: Use __dirname to get absolute path
+// ✅ FIX: CORRECT path for Windows
 const uploadsDir = path.join(__dirname, '..', '..', 'public', 'uploads');
 
+console.log('📂 AboutRoutes - __dirname:', __dirname);
+console.log('📂 AboutRoutes - uploadsDir:', uploadsDir);
+console.log('📂 AboutRoutes - Directory exists?', fs.existsSync(uploadsDir));
+
 // Ensure directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('✅ Created uploads directory:', uploadsDir);
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('✅ Created uploads directory:', uploadsDir);
+  }
+  
+  // Test if directory is writable
+  fs.accessSync(uploadsDir, fs.constants.W_OK);
+  console.log('✅ Directory is writable');
+} catch (error) {
+  console.error('❌ Directory error:', error.message);
+  // Fallback to current working directory
+  const fallbackDir = path.join(process.cwd(), 'temp_uploads');
+  if (!fs.existsSync(fallbackDir)) {
+    fs.mkdirSync(fallbackDir, { recursive: true });
+  }
+  console.log('⚠️ Using fallback directory:', fallbackDir);
 }
 
 // ✅ Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log('📁 Multer destination:', uploadsDir);
+    console.log('📁 Multer saving to:', uploadsDir);
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
@@ -63,14 +81,16 @@ router.get('/', getAbout);
 router.use(protect);
 router.use(authorize('admin', 'super-admin'));
 
-// ✅ FIXED: Image upload route
+// ✅ FIXED: Image upload route with detailed logging
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
     console.log('=== IMAGE UPLOAD START ===');
     console.log('👤 User:', req.user ? req.user.email : 'Not authenticated');
-    console.log('📁 File:', req.file);
+    console.log('📁 Req.file:', req.file);
+    console.log('📁 Req.body:', req.body);
     
     if (!req.file) {
+      console.log('❌ No file in request');
       return res.status(400).json({
         success: false,
         message: 'No image file provided'
@@ -79,9 +99,38 @@ router.post('/upload', upload.single('image'), (req, res) => {
 
     // Verify file exists
     const filePath = path.join(uploadsDir, req.file.filename);
+    console.log('📂 Expected path:', filePath);
+    
     const exists = fs.existsSync(filePath);
-    console.log('📂 File saved:', exists);
-    console.log('📂 Full path:', filePath);
+    console.log('📂 File exists?', exists);
+    
+    // List files in directory
+    try {
+      const files = fs.readdirSync(uploadsDir);
+      console.log('📂 Files in uploadsDir:', files);
+    } catch (err) {
+      console.log('❌ Cannot read uploads directory:', err.message);
+    }
+
+    if (!exists) {
+      console.error('❌ File was not saved! Check permissions.');
+      return res.status(500).json({
+        success: false,
+        message: 'File was not saved to disk',
+        details: {
+          expectedPath: filePath,
+          directory: uploadsDir
+        }
+      });
+    }
+
+    // Get file stats
+    const stats = fs.statSync(filePath);
+    console.log('📂 File stats:', {
+      size: stats.size,
+      created: stats.birthtime,
+      modified: stats.mtime
+    });
 
     // ✅ Return ONLY the relative path
     const imageUrl = `/uploads/${req.file.filename}`;
@@ -93,8 +142,10 @@ router.post('/upload', upload.single('image'), (req, res) => {
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        imageUrl: imageUrl,  // /uploads/about-123.jpg
-        filename: req.file.filename
+        imageUrl: imageUrl,
+        filename: req.file.filename,
+        size: stats.size,
+        mimetype: req.file.mimetype
       }
     });
   } catch (error) {
@@ -102,7 +153,8 @@ router.post('/upload', upload.single('image'), (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Image upload failed',
-      error: error.message
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
