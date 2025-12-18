@@ -65,15 +65,18 @@ const createUploadsDirectory = () => {
 
 const actualUploadsPath = createUploadsDirectory();
 
+// ✅ FIX: Increase payload size limit (ADD THIS AT THE TOP - BEFORE CORS)
+app.use(express.json({ limit: '50mb' })); // 50MB limit for JSON
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '50mb'  // 50MB limit for URL-encoded
+}));
+
 // ✅ FIX: Simple CORS configuration
 app.use(cors({
   origin: ['http://localhost:3000', 'https://my-site-backend-0661.onrender.com'],
   credentials: true
 }));
-
-// Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // ✅ CRITICAL FIX: Static file serving - SIMPLE AND CLEAN
 app.use('/uploads', express.static(actualUploadsPath, {
