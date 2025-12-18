@@ -16,17 +16,19 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-const uploadsDir = path.join(__dirname, '../../public/uploads');
+// ✅ Setup uploads directory
+const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
 
+// Ensure directory exists
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('✅ Uploads directory created:', uploadsDir);
+  console.log('✅ Created uploads directory:', uploadsDir);
 }
 
-// Configure multer for file uploads
+// ✅ Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log('📁 Saving to directory:', uploadsDir);
+    console.log('📁 Multer saving to:', uploadsDir);
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
@@ -38,7 +40,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  console.log('🔍 Checking file type:', file.mimetype);
+  console.log('🔍 File type check:', file.mimetype);
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -50,60 +52,53 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024 // 5MB
   }
 });
 
 // ===== PUBLIC ROUTES =====
 router.get('/', getAbout);
 
-// ===== PROTECTED ROUTES (Need Authentication) =====
+// ===== PROTECTED ROUTES =====
 router.use(protect);
 router.use(authorize('admin', 'super-admin'));
 
-// ✅ FIXED: Upload route with authentication and detailed logging
+// ✅ FIXED: Image upload route
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
-    console.log('=== UPLOAD REQUEST START ===');
-    console.log('📤 Headers:', req.headers);
+    console.log('=== IMAGE UPLOAD START ===');
     console.log('👤 User:', req.user ? req.user.email : 'Not authenticated');
-    console.log('📁 File received:', req.file);
-    console.log('📍 Upload directory:', uploadsDir);
+    console.log('📁 File:', req.file);
     
     if (!req.file) {
-      console.log('❌ No file in request');
       return res.status(400).json({
         success: false,
         message: 'No image file provided'
       });
     }
 
-    // Check if file actually exists
+    // Verify file exists
     const filePath = path.join(uploadsDir, req.file.filename);
-    const fileExists = fs.existsSync(filePath);
-    console.log('📂 File exists on disk:', fileExists);
-    console.log('📂 Full file path:', filePath);
+    const exists = fs.existsSync(filePath);
+    console.log('📂 File saved:', exists);
+    console.log('📂 Full path:', filePath);
 
-    // ✅ Return relative URL that matches server.js static path
+    // ✅ Return ONLY the relative path
     const imageUrl = `/uploads/${req.file.filename}`;
-    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
-    const fullImageUrl = `${baseUrl}${imageUrl}`;
     
     console.log('✅ Image URL:', imageUrl);
-    console.log('✅ Full Image URL:', fullImageUrl);
-    console.log('=== UPLOAD REQUEST END ===');
+    console.log('=== IMAGE UPLOAD SUCCESS ===');
     
     res.json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        imageUrl: imageUrl,           // Relative: /uploads/about-123.png
-        fullImageUrl: fullImageUrl,   // Full: https://domain.com/uploads/about-123.png
+        imageUrl: imageUrl,  // /uploads/about-123.jpg
         filename: req.file.filename
       }
     });
   } catch (error) {
-    console.error('❌ Image upload error:', error);
+    console.error('❌ Upload error:', error);
     res.status(500).json({
       success: false,
       message: 'Image upload failed',
@@ -112,14 +107,10 @@ router.post('/upload', upload.single('image'), (req, res) => {
   }
 });
 
-// Main update route
+// Other routes
 router.put('/', updateAbout);
-
-// Stats routes
 router.post('/stats', addStat);
 router.delete('/stats/:id', deleteStat);
-
-// Values routes
 router.post('/values', addValue);
 router.delete('/values/:id', deleteValue);
 
