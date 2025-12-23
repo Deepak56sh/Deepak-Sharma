@@ -202,6 +202,65 @@ const logoutAdmin = async (req, res) => {
     }
 };
 
+// @desc    Upload profile image
+// @route   POST /api/auth/upload-profile-image
+// @access  Private
+const uploadProfileImage = async (req, res) => {
+    try {
+        if (!req.files || !req.files.image) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload an image'
+            });
+        }
+
+        const image = req.files.image;
+
+        // Validate file type
+        if (!image.mimetype.startsWith('image')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload an image file'
+            });
+        }
+
+        // Validate file size (5MB max)
+        if (image.size > 5 * 1024 * 1024) {
+            return res.status(400).json({
+                success: false,
+                message: 'Image size must be less than 5MB'
+            });
+        }
+
+        // Create custom filename
+        const fileName = `profile-${req.admin.id}-${Date.now()}${path.extname(image.name)}`;
+        const uploadPath = path.join(__dirname, '../uploads', fileName);
+
+        // Move file to uploads directory
+        await image.mv(uploadPath);
+
+        // Create relative path for database
+        const imageUrl = `/uploads/${fileName}`;
+
+        res.json({
+            success: true,
+            message: 'Image uploaded successfully',
+            data: {
+                imageUrl: imageUrl
+            }
+        });
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to upload image',
+            error: error.message
+        });
+    }
+};
+
+
 module.exports = {
     registerAdmin,
     loginAdmin,

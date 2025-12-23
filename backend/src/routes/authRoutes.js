@@ -288,5 +288,5 @@ router.get('/me', protect, getMe);
 router.post('/logout', protect, logoutAdmin);
 router.put('/profile', protect, updateProfile);
 router.put('/change-password', protect, changePassword);
-
+router.post('/upload-profile-image', protect, uploadProfileImage);
 module.exports = router;
