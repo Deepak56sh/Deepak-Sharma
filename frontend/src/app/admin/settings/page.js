@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Save, Mail, Phone, MapPin, Github, Instagram, Facebook, Linkedin } from 'lucide-react';
+import { Save, Mail, Phone, MapPin, Github, Twitter, Linkedin } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -12,8 +12,7 @@ export default function Settings() {
     contactPhone: '+1 (555) 123-4567',
     contactAddress: 'San Francisco, CA',
     socialGithub: 'https://github.com/nexgen',
-    socialInstagram: 'https://instagram.com/nexgen',
-    socialFacebook: 'https://facebook.com/nexgen',
+    socialTwitter: 'https://twitter.com/nexgen',
     socialLinkedin: 'https://linkedin.com/company/nexgen',
     businessHours: {
       weekdays: '9:00 AM - 6:00 PM',
@@ -207,31 +206,15 @@ export default function Settings() {
 
           <div>
             <label className="block text-gray-300 mb-2 font-medium flex items-center gap-2">
-              <Instagram className="w-4 h-4" />
-              Instagram
+              <Twitter className="w-4 h-4" />
+              Twitter
             </label>
             <input
               type="url"
-              name="socialInstagram"
-              value={settings.socialInstagram}
+              name="socialTwitter"
+              value={settings.socialTwitter}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
-              placeholder="https://instagram.com/yourusername"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-300 mb-2 font-medium flex items-center gap-2">
-              <Facebook className="w-4 h-4" />
-              Facebook
-            </label>
-            <input
-              type="url"
-              name="socialFacebook"
-              value={settings.socialFacebook}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
-              placeholder="https://facebook.com/yourpagename"
             />
           </div>
 
