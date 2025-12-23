@@ -265,5 +265,6 @@ module.exports = {
     registerAdmin,
     loginAdmin,
     getMe,
-    logoutAdmin
+    logoutAdmin,
+    uploadProfileImage
 };
