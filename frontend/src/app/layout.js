@@ -14,7 +14,7 @@ export const metadata = {
   title: 'NexGen - Digital Innovation',
   description: 'Transform your vision into reality with cutting-edge technology',
   icons: {
-    icon: '/favicon.png',
+    icon: '/faviicon.png',
   },
 };
 
