@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const path = require('path'); // ✅ ADD THIS IMPORT
 const Admin = require('../models/Admin');
 
 // Generate JWT Token
@@ -202,6 +203,78 @@ const logoutAdmin = async (req, res) => {
     }
 };
 
+// ✅ ADD THESE MISSING FUNCTIONS
+
+// @desc    Update admin profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+    try {
+        const { name, email, profilePicture } = req.body;
+        
+        const updatedUser = await Admin.findByIdAndUpdate(
+            req.admin.id,
+            { name, email, profilePicture },
+            { new: true, runValidators: true }
+        );
+
+        res.json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: updatedUser
+        });
+    } catch (error) {
+        console.error('Profile update error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update profile',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword, newEmail } = req.body;
+        const user = await Admin.findById(req.admin.id).select('+password');
+
+        // If changing password
+        if (currentPassword && newPassword) {
+            const isMatch = await user.comparePassword(currentPassword);
+            if (!isMatch) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Current password is incorrect'
+                });
+            }
+
+            user.password = newPassword; // Model will auto-hash
+        }
+
+        // If changing email
+        if (newEmail) {
+            user.email = newEmail;
+        }
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Settings updated successfully'
+        });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update settings',
+            error: error.message
+        });
+    }
+};
+
 // @desc    Upload profile image
 // @route   POST /api/auth/upload-profile-image
 // @access  Private
@@ -260,11 +333,13 @@ const uploadProfileImage = async (req, res) => {
     }
 };
 
-
+// ✅ EXPORT ALL FUNCTIONS
 module.exports = {
     registerAdmin,
     loginAdmin,
     getMe,
     logoutAdmin,
+    updateProfile,      // ✅ ADD THIS
+    changePassword,     // ✅ ADD THIS
     uploadProfileImage
 };
