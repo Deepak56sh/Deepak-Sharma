@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
+
 import '../styles/globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -12,6 +13,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
   title: 'NexGen - Digital Innovation',
   description: 'Transform your vision into reality with cutting-edge technology',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({ children }) {
