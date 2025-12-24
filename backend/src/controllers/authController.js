@@ -276,41 +276,74 @@ const changePassword = async (req, res) => {
     }
 };
 
-// @desc    Upload profile image - COMPLETELY FIXED VERSION
+// @desc    Upload profile image - FIXED VERSION
 // @route   POST /api/auth/upload-profile-image
 // @access  Private
 const uploadProfileImage = async (req, res) => {
     try {
         console.log('📥 Upload profile image request received');
         
-        // ✅ ADD THIS DEBUG LINE
-        console.log('🔍 express-fileupload working?', req.files !== undefined);
-        
-        // Check if files exist
-        if (!req.files || Object.keys(req.files).length === 0) {
+        if (!req.files || !req.files.image) {
             console.log('❌ No files in request');
-            console.log('🔍 Request body keys:', Object.keys(req.body));
-            console.log('🔍 Request headers:', req.headers);
-            
-            // ✅ ADD THIS DEBUG TO CHECK MIDDLEWARE
-            if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
-                console.log('⚠️ Content-Type should be multipart/form-data');
-                console.log('⚠️ Actual Content-Type:', req.headers['content-type']);
-            }
-            
             return res.status(400).json({
                 success: false,
-                message: 'No files were uploaded. Please select an image.',
+                message: 'Please select an image to upload',
                 debug: {
                     hasFiles: !!req.files,
-                    fileKeys: req.files ? Object.keys(req.files) : [],
-                    contentType: req.headers['content-type'],
-                    contentLength: req.headers['content-length']
+                    fileKeys: req.files ? Object.keys(req.files) : []
                 }
             });
         }
 
-        // ... rest of your upload function ...
+        const image = req.files.image;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowedTypes.includes(image.mimetype)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload a valid image (JPEG, PNG, WebP, GIF)'
+            });
+        }
+
+        // Validate file size (5MB max)
+        if (image.size > 5 * 1024 * 1024) {
+            return res.status(400).json({
+                success: false,
+                message: 'Image size must be less than 5MB'
+            });
+        }
+
+        // Create custom filename
+        const fileName = `profile-${req.admin.id}-${Date.now()}${path.extname(image.name)}`;
+        const uploadPath = path.join(__dirname, '..', '..', 'uploads', fileName);
+
+        console.log(`📁 Saving to: ${uploadPath}`);
+
+        // ✅ ACTUALLY SAVE THE FILE
+        await image.mv(uploadPath);
+
+        console.log(`✅ Profile image saved: ${fileName}`);
+
+        // Return relative path for frontend
+        const imageUrl = `/uploads/${fileName}`;
+
+        // Update admin profile picture in database
+        await Admin.findByIdAndUpdate(
+            req.admin.id,
+            { profilePicture: imageUrl },
+            { new: true }
+        );
+
+        res.json({
+            success: true,
+            message: 'Profile image uploaded successfully!',
+            data: {
+                imageUrl: imageUrl,
+                fullUrl: `${process.env.BACKEND_URL || 'https://my-site-backend-0661.onrender.com'}${imageUrl}`
+            }
+        });
+
     } catch (error) {
         console.error('❌ Upload error:', error);
         res.status(500).json({
