@@ -279,57 +279,39 @@ const changePassword = async (req, res) => {
     }
 };
 
-// @desc    Upload profile image - FIXED FOR RENDER.COM
-// @route   POST /api/auth/upload-profile-image
-// @access  Private
+// authController.js me yeh function update karen:
 const uploadProfileImage = async (req, res) => {
     try {
-        console.log('📥 Upload profile image request received');
-        
         if (!req.files || !req.files.image) {
-            console.log('❌ No files in request');
             return res.status(400).json({
                 success: false,
-                message: 'Please select an image to upload',
-                debug: {
-                    hasFiles: !!req.files,
-                    fileKeys: req.files ? Object.keys(req.files) : []
-                }
+                message: 'Please upload an image'
             });
         }
 
         const image = req.files.image;
 
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-        if (!allowedTypes.includes(image.mimetype)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload a valid image (JPEG, PNG, WebP, GIF)'
-            });
-        }
-
-        // Validate file size (5MB max)
-        if (image.size > 5 * 1024 * 1024) {
-            return res.status(400).json({
-                success: false,
-                message: 'Image size must be less than 5MB'
-            });
-        }
-
-        // Create custom filename
-        const fileName = `profile-${req.admin.id}-${Date.now()}${path.extname(image.name)}`;
-        const uploadPath = path.join(actualUploadsPath, fileName); // ✅ SERVER.JS se actualUploadsPath use karen
-
-        console.log(`📁 Saving to: ${uploadPath}`);
-
-        // ✅ ACTUALLY SAVE THE FILE
-        await image.mv(uploadPath);
-
-        console.log(`✅ Profile image saved: ${fileName}`);
-
-        // Return relative path for frontend
+        // ✅ SIMPLE FIX: Use same format as test upload
+        const fileName = `profile-${Date.now()}${path.extname(image.name)}`;
         const imageUrl = `/uploads/${fileName}`;
+
+        console.log('✅ Profile image filename:', fileName);
+        console.log('✅ Profile image URL:', imageUrl);
+
+        // ✅ SAVE FILE TO CORRECT PATH
+        const uploadPath = path.join(__dirname, '..', '..', 'uploads', fileName);
+        
+        // ✅ USE absoluteUploadsPath from server.js
+        // OR better, use the same path as test upload
+        const actualUploadsPath = path.join(__dirname, '..', '..', 'uploads');
+        const actualUploadPath = path.join(actualUploadsPath, fileName);
+        
+        console.log('📁 Saving to:', actualUploadPath);
+        
+        // Save file
+        await image.mv(actualUploadPath);
+        
+        console.log('✅ File saved successfully');
 
         // Update admin profile picture in database
         await Admin.findByIdAndUpdate(
@@ -338,22 +320,23 @@ const uploadProfileImage = async (req, res) => {
             { new: true }
         );
 
+        // ✅ RETURN EXACT SAME FORMAT AS TEST UPLOAD
         res.json({
             success: true,
-            message: 'Profile image uploaded successfully!',
+            message: 'Image uploaded successfully',
             data: {
+                url: imageUrl,  // ✅ Same key as test upload
                 imageUrl: imageUrl,
-                fullUrl: `https://my-site-backend-0661.onrender.com${imageUrl}`
+                fileName: fileName
             }
         });
 
     } catch (error) {
-        console.error('❌ Upload error:', error);
+        console.error('Upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to upload image',
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            error: error.message
         });
     }
 };
