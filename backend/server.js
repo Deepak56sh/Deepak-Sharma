@@ -214,6 +214,111 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+
+// ✅ TEST UPLOAD ROUTE
+app.post('/api/test-upload', async (req, res) => {
+  try {
+    console.log('🔄 Test upload request received');
+    
+    if (!req.files || !req.files.image) {
+      console.log('❌ No file in request');
+      return res.status(400).json({ 
+        success: false,
+        error: 'No file uploaded',
+        debug: {
+          hasFiles: !!req.files,
+          files: req.files ? Object.keys(req.files) : []
+        }
+      });
+    }
+    
+    const image = req.files.image;
+    const fileName = `test-${Date.now()}${path.extname(image.name)}`;
+    const uploadPath = path.join(actualUploadsPath, fileName);
+    
+    console.log('📤 Uploading to:', uploadPath);
+    console.log('📊 File details:', {
+      name: fileName,
+      size: image.size,
+      type: image.mimetype
+    });
+    
+    // Save file
+    await image.mv(uploadPath);
+    
+    console.log('✅ File saved successfully');
+    
+    // Check if file exists
+    const fileExists = fs.existsSync(uploadPath);
+    
+    if (!fileExists) {
+      throw new Error('File saved but not found on disk');
+    }
+    
+    // List all files in uploads directory
+    const allFiles = fs.readdirSync(actualUploadsPath);
+    
+    res.json({
+      success: true,
+      message: 'Test upload successful',
+      data: {
+        url: `/uploads/${fileName}`,
+        fullUrl: `https://my-site-backend-0661.onrender.com/uploads/${fileName}`,
+        fileName: fileName,
+        filePath: uploadPath,
+        fileExists: fileExists,
+        uploadsDirectory: actualUploadsPath,
+        totalFiles: allFiles.length,
+        allFiles: allFiles
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Test upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack,
+      uploadsPath: actualUploadsPath
+    });
+  }
+});
+
+// ✅ TEST FILES LIST ROUTE
+app.get('/api/test-files', (req, res) => {
+  try {
+    const files = fs.readdirSync(actualUploadsPath);
+    
+    const fileDetails = files.map(file => {
+      const filePath = path.join(actualUploadsPath, file);
+      const stats = fs.statSync(filePath);
+      return {
+        name: file,
+        size: stats.size,
+        created: stats.birthtime,
+        url: `/uploads/${file}`,
+        accessible: true
+      };
+    });
+    
+    res.json({
+      success: true,
+      uploadsPath: actualUploadsPath,
+      totalFiles: files.length,
+      files: fileDetails,
+      isRender: isRender
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      uploadsPath: actualUploadsPath,
+      exists: fs.existsSync(actualUploadsPath)
+    });
+  }
+});
+
+
 // API Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/menu', require('./src/routes/menuRoutes'));

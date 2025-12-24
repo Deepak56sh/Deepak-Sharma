@@ -10,6 +10,9 @@ const generateToken = (id) => {
     });
 };
 
+// ✅ GLOBAL VARIABLE FOR UPLOADS PATH
+global.actualUploadsPath = actualUploadsPath;
+
 // @desc    Register new admin
 // @route   POST /api/auth/register
 // @access  Public
@@ -276,7 +279,7 @@ const changePassword = async (req, res) => {
     }
 };
 
-// @desc    Upload profile image - FIXED VERSION
+// @desc    Upload profile image - FIXED FOR RENDER.COM
 // @route   POST /api/auth/upload-profile-image
 // @access  Private
 const uploadProfileImage = async (req, res) => {
@@ -316,7 +319,7 @@ const uploadProfileImage = async (req, res) => {
 
         // Create custom filename
         const fileName = `profile-${req.admin.id}-${Date.now()}${path.extname(image.name)}`;
-        const uploadPath = path.join(__dirname, '..', '..', 'uploads', fileName);
+        const uploadPath = path.join(actualUploadsPath, fileName); // ✅ SERVER.JS se actualUploadsPath use karen
 
         console.log(`📁 Saving to: ${uploadPath}`);
 
@@ -340,7 +343,7 @@ const uploadProfileImage = async (req, res) => {
             message: 'Profile image uploaded successfully!',
             data: {
                 imageUrl: imageUrl,
-                fullUrl: `${process.env.BACKEND_URL || 'https://my-site-backend-0661.onrender.com'}${imageUrl}`
+                fullUrl: `https://my-site-backend-0661.onrender.com${imageUrl}`
             }
         });
 
