@@ -5,6 +5,7 @@ const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const path = require('path');
 const fs = require('fs');
+const fileUpload = require('express-fileupload');
 
 // Load env vars FIRST
 dotenv.config();
@@ -12,18 +13,27 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
-// ✅ FIX: Increase payload size limit (ADD THIS AT THE TOP - BEFORE CORS)
-app.use(express.json({ limit: '50mb' })); // 50MB limit for JSON
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: '50mb'  // 50MB limit for URL-encoded
+app.use(fileUpload({
+    createParentPath: true,
+    limits: { 
+        fileSize: 5 * 1024 * 1024 // 5MB
+    },
+    useTempFiles: false,
+    debug: process.env.NODE_ENV === 'development'
 }));
 
-// ✅ FIXED CORS MIDDLEWARE - ABHI ADD KAREN (app defined hone ke baad)
+// ✅ FIX: Increase payload size limit (AFTER fileUpload)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '50mb'
+}));
+
+// ✅ FIXED CORS MIDDLEWARE
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://deepakch.vercel.app');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Content-Disposition');
   
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);

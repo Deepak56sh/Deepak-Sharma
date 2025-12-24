@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const path = require('path'); // ✅ ADD THIS IMPORT
+const fs = require('fs'); // ✅ ADD THIS IMPORT
 const Admin = require('../models/Admin');
 
 // Generate JWT Token
@@ -275,60 +276,48 @@ const changePassword = async (req, res) => {
     }
 };
 
-// @desc    Upload profile image
+// @desc    Upload profile image - COMPLETELY FIXED VERSION
 // @route   POST /api/auth/upload-profile-image
 // @access  Private
 const uploadProfileImage = async (req, res) => {
     try {
-        if (!req.files || !req.files.image) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload an image'
-            });
-        }
-
-        const image = req.files.image;
-
-        // Validate file type
-        if (!image.mimetype.startsWith('image')) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload an image file'
-            });
-        }
-
-        // Validate file size (5MB max)
-        if (image.size > 5 * 1024 * 1024) {
-            return res.status(400).json({
-                success: false,
-                message: 'Image size must be less than 5MB'
-            });
-        }
-
-        // Create custom filename
-        const fileName = `profile-${req.admin.id}-${Date.now()}${path.extname(image.name)}`;
-        const uploadPath = path.join(__dirname, '../uploads', fileName);
-
-        // Move file to uploads directory
-        await image.mv(uploadPath);
-
-        // Create relative path for database
-        const imageUrl = `/uploads/${fileName}`;
-
-        res.json({
-            success: true,
-            message: 'Image uploaded successfully',
-            data: {
-                imageUrl: imageUrl
+        console.log('📥 Upload profile image request received');
+        
+        // ✅ ADD THIS DEBUG LINE
+        console.log('🔍 express-fileupload working?', req.files !== undefined);
+        
+        // Check if files exist
+        if (!req.files || Object.keys(req.files).length === 0) {
+            console.log('❌ No files in request');
+            console.log('🔍 Request body keys:', Object.keys(req.body));
+            console.log('🔍 Request headers:', req.headers);
+            
+            // ✅ ADD THIS DEBUG TO CHECK MIDDLEWARE
+            if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
+                console.log('⚠️ Content-Type should be multipart/form-data');
+                console.log('⚠️ Actual Content-Type:', req.headers['content-type']);
             }
-        });
+            
+            return res.status(400).json({
+                success: false,
+                message: 'No files were uploaded. Please select an image.',
+                debug: {
+                    hasFiles: !!req.files,
+                    fileKeys: req.files ? Object.keys(req.files) : [],
+                    contentType: req.headers['content-type'],
+                    contentLength: req.headers['content-length']
+                }
+            });
+        }
 
+        // ... rest of your upload function ...
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('❌ Upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to upload image',
-            error: error.message
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };
