@@ -35,32 +35,17 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
     }
   }, [adminUser]);
 
-// ✅ Get full image URL - FIXED VERSION
-const getFullImageUrl = (imagePath) => {
+  // ✅ Get full image URL
+  const getFullImageUrl = (imagePath) => {
     if (!imagePath) {
-        return '';
+      return '';
     }
 
     // If already full URL
     if (imagePath.startsWith('http')) {
-        return imagePath;
+      return imagePath;
     }
 
-    const BASE_URL = getBaseUrl();
-    
-    // If path starts with /uploads
-    if (imagePath.startsWith('/uploads/')) {
-        return BASE_URL + imagePath;
-    }
-    
-    // If it's just a filename or relative path
-    if (!imagePath.startsWith('/')) {
-        return BASE_URL + '/uploads/' + imagePath;
-    }
-    
-    // Default: prepend base URL
-    return BASE_URL + imagePath;
-};
     // ✅ Use BASE URL (without /api) for static files
     const BASE_URL = getBaseUrl();
 
