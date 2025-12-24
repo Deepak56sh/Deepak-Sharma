@@ -65,7 +65,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
     return BASE_URL + cleanPath;
   };
 
-  // ✅ Image upload function
+  // ✅ Image upload function - FIXED
   const uploadImage = async (file) => {
     setUploadingImage(true);
     setMessage({ type: '', text: '' });
@@ -76,33 +76,47 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
         throw new Error('Authentication token not found. Please login again.');
       }
 
-      console.log('📤 Uploading profile image...');
+      console.log('📤 Uploading profile image:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
 
-      const formData = new FormData();
-      formData.append('image', file);
+      // ✅ Create FormData with different variable name
+      const formDataToSend = new FormData();
+      formDataToSend.append('image', file); // Field name must be 'image'
 
-      // ✅ Use profile-specific upload endpoint
+      // Debug: Log FormData contents
+      console.log('📦 FormData entries:');
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(`${key}:`, value instanceof File ? `${value.name} (${value.type}, ${value.size} bytes)` : value);
+      }
+
+      // ✅ Use the correct endpoint
       const uploadUrl = `${getApiUrl()}/auth/upload-profile-image`;
       console.log('🔗 Upload URL:', uploadUrl);
 
+      // ✅ IMPORTANT: DON'T set Content-Type header for FormData
       const res = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          // ❌ NO 'Content-Type' header - browser sets it automatically
         },
-        body: formData
+        body: formDataToSend
       });
 
       console.log('📡 Response status:', res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('❌ Upload failed:', errorText);
-        throw new Error(`Upload failed: ${res.status} - ${errorText}`);
-      }
+      console.log('📡 Response headers:', {
+        'content-type': res.headers.get('content-type')
+      });
 
       const result = await res.json();
-      console.log('✅ Upload result:', result);
+      console.log('📡 Response data:', result);
+
+      if (!res.ok) {
+        throw new Error(result.message || `Upload failed: ${res.status}`);
+      }
 
       if (result.success && result.data && result.data.imageUrl) {
         return result.data.imageUrl;
@@ -124,8 +138,11 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
 
     console.log('🖼️ Profile image selected:', file.name);
 
+    // Reset input value so same file can be selected again
+    e.target.value = '';
+
     if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: 'Please select a valid image file' });
+      setMessage({ type: 'error', text: 'Please select a valid image file (JPEG, PNG, WebP, GIF)' });
       return;
     }
 
