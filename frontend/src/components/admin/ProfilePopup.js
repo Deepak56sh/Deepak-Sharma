@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, User, Camera, Loader2 } from 'lucide-react';
+import { X, Upload, User, Camera, Loader2 } from 'lucide-react';
 
 export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
   const [formData, setFormData] = useState({
@@ -13,56 +13,79 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
   const [previewImage, setPreviewImage] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // ✅ Simple URL construction
+  // ✅ Get API URL
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
   };
 
+  // ✅ Get Base URL for static files
   const getBaseUrl = () => {
     return process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
   };
 
   useEffect(() => {
-    if (adminUser && isOpen) {
+    if (adminUser) {
       setFormData({
         name: adminUser.name || '',
         email: adminUser.email || '',
         profilePicture: adminUser.profilePicture || ''
       });
-      
-      // ✅ SIMPLE URL CONSTRUCTION
-      if (adminUser.profilePicture) {
-        const baseUrl = getBaseUrl();
-        let imageUrl = '';
-        
-        if (adminUser.profilePicture.startsWith('/uploads/')) {
-          imageUrl = baseUrl + adminUser.profilePicture;
-        } else if (adminUser.profilePicture.includes('uploads/')) {
-          imageUrl = baseUrl + '/' + adminUser.profilePicture;
-        } else {
-          imageUrl = baseUrl + '/uploads/' + adminUser.profilePicture;
-        }
-        
-        // Add cache busting
-        imageUrl += '?t=' + Date.now();
-        setPreviewImage(imageUrl);
-      }
+      // ✅ Get full image URL for preview
+      setPreviewImage(getFullImageUrl(adminUser.profilePicture || ''));
     }
-  }, [adminUser, isOpen]);
+  }, [adminUser]);
 
-  // ✅ Simple image upload
+  // ✅ Get full image URL
+  const getFullImageUrl = (imagePath) => {
+    if (!imagePath) {
+      return '';
+    }
+
+    // If already full URL
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // ✅ Use BASE URL (without /api) for static files
+    const BASE_URL = getBaseUrl();
+
+    // Clean the path
+    let cleanPath = imagePath;
+    
+    // Remove /api if present
+    if (cleanPath.startsWith('/api')) {
+      cleanPath = cleanPath.replace('/api', '');
+    }
+    
+    // Ensure /uploads/ prefix
+    if (!cleanPath.startsWith('/uploads/')) {
+      cleanPath = '/uploads/' + cleanPath.replace(/^\/+/, '');
+    }
+
+    return BASE_URL + cleanPath;
+  };
+
+  // ✅ Image upload function
   const uploadImage = async (file) => {
     setUploadingImage(true);
     setMessage({ type: '', text: '' });
 
     try {
       const token = localStorage.getItem('adminToken');
-      if (!token) throw new Error('Please login again');
+      if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+      }
+
+      console.log('📤 Uploading profile image...');
 
       const formData = new FormData();
       formData.append('image', file);
 
-      const res = await fetch(`${getApiUrl()}/auth/upload-profile-image`, {
+      // ✅ Use profile-specific upload endpoint
+      const uploadUrl = `${getApiUrl()}/auth/upload-profile-image`;
+      console.log('🔗 Upload URL:', uploadUrl);
+
+      const res = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -70,25 +93,25 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
         body: formData
       });
 
+      console.log('📡 Response status:', res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('❌ Upload failed:', errorText);
+        throw new Error(`Upload failed: ${res.status} - ${errorText}`);
+      }
+
       const result = await res.json();
-      console.log('📡 Upload response:', result);
+      console.log('✅ Upload result:', result);
 
-      if (!res.ok || !result.success) {
-        throw new Error(result.message || 'Upload failed');
+      if (result.success && result.data && result.data.imageUrl) {
+        return result.data.imageUrl;
+      } else {
+        throw new Error(result.message || 'Upload failed - no image URL returned');
       }
-
-      // ✅ Use 'url' field (same as test upload)
-      const imageUrl = result.data?.url || result.data?.imageUrl;
-      
-      if (!imageUrl) {
-        throw new Error('No image URL returned');
-      }
-
-      console.log('✅ Image URL:', imageUrl);
-      return imageUrl;
 
     } catch (error) {
-      console.error('❌ Upload error:', error);
+      console.error('❌ Image upload error:', error);
       throw error;
     } finally {
       setUploadingImage(false);
@@ -99,7 +122,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    e.target.value = '';
+    console.log('🖼️ Profile image selected:', file.name);
 
     if (!file.type.startsWith('image/')) {
       setMessage({ type: 'error', text: 'Please select a valid image file' });
@@ -112,24 +135,22 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
     }
 
     try {
-      // Local preview
+      // Create immediate preview
       const reader = new FileReader();
-      reader.onload = (e) => setPreviewImage(e.target.result);
+      reader.onload = (e) => {
+        setPreviewImage(e.target.result);
+      };
       reader.readAsDataURL(file);
 
-      // Upload to server
+      // Upload image to server
       const imageUrl = await uploadImage(file);
-      
-      // Update form data
+      console.log('✅ Profile image URL received:', imageUrl);
+
+      // Update form data with server path
       setFormData(prev => ({
         ...prev,
         profilePicture: imageUrl
       }));
-
-      // Update preview with server URL
-      const baseUrl = getBaseUrl();
-      const fullUrl = baseUrl + imageUrl + '?t=' + Date.now();
-      setPreviewImage(fullUrl);
 
       setMessage({
         type: 'success',
@@ -137,10 +158,13 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
       });
 
     } catch (error) {
+      console.error('❌ Image processing error:', error);
       setMessage({
         type: 'error',
-        text: `❌ ${error.message}`
+        text: `❌ Upload failed: ${error.message}`
       });
+      // Reset preview on error
+      setPreviewImage(getFullImageUrl(formData.profilePicture));
     }
   };
 
@@ -151,8 +175,6 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
 
     try {
       const token = localStorage.getItem('adminToken');
-      if (!token) throw new Error('Please login again');
-
       const res = await fetch(`${getApiUrl()}/auth/profile`, {
         method: 'PUT',
         headers: {
@@ -163,10 +185,18 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
       });
 
       const result = await res.json();
+      console.log('📊 Profile update result:', result);
 
       if (result.success) {
-        const updatedUser = result.data || { ...adminUser, ...formData };
+        // Update localStorage with complete user data
+        const updatedUser = { 
+          ...adminUser, 
+          ...formData,
+          profilePicture: formData.profilePicture // Ensure profile picture is included
+        };
         localStorage.setItem('adminUser', JSON.stringify(updatedUser));
+        
+        // Call parent callback
         onUpdate(updatedUser);
         
         setMessage({
@@ -174,14 +204,19 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
           text: '✅ Profile updated successfully!'
         });
         
-        setTimeout(() => onClose(), 1500);
+        // Close popup after success
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+        
       } else {
-        throw new Error(result.message || 'Update failed');
+        throw new Error(result.message || 'Failed to update profile');
       }
     } catch (error) {
+      console.error('Error updating profile:', error);
       setMessage({
         type: 'error',
-        text: `❌ ${error.message}`
+        text: `❌ Failed to update profile: ${error.message}`
       });
     } finally {
       setLoading(false);
@@ -193,6 +228,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-800 rounded-2xl w-full max-w-md border border-purple-500/20">
+        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <h2 className="text-xl font-bold text-white">Update Profile</h2>
           <button
@@ -204,16 +240,20 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
           </button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Message Display */}
           {message.text && (
             <div className={`p-3 rounded-lg text-sm ${
-              message.type === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-              'bg-red-500/20 text-red-400 border border-red-500/30'
+              message.type === 'success'
+                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                : 'bg-red-500/20 text-red-400 border border-red-500/30'
             }`}>
               {message.text}
             </div>
           )}
 
+          {/* Profile Picture Upload */}
           <div className="flex flex-col items-center">
             <div className="relative mb-4">
               <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center overflow-hidden border-4 border-slate-700">
@@ -223,7 +263,8 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
                     alt="Profile" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.log('Image failed:', e.target.src);
+                      console.error('❌ Profile image failed to load:', e.target.src);
+                      e.target.onerror = null;
                       e.target.src = '';
                     }}
                   />
@@ -238,7 +279,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
                 )}
               </div>
               
-              <label className="absolute bottom-0 right-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-600 transition-colors">
+              <label className="absolute bottom-0 right-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-600 transition-colors disabled:opacity-50">
                 {uploadingImage ? (
                   <Loader2 className="w-4 h-4 text-white animate-spin" />
                 ) : (
@@ -254,27 +295,20 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
               </label>
             </div>
             
-            <p className="text-gray-400 text-sm text-center mb-2">
-              {uploadingImage ? 'Uploading...' : 'Click camera icon to upload'}
+            <p className="text-gray-400 text-sm text-center">
+              {uploadingImage ? 'Uploading...' : 'Click camera icon to upload profile picture'}
             </p>
             
-            {/* Debug info */}
+            {/* Debug Info */}
             {formData.profilePicture && (
-              <div className="p-2 bg-slate-900/50 rounded text-xs text-center">
-                <div className="text-gray-500">Current path:</div>
-                <div className="text-purple-400 truncate">{formData.profilePicture}</div>
-                <a 
-                  href={getBaseUrl() + formData.profilePicture}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 text-[10px] mt-1 inline-block"
-                >
-                  🔗 Direct link
-                </a>
+              <div className="mt-2 p-2 bg-slate-900 rounded text-xs font-mono max-w-full overflow-hidden">
+                <div className="text-gray-500 text-[10px]">Stored path:</div>
+                <div className="text-purple-400 text-[10px] truncate">{formData.profilePicture}</div>
               </div>
             )}
           </div>
 
+          {/* Name Field */}
           <div>
             <label className="block text-gray-400 text-sm mb-2">Full Name</label>
             <input
@@ -288,6 +322,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
             />
           </div>
 
+          {/* Email Field */}
           <div>
             <label className="block text-gray-400 text-sm mb-2">Email</label>
             <input
@@ -301,6 +336,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
             />
           </div>
 
+          {/* Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"
