@@ -64,11 +64,11 @@ export default function Footer() {
   const data = footerData || defaultFooter;
 
   return (
-    <footer className="plant-store bg-[#14261d] text-white">
+    <footer style={{ backgroundColor: '#14261d' }} className="text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
           
-          {/* Brand Column */}
+          {/* Brand */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center gap-2.5 mb-5">
               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
@@ -99,16 +99,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
-              Quick Links
-            </h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Quick Links</h4>
             <ul className="space-y-3">
               {(data.quickLinks || defaultFooter.quickLinks).map((link, i) => (
                 <li key={i}>
-                  <Link
-                    href={link.url}
-                    className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors"
-                  >
+                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -118,16 +113,11 @@ export default function Footer() {
 
           {/* Collections */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
-              Collections
-            </h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Collections</h4>
             <ul className="space-y-3">
               {(data.collections || defaultFooter.collections).map((link, i) => (
                 <li key={i}>
-                  <Link
-                    href={link.url}
-                    className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors"
-                  >
+                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -137,16 +127,11 @@ export default function Footer() {
 
           {/* Customer Care */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
-              Customer Care
-            </h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Customer Care</h4>
             <ul className="space-y-3">
               {(data.customerCare || defaultFooter.customerCare).map((link, i) => (
                 <li key={i}>
-                  <Link
-                    href={link.url}
-                    className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors"
-                  >
+                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -156,19 +141,9 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
-              Join the Plant Lovers Club
-            </h4>
-            <p className="text-sm text-white/60 mb-4">
-              Get plant care tips, offers and more.
-            </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                // handle subscribe
-              }}
-              className="flex flex-col gap-2"
-            >
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Join the Plant Lovers Club</h4>
+            <p className="text-sm text-white/60 mb-4">Get plant care tips, offers and more.</p>
+            <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-2">
               <input
                 type="email"
                 value={email}
@@ -192,13 +167,9 @@ export default function Footer() {
           <p className="text-sm text-white/50">
             © {currentYear} {data.logoText}. All rights reserved.
           </p>
-
           <div className="flex items-center gap-3">
             {['VISA', 'Mastercard', 'UPI', 'RuPay'].map((method) => (
-              <span
-                key={method}
-                className="px-3 py-1.5 bg-white/10 rounded-lg text-[11px] font-medium text-white/70"
-              >
+              <span key={method} className="px-3 py-1.5 bg-white/10 rounded-lg text-[11px] font-medium text-white/70">
                 {method}
               </span>
             ))}

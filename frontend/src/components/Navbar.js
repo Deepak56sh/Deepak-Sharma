@@ -48,65 +48,58 @@ export default function Navbar() {
 
   return (
     <div className="plant-store">
-      {/* Top bar */}
-      <div className="bg-[#14261d] text-white text-center py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2">
+      {/* Top Free Shipping Bar */}
+      <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
         Free Shipping on orders above ₹999
       </div>
 
-      {/* Main nav */}
-      <nav
-        className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
-          scrolled ? 'shadow-md border-b border-[#e8ece9]' : 'border-b border-[#e8ece9]'
-        }`}
-      >
+      {/* Main Navbar */}
+      <nav className={`sticky top-0 z-50 bg-white border-b border-[#e8ece9] transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16 sm:h-[70px]">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
-                <Sprout className="w-5 h-5 sm:w-6 sm:h-6 text-[#2f9e44]" />
+              <div className="w-9 h-9 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
+                <Sprout className="w-5 h-5 text-[#2f9e44]" />
               </div>
-              <span className="text-xl sm:text-2xl font-bold text-[#14261d]">Plantora</span>
+              <span className="text-xl font-bold text-[#14261d]">Plantora</span>
             </Link>
 
             {/* Desktop Links */}
             <div className="hidden lg:flex items-center gap-8">
               {loading
-                ? [1, 2, 3, 4, 5].map((i) => (
+                ? [1, 2, 3, 4].map((i) => (
                     <div key={i} className="h-4 w-14 bg-slate-100 rounded animate-pulse" />
                   ))
-                : navLinks.map((link) => {
-                    const isActive = pathname === link.path;
-                    return (
-                      <Link
-                        key={link._id || link.path}
-                        href={link.path}
-                        className={`text-[15px] font-medium transition-colors ${
-                          isActive
-                            ? 'text-[#2f9e44]'
-                            : 'text-[#4b5563] hover:text-[#2f9e44]'
-                        }`}
-                      >
-                        {link.name}
-                      </Link>
-                    );
-                  })}
+                : navLinks.map((link) => (
+                    <Link
+                      key={link._id || link.path}
+                      href={link.path}
+                      className={`text-[15px] font-medium transition-colors ${
+                        pathname === link.path
+                          ? 'text-[#2f9e44]'
+                          : 'text-[#4b5563] hover:text-[#2f9e44]'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
             </div>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               <button className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex">
                 <Search className="w-5 h-5" />
               </button>
 
               <Link
                 href="/account/wishlist"
-                className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors relative hidden sm:flex"
+                className="relative p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex"
               >
                 <Heart className="w-5 h-5" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-[#2f9e44] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-[#2f9e44] text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                     {wishlistCount}
                   </span>
                 )}
@@ -114,11 +107,11 @@ export default function Navbar() {
 
               <Link
                 href="/cart"
-                className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors relative"
+                className="relative p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-[#2f9e44] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-[#2f9e44] text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                     {cartCount}
                   </span>
                 )}
@@ -131,10 +124,9 @@ export default function Navbar() {
                 <User className="w-5 h-5" />
               </Link>
 
-              {/* Mobile menu button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden p-2.5 rounded-xl bg-[#eaf7ee] text-[#2f9e44]"
+                className="lg:hidden p-2.5 rounded-xl bg-[#eaf7ee] text-[#2f9e44] ml-1"
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -143,13 +135,13 @@ export default function Navbar() {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="lg:hidden border-t border-[#e8ece9] py-4 space-y-1">
+            <div className="lg:hidden border-t border-[#e8ece9] py-3 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link._id || link.path}
                   href={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-xl text-sm font-medium ${
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium ${
                     pathname === link.path
                       ? 'bg-[#eaf7ee] text-[#2f9e44]'
                       : 'text-[#4b5563] hover:bg-[#f6f8f7]'
@@ -161,7 +153,7 @@ export default function Navbar() {
               <Link
                 href="/account"
                 onClick={() => setIsMenuOpen(false)}
-                className="block px-4 py-3 rounded-xl text-sm font-medium text-[#4b5563] hover:bg-[#f6f8f7]"
+                className="block px-4 py-2.5 rounded-xl text-sm font-medium text-[#4b5563] hover:bg-[#f6f8f7]"
               >
                 My Account
               </Link>
