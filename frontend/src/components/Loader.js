@@ -1,9 +1,6 @@
-// ============================================
-// FILE: src/components/Loader.js
-// ============================================
 'use client';
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sprout } from 'lucide-react';
 
 export default function Loader() {
   const [loading, setLoading] = useState(true);
@@ -27,36 +24,36 @@ export default function Loader() {
   if (!loading) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/30 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#2f9e44]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#2f9e44]/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 text-center">
         <div className="mb-8 flex justify-center">
           <div className="relative">
-            <div className="w-24 h-24 border-4 border-purple-500/20 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-24 h-24 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
+            <div className="w-24 h-24 border-4 border-[#2f9e44]/15 rounded-full" />
+            <div className="absolute top-0 left-0 w-24 h-24 border-4 border-transparent border-t-[#2f9e44] rounded-full animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="w-10 h-10 text-purple-400 animate-pulse" />
+              <Sprout className="w-10 h-10 text-[#2f9e44]" />
             </div>
           </div>
         </div>
 
         <div className="mb-4">
-          <h2 className="text-3xl font-bold text-gradient mb-2">NexGen</h2>
-          <p className="text-gray-400">Loading Experience...</p>
+          <h2 className="text-3xl font-bold text-slate-800 mb-2">Plantora</h2>
+          <p className="text-slate-400">Growing your experience...</p>
         </div>
 
-        <div className="w-64 h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 ease-out"
+        <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mx-auto">
+          <div
+            className="h-full bg-[#2f9e44] transition-all duration-300 ease-out"
             style={{ width: `${progress}%` }}
-          ></div>
+          />
         </div>
 
-        <div className="mt-4 text-purple-400 font-semibold">{progress}%</div>
+        <div className="mt-4 text-[#2f9e44] font-semibold">{progress}%</div>
       </div>
     </div>
   );

@@ -25,9 +25,7 @@ body {
 }
 
 /* ============================================
-   PLANT STORE ADMIN THEME
-   Scoped under .plant-admin so it never leaks
-   into the public NexGen site styles above.
+   PLANT STORE ADMIN THEME (unchanged from before)
    ============================================ */
 .plant-admin {
   --pa-sidebar: #14261d;
@@ -53,6 +51,38 @@ body {
   height: 8px;
 }
 .plant-admin ::-webkit-scrollbar-thumb {
+  background: #d3ddd7;
+  border-radius: 8px;
+}
+
+/* ============================================
+   PLANT STORE — PUBLIC STOREFRONT THEME
+   Scoped under .plant-store so it never clashes
+   with any leftover NexGen dark styles above.
+   ============================================ */
+.plant-store {
+  --ps-primary: #2f9e44;
+  --ps-primary-dark: #1f7a34;
+  --ps-primary-light: #eaf7ee;
+  --ps-dark: #14261d;
+  --ps-bg: #ffffff;
+  --ps-section: #f6f8f7;
+  --ps-border: #e8ece9;
+  --ps-text: #1f2937;
+  --ps-muted: #6b7280;
+  --ps-sale: #ef4444;
+  --ps-star: #f5a623;
+
+  background-color: var(--ps-bg);
+  color: var(--ps-text);
+  min-height: 100vh;
+}
+
+.plant-store ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.plant-store ::-webkit-scrollbar-thumb {
   background: #d3ddd7;
   border-radius: 8px;
 }
