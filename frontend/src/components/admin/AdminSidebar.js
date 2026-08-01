@@ -46,6 +46,8 @@ export default function AdminSidebar({ isOpen, setIsOpen, onLogout, adminData })
     { name: 'Reports', path: '/admin/reports', icon: BarChart3 },
     { name: 'Users', path: '/admin/users', icon: UserCog },
     { name: 'Tools', path: '/admin/tools', icon: Wrench },
+    { name: 'Menu', path: '/admin/menu', icon: List },
+    { name: 'Footer', path: '/admin/footer', icon: AppWindow },
   ];
 
   return (
