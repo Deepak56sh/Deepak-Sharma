@@ -1,4 +1,3 @@
-/* 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,30 +22,37 @@ body {
   .text-gradient {
     @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
   }
-} */
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+/* ============================================
+   PLANT STORE ADMIN THEME
+   Scoped under .plant-admin so it never leaks
+   into the public NexGen site styles above.
+   ============================================ */
+.plant-admin {
+  --pa-sidebar: #14261d;
+  --pa-sidebar-hover: #1c3327;
+  --pa-primary: #2f9e44;
+  --pa-primary-dark: #237a35;
+  --pa-primary-light: #eaf7ee;
+  --pa-bg: #f6f8f7;
+  --pa-card: #ffffff;
+  --pa-border: #e8ece9;
+  --pa-text: #1f2937;
+  --pa-muted: #6b7280;
+  --pa-warning: #f5a623;
+  --pa-info: #3b82f6;
+  --pa-danger: #f43f5e;
+
+  background-color: var(--pa-bg);
+  color: var(--pa-text);
 }
 
-body {
-  background-color: #020617;
-  color: white;
-  overflow-x: hidden;
+.plant-admin ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-
-@layer utilities {
-  .text-gradient {
-    @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
-  }
+.plant-admin ::-webkit-scrollbar-thumb {
+  background: #d3ddd7;
+  border-radius: 8px;
 }
