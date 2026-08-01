@@ -4,11 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Sprout, Search, Heart, ShoppingCart, User, Truck } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [navLinks, setNavLinks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [logoText, setLogoText] = useState('Plantora');
+  const [logoImage, setLogoImage] = useState('');
   const pathname = usePathname();
 
   const cartCount = 3;
@@ -20,15 +25,17 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch Menu + Logo (from footer API)
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('https://my-site-backend-0661.onrender.com/api/menu');
-        const data = await response.json();
-        if (data.success && data.data?.length) {
-          setNavLinks(data.data);
+        // Menu
+        const menuRes = await fetch(`${API_URL}/menu`);
+        const menuData = await menuRes.json();
+        if (menuData.success && menuData.data?.length) {
+          setNavLinks(menuData.data);
         } else {
-          throw new Error('empty');
+          throw new Error('empty menu');
         }
       } catch {
         setNavLinks([
@@ -39,12 +46,31 @@ export default function Navbar() {
           { name: 'Care Guide', path: '/care-guide' },
           { name: 'About Us', path: '/about' },
         ]);
+      }
+
+      try {
+        // Logo from Footer API
+        const footerRes = await fetch(`${API_URL}/footer`);
+        const footerData = await footerRes.json();
+        if (footerData.success && footerData.data) {
+          if (footerData.data.logoText) setLogoText(footerData.data.logoText);
+          if (footerData.data.logoImage) setLogoImage(footerData.data.logoImage);
+        }
+      } catch {
+        // keep defaults
       } finally {
         setLoading(false);
       }
     };
-    fetchMenu();
+
+    fetchData();
   }, []);
+
+  const getLogoUrl = () => {
+    if (!logoImage) return null;
+    if (logoImage.startsWith('http')) return logoImage;
+    return `${BASE_URL}${logoImage}`;
+  };
 
   return (
     <div className="plant-store-header">
@@ -58,12 +84,30 @@ export default function Navbar() {
       <nav className={`sticky top-0 z-50 bg-white border-b border-[#e8ece9] transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+            
+            {/* Logo — image agar hai to dikhao, warna icon + text */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-              <div className="w-9 h-9 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
-                <Sprout className="w-5 h-5 text-[#2f9e44]" />
-              </div>
-              <span className="text-xl font-bold text-[#14261d]">Plantora</span>
+              {getLogoUrl() ? (
+                <img
+                  src={getLogoUrl()}
+                  alt={logoText}
+                  className="h-9 w-auto object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <>
+                  <div className="w-9 h-9 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
+                    <Sprout className="w-5 h-5 text-[#2f9e44]" />
+                  </div>
+                  <span className="text-xl font-bold text-[#14261d]">{logoText}</span>
+                </>
+              )}
+              {/* Agar sirf image hai aur text bhi chahiye: */}
+              {getLogoUrl() && (
+                <span className="text-xl font-bold text-[#14261d] hidden sm:inline">{logoText}</span>
+              )}
             </Link>
 
             {/* Desktop Links */}
@@ -75,7 +119,8 @@ export default function Navbar() {
                 : navLinks.map((link) => (
                     <Link
                       key={link._id || link.path}
-                      href={link.path}
+                      href={link.type === 'external' ? link.url : link.path}
+                      {...(link.type === 'external' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                       className={`text-[15px] font-medium transition-colors ${
                         pathname === link.path
                           ? 'text-[#2f9e44]'
@@ -139,7 +184,7 @@ export default function Navbar() {
               {navLinks.map((link) => (
                 <Link
                   key={link._id || link.path}
-                  href={link.path}
+                  href={link.type === 'external' ? link.url : link.path}
                   onClick={() => setIsMenuOpen(false)}
                   className={`block px-4 py-2.5 rounded-xl text-sm font-medium ${
                     pathname === link.path

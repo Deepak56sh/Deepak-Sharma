@@ -68,34 +68,35 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
           
-          {/* Brand */}
-          <div className="lg:col-span-4">
-            <Link href="/" className="flex items-center gap-2.5 mb-5">
-              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                <Sprout className="w-5 h-5 text-[#2f9e44]" />
-              </div>
-              <span className="text-2xl font-bold">{data.logoText}</span>
-            </Link>
-            <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
-              {data.description}
-            </p>
-            <div className="flex items-center gap-3">
-              {(data.socialLinks || defaultFooter.socialLinks).map((social, i) => {
-                const Icon = iconMap[social.icon];
-                return (
-                  <a
-                    key={i}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white/70 hover:bg-[#2f9e44] hover:text-white transition-all"
-                  >
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+       {/* Brand */}
+<div className="lg:col-span-4">
+  <Link href="/" className="flex items-center gap-2.5 mb-5">
+    {(() => {
+      const img = data.logoImage;
+      if (img) {
+        const src = img.startsWith('http') ? img : `https://my-site-backend-0661.onrender.com${img}`;
+        return (
+          <img
+            src={src}
+            alt={data.logoText || 'Plantora'}
+            className="h-10 w-auto object-contain"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        );
+      }
+      return (
+        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+          <Sprout className="w-5 h-5 text-[#2f9e44]" />
+        </div>
+      );
+    })()}
+    <span className="text-2xl font-bold">{data.logoText || 'Plantora'}</span>
+  </Link>
+  <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
+    {data.description}
+  </p>
+  {/* social links same... */}
+</div>
 
           {/* Quick Links */}
           <div className="lg:col-span-2">
