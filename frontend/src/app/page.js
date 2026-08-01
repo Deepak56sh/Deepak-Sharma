@@ -10,7 +10,8 @@ import {
   Star,
   ShoppingBag,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
@@ -64,7 +65,8 @@ export default function HomePage() {
 
   return (
     <div className="plant-store bg-white">
-      {/* ========== HERO SLIDER ========== */}
+      
+      {/* ===================== HERO SLIDER ===================== */}
       <section className="relative bg-[#f6f8f7] overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -115,7 +117,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Image + Arrows */}
+            {/* Right Image */}
             <div className="relative">
               <div className="absolute -inset-3 bg-[#2f9e44]/10 rounded-3xl blur-2xl" />
               <img
@@ -140,7 +142,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== FEATURES BAR ========== */}
+      {/* ===================== FEATURES BAR ===================== */}
       <section className="border-y border-[#e8ece9] bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 py-7">
@@ -164,7 +166,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== BEST SELLERS ========== */}
+      {/* ===================== BEST SELLERS ===================== */}
       <section className="py-12 lg:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
@@ -217,6 +219,91 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ===================== ABOUT US SECTION ===================== */}
+      <section className="py-14 lg:py-20 bg-[#f6f8f7]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Left Image */}
+            <AnimatedSection>
+              <div className="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80"
+                  alt="About Plantora"
+                  className="rounded-3xl shadow-xl w-full h-[340px] sm:h-[400px] object-cover"
+                />
+              </div>
+            </AnimatedSection>
+
+            {/* Right Content */}
+            <AnimatedSection>
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">About Us</h2>
+                  <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">Our Story</h3>
+                </div>
+
+                <p className="text-[#6b7280] leading-relaxed">
+                  Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and the better.
+                </p>
+
+                <ul className="space-y-3">
+                  {[
+                    'Handpicked Healthy Plants',
+                    'Expert Plant Care Guidance',
+                    'Sustainable & Eco-Friendly',
+                    'Happy Customer Support'
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-[#14261d] font-medium text-sm sm:text-base">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
+                  {[
+                    { number: '10K+', label: 'Happy Customers' },
+                    { number: '50K+', label: 'Plants Delivered' },
+                    { number: '150+', label: 'Plant Varieties' },
+                    { number: '99%', label: 'Customer Satisfaction' },
+                  ].map((stat, i) => (
+                    <div key={i} className="text-center p-3 bg-white rounded-xl border border-[#e8ece9]">
+                      <div className="text-xl font-bold text-[#2f9e44]">{stat.number}</div>
+                      <div className="text-[11px] text-[#6b7280] mt-0.5 leading-tight">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== CTA BANNER ===================== */}
+      <section className="py-14 lg:py-16" style={{ backgroundColor: '#14261d' }}>
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <AnimatedSection>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+              Ready to bring nature home?
+            </h2>
+            <p className="text-white/70 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
+              Explore our collection of premium indoor plants and transform your space today.
+            </p>
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all"
+            >
+              Shop Now
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </AnimatedSection>
+        </div>
+      </section>
+
     </div>
   );
 }

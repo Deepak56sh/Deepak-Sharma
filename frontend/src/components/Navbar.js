@@ -47,7 +47,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="plant-store">
+    <div className="plant-store-header">
       {/* Top Free Shipping Bar */}
       <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
