@@ -23,6 +23,8 @@ import {
   ChevronLeft,
   Sprout,
   LogOut,
+  List,
+  AppWindow,
 } from 'lucide-react';
 
 export default function AdminSidebar({ isOpen, setIsOpen, onLogout, adminData }) {
