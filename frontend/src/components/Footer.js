@@ -1,12 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Sprout, Facebook, Twitter, Instagram, Youtube, Mail, Send } from 'lucide-react';
-
-const iconComponents = { Facebook, Twitter, Instagram, Youtube, Mail };
+import Link from 'next/link';
+import { Sprout, Instagram, Facebook, Twitter, Youtube, Send } from 'lucide-react';
 
 const defaultFooter = {
   logoText: 'Plantora',
-  description: 'Bringing nature closer to home. Premium, hand-picked plants and expert care tips, carefully packed and delivered to your door.',
+  description: 'Bringing nature closer to home. Premium plants carefully packed and delivered to your door.',
   socialLinks: [
     { icon: 'Instagram', url: '#' },
     { icon: 'Facebook', url: '#' },
@@ -16,141 +15,191 @@ const defaultFooter = {
   quickLinks: [
     { name: 'Home', url: '/' },
     { name: 'Shop', url: '/shop' },
-    { name: 'My Account', url: '/account' },
-    { name: 'Track Order', url: '/account?tab=orders' },
+    { name: 'Care Guide', url: '/care-guide' },
+    { name: 'About Us', url: '/about' },
     { name: 'Contact Us', url: '/contact' },
   ],
-  serviceLinks: [
+  collections: [
     { name: 'Indoor Plants', url: '/shop?type=indoor' },
     { name: 'Air Purifying', url: '/shop?type=air-purifying' },
     { name: 'Low Maintenance', url: '/shop?type=low-maintenance' },
+    { name: 'Succulents', url: '/shop?type=succulents' },
     { name: 'Large Plants', url: '/shop?type=large' },
     { name: 'Accessories', url: '/shop?type=accessories' },
   ],
-  copyrightText: 'All rights reserved.',
+  customerCare: [
+    { name: 'My Account', url: '/account' },
+    { name: 'Track Order', url: '/account?tab=orders' },
+    { name: 'Returns & Refunds', url: '/returns' },
+    { name: 'Shipping Policy', url: '/shipping' },
+    { name: 'Terms & Conditions', url: '/terms' },
+    { name: 'Privacy Policy', url: '/privacy' },
+  ],
 };
+
+const iconMap = { Instagram, Facebook, Twitter, Youtube };
 
 export default function Footer() {
   const [footerData, setFooterData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState('');
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    fetchFooterData();
-  }, []);
-
-  const fetchFooterData = async () => {
-    try {
-      const response = await fetch('https://my-site-backend-0661.onrender.com/api/footer');
-      const data = await response.json();
-      if (data.success && data.data) {
-        setFooterData(data.data);
-      } else {
-        throw new Error('empty footer');
+    const fetchFooter = async () => {
+      try {
+        const res = await fetch('https://my-site-backend-0661.onrender.com/api/footer');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setFooterData(data.data);
+        } else {
+          setFooterData(defaultFooter);
+        }
+      } catch {
+        setFooterData(defaultFooter);
       }
-    } catch (error) {
-      setFooterData(defaultFooter);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchFooter();
+  }, []);
 
   const data = footerData || defaultFooter;
 
-  if (loading) {
-    return <footer className="plant-store bg-[var(--ps-dark)] h-64 animate-pulse" />;
-  }
-
   return (
-    <footer className="plant-store bg-[var(--ps-dark)] text-white">
-      {/* Newsletter strip */}
-      <div className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="font-semibold text-lg">Join the Plant Lovers Club 🌿</h3>
-            <p className="text-white/50 text-sm">Get plant care tips, offers and more.</p>
-          </div>
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="flex w-full sm:w-auto max-w-sm bg-white/10 rounded-lg overflow-hidden"
-          >
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 bg-transparent px-4 py-2.5 text-sm placeholder-white/40 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="px-4 flex items-center gap-1.5 text-sm font-medium"
-              style={{ backgroundColor: 'var(--ps-primary)' }}
-            >
-              Subscribe <Send className="w-3.5 h-3.5" />
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center">
-                <Sprout className="w-5 h-5" style={{ color: 'var(--ps-primary)' }} />
+    <footer className="plant-store bg-[#14261d] text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
+          
+          {/* Brand Column */}
+          <div className="lg:col-span-4">
+            <Link href="/" className="flex items-center gap-2.5 mb-5">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <Sprout className="w-5 h-5 text-[#2f9e44]" />
               </div>
-              <span className="text-xl font-bold">{data.logoText}</span>
-            </div>
-            <p className="text-white/50 max-w-md text-sm leading-relaxed">{data.description}</p>
-            <div className="flex space-x-3 mt-6">
-              {data.socialLinks.map((social, i) => {
-                const IconComponent = iconComponents[social.icon];
+              <span className="text-2xl font-bold">{data.logoText}</span>
+            </Link>
+            <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
+              {data.description}
+            </p>
+            <div className="flex items-center gap-3">
+              {(data.socialLinks || defaultFooter.socialLinks).map((social, i) => {
+                const Icon = iconMap[social.icon];
                 return (
                   <a
                     key={i}
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-[var(--ps-primary)] transition-all"
+                    className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white/70 hover:bg-[#2f9e44] hover:text-white transition-all"
                   >
-                    {IconComponent && <IconComponent className="w-4 h-4" />}
+                    {Icon && <Icon className="w-4 h-4" />}
                   </a>
                 );
               })}
             </div>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4 text-sm tracking-wide">Quick Links</h3>
-            <ul className="space-y-2.5">
-              {data.quickLinks.map((link, index) => (
-                <li key={index}>
-                  <a href={link.url} className="text-white/50 hover:text-[var(--ps-primary)] transition-colors text-sm">
+          {/* Quick Links */}
+          <div className="lg:col-span-2">
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
+              Quick Links
+            </h4>
+            <ul className="space-y-3">
+              {(data.quickLinks || defaultFooter.quickLinks).map((link, i) => (
+                <li key={i}>
+                  <Link
+                    href={link.url}
+                    className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors"
+                  >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4 text-sm tracking-wide">Collections</h3>
-            <ul className="space-y-2.5">
-              {data.serviceLinks.map((link, index) => (
-                <li key={index}>
-                  <a href={link.url} className="text-white/50 hover:text-[var(--ps-primary)] transition-colors text-sm">
+          {/* Collections */}
+          <div className="lg:col-span-2">
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
+              Collections
+            </h4>
+            <ul className="space-y-3">
+              {(data.collections || defaultFooter.collections).map((link, i) => (
+                <li key={i}>
+                  <Link
+                    href={link.url}
+                    className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors"
+                  >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Customer Care */}
+          <div className="lg:col-span-2">
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
+              Customer Care
+            </h4>
+            <ul className="space-y-3">
+              {(data.customerCare || defaultFooter.customerCare).map((link, i) => (
+                <li key={i}>
+                  <Link
+                    href={link.url}
+                    className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div className="lg:col-span-2">
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white">
+              Join the Plant Lovers Club
+            </h4>
+            <p className="text-sm text-white/60 mb-4">
+              Get plant care tips, offers and more.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                // handle subscribe
+              }}
+              className="flex flex-col gap-2"
+            >
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#2f9e44]"
+              />
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                Subscribe
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/40 text-xs">
-          <p>© {currentYear} {data.logoText}. {data.copyrightText}</p>
-          <div className="flex items-center gap-2">
-            {['VISA', 'MC', 'UPI', 'PayPal'].map((p) => (
-              <span key={p} className="px-2 py-1 bg-white/10 rounded text-[10px] font-medium">
-                {p}
+        {/* Bottom bar */}
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-white/50">
+            © {currentYear} {data.logoText}. All rights reserved.
+          </p>
+
+          <div className="flex items-center gap-3">
+            {['VISA', 'Mastercard', 'UPI', 'RuPay'].map((method) => (
+              <span
+                key={method}
+                className="px-3 py-1.5 bg-white/10 rounded-lg text-[11px] font-medium text-white/70"
+              >
+                {method}
               </span>
             ))}
           </div>

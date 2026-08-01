@@ -11,12 +11,11 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
 
-  // Placeholder counts — swap for real cart/wishlist state once backend cart API is wired.
   const cartCount = 3;
   const wishlistCount = 8;
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -29,116 +28,131 @@ export default function Navbar() {
         if (data.success && data.data?.length) {
           setNavLinks(data.data);
         } else {
-          throw new Error('empty menu');
+          throw new Error('empty');
         }
-      } catch (error) {
-        // Fallback to the Plant Store default menu
+      } catch {
         setNavLinks([
-          { name: 'Home', path: '/', type: 'internal' },
-          { name: 'Shop', path: '/shop', type: 'internal' },
-          { name: 'Plants', path: '/shop?type=plants', type: 'internal' },
-          { name: 'Pots & Planters', path: '/shop?type=planters', type: 'internal' },
-          { name: 'Care Guide', path: '/care-guide', type: 'internal' },
-          { name: 'About Us', path: '/about', type: 'internal' },
+          { name: 'Home', path: '/' },
+          { name: 'Shop', path: '/shop' },
+          { name: 'Plants', path: '/shop?type=plants' },
+          { name: 'Pots & Planters', path: '/shop?type=planters' },
+          { name: 'Care Guide', path: '/care-guide' },
+          { name: 'About Us', path: '/about' },
         ]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchMenu();
   }, []);
 
-  const renderLink = (link) => {
-    const isActive = pathname === link.path;
-    return (
-      <Link
-        href={link.path}
-        className={`text-sm font-medium transition-colors relative ${
-          isActive ? 'text-[var(--ps-primary)]' : 'text-slate-600 hover:text-[var(--ps-primary)]'
-        }`}
-      >
-        {link.name}
-      </Link>
-    );
-  };
-
   return (
     <div className="plant-store">
-      {/* Top announcement bar */}
-      <div className="bg-[var(--ps-dark)] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
+      {/* Top bar */}
+      <div className="bg-[#14261d] text-white text-center py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
         Free Shipping on orders above ₹999
       </div>
 
+      {/* Main nav */}
       <nav
-        className={`sticky top-0 z-50 bg-white transition-shadow ${
-          scrolled ? 'shadow-sm border-b border-[var(--ps-border)]' : 'border-b border-transparent'
+        className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
+          scrolled ? 'shadow-md border-b border-[#e8ece9]' : 'border-b border-[#e8ece9]'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5">
-          <div className="flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16 sm:h-[70px]">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-9 h-9 bg-[var(--ps-primary-light)] rounded-lg flex items-center justify-center">
-                <Sprout className="w-5 h-5" style={{ color: 'var(--ps-primary)' }} />
+            <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
+                <Sprout className="w-5 h-5 sm:w-6 sm:h-6 text-[#2f9e44]" />
               </div>
-              <span className="text-xl font-bold text-slate-800">Plantora</span>
+              <span className="text-xl sm:text-2xl font-bold text-[#14261d]">Plantora</span>
             </Link>
 
-            {/* Center links */}
-            <div className="hidden md:flex items-center gap-7">
+            {/* Desktop Links */}
+            <div className="hidden lg:flex items-center gap-8">
               {loading
-                ? [1, 2, 3, 4].map((i) => <div key={i} className="h-4 w-16 bg-slate-100 rounded animate-pulse" />)
-                : navLinks.map((link) => <div key={link._id || link.path}>{renderLink(link)}</div>)}
+                ? [1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-4 w-14 bg-slate-100 rounded animate-pulse" />
+                  ))
+                : navLinks.map((link) => {
+                    const isActive = pathname === link.path;
+                    return (
+                      <Link
+                        key={link._id || link.path}
+                        href={link.path}
+                        className={`text-[15px] font-medium transition-colors ${
+                          isActive
+                            ? 'text-[#2f9e44]'
+                            : 'text-[#4b5563] hover:text-[#2f9e44]'
+                        }`}
+                      >
+                        {link.name}
+                      </Link>
+                    );
+                  })}
             </div>
 
-            {/* Right icons */}
+            {/* Right Icons */}
             <div className="flex items-center gap-1 sm:gap-2">
-              <button className="p-2 hover:bg-slate-50 rounded-lg text-slate-600 hover:text-[var(--ps-primary)] transition-colors hidden sm:flex">
+              <button className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex">
                 <Search className="w-5 h-5" />
               </button>
-              <Link href="/account/wishlist" className="p-2 hover:bg-slate-50 rounded-lg text-slate-600 hover:text-[var(--ps-primary)] transition-colors relative hidden sm:flex">
+
+              <Link
+                href="/account/wishlist"
+                className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors relative hidden sm:flex"
+              >
                 <Heart className="w-5 h-5" />
                 {wishlistCount > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-[var(--ps-primary)] text-white text-[10px] rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-[#2f9e44] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
               </Link>
-              <Link href="/cart" className="p-2 hover:bg-slate-50 rounded-lg text-slate-600 hover:text-[var(--ps-primary)] transition-colors relative">
+
+              <Link
+                href="/cart"
+                className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors relative"
+              >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-[var(--ps-primary)] text-white text-[10px] rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-[#2f9e44] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
               </Link>
-              <Link href="/account" className="p-2 hover:bg-slate-50 rounded-lg text-slate-600 hover:text-[var(--ps-primary)] transition-colors hidden sm:flex">
+
+              <Link
+                href="/account"
+                className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex"
+              >
                 <User className="w-5 h-5" />
               </Link>
 
+              {/* Mobile menu button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 rounded-lg bg-[var(--ps-primary-light)] text-[var(--ps-primary)]"
+                className="lg:hidden p-2.5 rounded-xl bg-[#eaf7ee] text-[#2f9e44]"
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
           </div>
 
-          {/* Mobile menu */}
+          {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden mt-4 pt-4 border-t border-[var(--ps-border)] space-y-1">
+            <div className="lg:hidden border-t border-[#e8ece9] py-4 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link._id || link.path}
                   href={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  className={`block px-4 py-3 rounded-xl text-sm font-medium ${
                     pathname === link.path
-                      ? 'bg-[var(--ps-primary-light)] text-[var(--ps-primary)]'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-[#eaf7ee] text-[#2f9e44]'
+                      : 'text-[#4b5563] hover:bg-[#f6f8f7]'
                   }`}
                 >
                   {link.name}
@@ -147,7 +161,7 @@ export default function Navbar() {
               <Link
                 href="/account"
                 onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="block px-4 py-3 rounded-xl text-sm font-medium text-[#4b5563] hover:bg-[#f6f8f7]"
               >
                 My Account
               </Link>
