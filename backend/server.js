@@ -328,6 +328,8 @@ app.use('/api/about', require('./src/routes/aboutRoutes'));
 app.use('/api/hero', require('./src/routes/heroRoutes'));
 app.use('/api/contact', require('./src/routes/contactRoutes'));
 app.use('/api/settings', require('./src/routes/settingsRoutes'));
+app.use('/api/plants', require('./src/routes/plantRoutes'));
+app.use('/api/products', require('./src/routes/plantRoutes'));
 
 // 404 handler
 app.use('*', (req, res) => {
