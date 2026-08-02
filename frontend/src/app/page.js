@@ -1,42 +1,51 @@
+// ============================================
+// FILE: src/app/page.js (Home)
+// ============================================
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { 
-  ArrowRight, 
-  Leaf, 
-  ShieldCheck, 
-  Truck, 
-  Heart, 
+import {
+  ArrowRight,
+  Leaf,
+  ShieldCheck,
+  Truck,
+  Heart,
   Star,
   ShoppingBag,
   ChevronLeft,
   ChevronRight,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
+// ✅ Each slide can be an IMAGE or a VIDEO — set `mediaType` accordingly.
+// This will come from the admin's "Appearance / Hero Banner" section once wired up.
 const slides = [
   {
+    mediaType: 'image',
+    media: 'https://images.unsplash.com/photo-1463320726281-696a485928c7?w=1600&q=80',
     title: 'Bring Nature',
     subtitle: 'Into Your Home',
     description: 'Premium indoor plants, stylish planters and expert care tips to create a greener living.',
-    image: 'https://images.unsplash.com/photo-1463320726281-696a485928c7?w=900&q=80',
     primaryBtn: 'Shop Plants',
     secondaryBtn: 'Explore Collections',
   },
   {
+    mediaType: 'video',
+    media: 'https://cdn.coverr.co/videos/coverr-watering-a-plant-2652/1080p.mp4',
+    poster: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80',
     title: 'Fresh Plants',
     subtitle: 'Delivered Free',
     description: 'Handpicked healthy plants with free shipping on orders above ₹999 across India.',
-    image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&q=80',
     primaryBtn: 'Shop Now',
     secondaryBtn: 'View Best Sellers',
   },
   {
+    mediaType: 'image',
+    media: 'https://images.unsplash.com/photo-1459411552884-841db9b3aa2a?w=1600&q=80',
     title: 'Air Purifying',
     subtitle: 'Plants Collection',
     description: 'Breathe cleaner air with our carefully selected air-purifying indoor plants.',
-    image: 'https://images.unsplash.com/photo-1459411552884-841db9b3aa2a?w=900&q=80',
     primaryBtn: 'Explore Plants',
     secondaryBtn: 'Care Guide',
   },
@@ -52,93 +61,106 @@ const bestSellers = [
 
 export default function HomePage() {
   const [current, setCurrent] = useState(0);
+  const videoRefs = useRef([]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    // Only auto-advance on image slides; video slides advance when the video ends (see onEnded below).
+    if (slides[current].mediaType === 'video') return;
+    const timer = setTimeout(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [current]);
 
   const next = () => setCurrent((prev) => (prev + 1) % slides.length);
   const prev = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
+  const slide = slides[current];
+
   return (
     <div className="plant-store bg-white">
-      
-      {/* ===================== HERO SLIDER ===================== */}
-      <section className="relative bg-[#f6f8f7] overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-[#e8ece9] rounded-full text-sm text-[#2f9e44] font-medium shadow-sm">
-                <Leaf className="w-4 h-4" />
-                Free Shipping on orders above ₹999
-              </div>
+      {/* ===================== FULL-BLEED HERO ===================== */}
+      <section className="relative w-full h-[520px] sm:h-[600px] lg:h-[680px] overflow-hidden bg-[#14261d]">
+        {/* Background media — image or video, edge to edge */}
+        <div className="absolute inset-0">
+          {slide.mediaType === 'video' ? (
+            <video
+              key={slide.media}
+              ref={(el) => (videoRefs.current[current] = el)}
+              src={slide.media}
+              poster={slide.poster}
+              autoPlay
+              muted
+              playsInline
+              onEnded={next}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img key={slide.media} src={slide.media} alt={slide.title} className="w-full h-full object-cover" />
+          )}
+          {/* Gradient overlay so text stays readable over any media */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#14261d]/85 via-[#14261d]/50 to-[#14261d]/10" />
+        </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-bold text-[#14261d] leading-[1.15]">
-                {slides[current].title}
-                <br />
-                <span className="text-[#2f9e44]">{slides[current].subtitle}</span>
-              </h1>
-
-              <p className="text-base sm:text-lg text-[#6b7280] max-w-md leading-relaxed">
-                {slides[current].description}
-              </p>
-
-              <div className="flex flex-wrap gap-3 pt-1">
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all shadow-md"
-                >
-                  {slides[current].primaryBtn}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#2f9e44] text-[#2f9e44] hover:bg-[#eaf7ee] font-semibold rounded-xl transition-all"
-                >
-                  {slides[current].secondaryBtn}
-                </Link>
-              </div>
-
-              {/* Dots */}
-              <div className="flex items-center gap-2 pt-3">
-                {slides.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrent(i)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      i === current ? 'w-6 bg-[#2f9e44]' : 'w-2 bg-[#d1d5db]'
-                    }`}
-                  />
-                ))}
-              </div>
+        {/* Content overlay */}
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+          <div className="max-w-xl space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm text-white font-medium">
+              <Leaf className="w-4 h-4 text-[#7ee2a8]" />
+              Free Shipping on orders above ₹999
             </div>
 
-            {/* Right Image */}
-            <div className="relative">
-              <div className="absolute -inset-3 bg-[#2f9e44]/10 rounded-3xl blur-2xl" />
-              <img
-                src={slides[current].image}
-                alt="Hero plant"
-                className="relative rounded-3xl shadow-xl w-full h-[300px] sm:h-[380px] lg:h-[400px] object-cover"
-              />
-              <button
-                onClick={prev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow flex items-center justify-center transition-all"
+            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-white leading-[1.1]">
+              {slide.title}
+              <br />
+              <span className="text-[#7ee2a8]">{slide.subtitle}</span>
+            </h1>
+
+            <p className="text-base sm:text-lg text-white/80 max-w-md leading-relaxed">{slide.description}</p>
+
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all shadow-md"
               >
-                <ChevronLeft className="w-5 h-5 text-[#14261d]" />
-              </button>
-              <button
-                onClick={next}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow flex items-center justify-center transition-all"
+                {slide.primaryBtn}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/20 font-semibold rounded-xl transition-all"
               >
-                <ChevronRight className="w-5 h-5 text-[#14261d]" />
-              </button>
+                {slide.secondaryBtn}
+              </Link>
             </div>
           </div>
+        </div>
+
+        {/* Arrows */}
+        <button
+          onClick={prev}
+          className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all"
+        >
+          <ChevronLeft className="w-5 h-5 text-white" />
+        </button>
+        <button
+          onClick={next}
+          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all"
+        >
+          <ChevronRight className="w-5 h-5 text-white" />
+        </button>
+
+        {/* Dots + media type indicator */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          {slides.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === current ? 'w-8 bg-[#2f9e44]' : 'w-2 bg-white/40'
+              }`}
+            />
+          ))}
         </div>
       </section>
 
@@ -224,7 +246,6 @@ export default function HomePage() {
       <section className="py-14 lg:py-20 bg-[#f6f8f7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            {/* Left Image */}
             <AnimatedSection>
               <div className="relative">
                 <img
@@ -235,7 +256,6 @@ export default function HomePage() {
               </div>
             </AnimatedSection>
 
-            {/* Right Content */}
             <AnimatedSection>
               <div className="space-y-5">
                 <div>
@@ -244,26 +264,23 @@ export default function HomePage() {
                 </div>
 
                 <p className="text-[#6b7280] leading-relaxed">
-                  Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and the better.
+                  Plantora was born out of a passion for plants and a mission to bring nature closer to every home.
+                  We believe plants make people happier, healthier and the better.
                 </p>
 
                 <ul className="space-y-3">
-                  {[
-                    'Handpicked Healthy Plants',
-                    'Expert Plant Care Guidance',
-                    'Sustainable & Eco-Friendly',
-                    'Happy Customer Support'
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-[#14261d] font-medium text-sm sm:text-base">{item}</span>
-                    </li>
-                  ))}
+                  {['Handpicked Healthy Plants', 'Expert Plant Care Guidance', 'Sustainable & Eco-Friendly', 'Happy Customer Support'].map(
+                    (item, i) => (
+                      <li key={i} className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0">
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-[#14261d] font-medium text-sm sm:text-base">{item}</span>
+                      </li>
+                    )
+                  )}
                 </ul>
 
-                {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
                   {[
                     { number: '10K+', label: 'Happy Customers' },
@@ -287,9 +304,7 @@ export default function HomePage() {
       <section className="py-14 lg:py-16" style={{ backgroundColor: '#14261d' }}>
         <div className="max-w-4xl mx-auto px-4 text-center">
           <AnimatedSection>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-              Ready to bring nature home?
-            </h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">Ready to bring nature home?</h2>
             <p className="text-white/70 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
               Explore our collection of premium indoor plants and transform your space today.
             </p>
@@ -303,7 +318,6 @@ export default function HomePage() {
           </AnimatedSection>
         </div>
       </section>
-
     </div>
   );
 }
