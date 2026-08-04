@@ -1,12 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   // ✅ FIX: same redirect support as login — sent here from checkout, go back after register
@@ -239,5 +239,12 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+ export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }
