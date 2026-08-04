@@ -1,18 +1,13 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // ✅ FIX: if user was sent here from checkout ("/login?redirect=/checkout"),
-  // send them back there after login instead of always going to /account
-  const redirectTo = searchParams.get('redirect') || '/account';
-
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -51,7 +46,7 @@ export default function LoginPage() {
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push(redirectTo); // ✅ FIX: go back to checkout (or wherever) instead of always /account
+        router.push('/account');
       } else {
         setError(data.message || 'Invalid email or password');
       }
@@ -60,7 +55,7 @@ export default function LoginPage() {
       if (formData.email && formData.password) {
         localStorage.setItem('token', 'demo-token');
         localStorage.setItem('user', JSON.stringify({ name: 'Rohan', email: formData.email }));
-        router.push(redirectTo); // ✅ FIX
+        router.push('/account');
       } else {
         setError('Failed to login. Please try again.');
       }
@@ -194,7 +189,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-[#6b7280] mt-6">
             Don&apos;t have an account?{' '}
-            <Link href={`/register${redirectTo !== '/account' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-[#2f9e44] font-semibold hover:underline">
+            <Link href="/register" className="text-[#2f9e44] font-semibold hover:underline">
               Register
             </Link>
           </p>

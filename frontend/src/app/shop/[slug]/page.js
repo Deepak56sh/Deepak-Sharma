@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Star, 
@@ -54,7 +54,6 @@ const defaultProduct = {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const slug = params?.slug;
 
   const [product, setProduct] = useState(null);
@@ -89,44 +88,6 @@ export default function ProductDetailPage() {
 
     if (slug) fetchProduct();
   }, [slug]);
-
-  // ✅ FIX: check login before letting user buy/checkout.
-  // If not logged in, send them to /login with a redirect param that
-  // brings them straight back to checkout once they log in.
-  const requireAuthThenGo = (destination) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-    if (!token) {
-      const redirectTarget = encodeURIComponent(destination);
-      router.push(`/login?redirect=${redirectTarget}`);
-      return;
-    }
-
-    router.push(destination);
-  };
-
-  const buildCheckoutUrl = () => {
-    if (!product) return '/checkout';
-    const qs = new URLSearchParams({
-      productId: product._id,
-      slug: product.slug || slug,
-      size: selectedSize,
-      qty: String(quantity),
-    });
-    return `/checkout?${qs.toString()}`;
-  };
-
-  const handleBuyNow = () => {
-    requireAuthThenGo(buildCheckoutUrl());
-  };
-
-  const handleAddToCart = () => {
-    // ✅ FIX: same login gate for Add to Cart, sends user back to this product
-    // page after login instead of checkout (since they were only adding to cart)
-    requireAuthThenGo(`/shop/${product?.slug || slug}`);
-    // TODO: once cart API/context exists, actually add the item to cart here
-    // for logged-in users instead of just redirecting.
-  };
 
   if (loading) {
     return (
@@ -287,19 +248,11 @@ export default function ProductDetailPage() {
 
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {/* ✅ FIX: onClick added — checks login before adding to cart */}
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
-                >
+                <button className="flex-1 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
                   <ShoppingCart className="w-5 h-5" />
                   Add to Cart
                 </button>
-                {/* ✅ FIX: onClick added — checks login, sends to /login?redirect=/checkout... */}
-                <button
-                  onClick={handleBuyNow}
-                  className="flex-1 py-3.5 bg-[#14261d] hover:bg-[#1c3327] text-white font-semibold rounded-xl transition-all"
-                >
+                <button className="flex-1 py-3.5 bg-[#14261d] hover:bg-[#1c3327] text-white font-semibold rounded-xl transition-all">
                   Buy Now
                 </button>
                 <button className="w-12 h-12 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7]">
