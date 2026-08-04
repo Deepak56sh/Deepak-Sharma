@@ -1,6 +1,7 @@
 const Plant = require('../models/Plant');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require("../config/cloudinary");
 
 // Same uploads path logic as server.js
 const isRender = process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production';
@@ -283,76 +284,34 @@ const deletePlant = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error while deleting plant' });
   }
 };
-
-// ---------- UPLOAD IMAGE (express-fileupload) ----------
-// POST /api/plants/upload-image
+// ---------- UPLOAD IMAGE (Cloudinary) ----------
 const uploadPlantImage = async (req, res) => {
   try {
-    console.log('📤 Plant image upload');
-    console.log('Files:', req.files ? Object.keys(req.files) : 'none');
-
-    if (!req.files || !req.files.image) {
+    if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No image file uploaded. Field name must be "image"',
-        debug: {
-          hasFiles: !!req.files,
-          keys: req.files ? Object.keys(req.files) : []
-        }
+        message: "No image uploaded",
       });
     }
 
-    const image = req.files.image;
-
-    if (!image.mimetype.startsWith('image/')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Only image files are allowed'
-      });
-    }
-
-    if (image.size > 5 * 1024 * 1024) {
-      return res.status(400).json({
-        success: false,
-        message: 'Image must be under 5MB'
-      });
-    }
-
-    if (!fs.existsSync(uploadsPath)) {
-      fs.mkdirSync(uploadsPath, { recursive: true });
-    }
-
-    const ext = path.extname(image.name) || '.jpg';
-    const fileName = `plant-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    const uploadPath = path.join(uploadsPath, fileName);
-
-    await image.mv(uploadPath);
-
-    if (!fs.existsSync(uploadPath)) {
-      throw new Error('File saved but not found on disk');
-    }
-
-    const imageUrl = `/uploads/${fileName}`;
-    const fullUrl = `${process.env.BACKEND_URL || 'https://my-site-backend-0661.onrender.com'}${imageUrl}`;
-
-    res.json({
+    return res.status(200).json({
       success: true,
-      message: 'Image uploaded successfully',
+      message: "Image uploaded successfully",
       data: {
-        imageUrl,      // relative — frontend form me save hoga
-        url: imageUrl,
-        fullUrl
-      }
+        imageUrl: req.file.path,
+        url: req.file.path,
+        filename: req.file.filename,
+      },
     });
   } catch (error) {
-    console.error('Upload plant image error:', error);
-    res.status(500).json({
+    console.error("Upload plant image error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message || 'Server error while uploading image'
+      message: error.message || "Server error while uploading image",
     });
   }
 };
-
 module.exports = {
   getPlants,
   getPlant,

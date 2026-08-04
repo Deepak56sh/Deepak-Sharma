@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const upload = require("../middleware/upload");
 const {
   getPlants,
   getPlant,
@@ -14,7 +15,12 @@ const { protect } = require('../middleware/auth');
 router.get('/', getPlants);
 
 // Upload MUST be before /:idOrSlug
-router.post('/upload-image', protect, uploadPlantImage);
+router.post(
+  "/upload-image",
+  protect,
+  upload.single("image"),
+  uploadPlantImage
+);
 
 // Admin CRUD
 router.post('/', protect, createPlant);

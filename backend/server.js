@@ -5,7 +5,7 @@ const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const path = require('path');
 const fs = require('fs');
-const fileUpload = require('express-fileupload');
+// const fileUpload = require('express-fileupload');
 
 // Load env vars FIRST
 dotenv.config();
@@ -13,14 +13,14 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
-app.use(fileUpload({
-    createParentPath: true,
-    limits: { 
-        fileSize: 5 * 1024 * 1024 // 5MB
-    },
-    useTempFiles: false,
-    debug: process.env.NODE_ENV === 'development'
-}));
+// app.use(fileUpload({
+//     createParentPath: true,
+//     limits: { 
+//         fileSize: 5 * 1024 * 1024 // 5MB
+//     },
+//     useTempFiles: false,
+//     debug: process.env.NODE_ENV === 'development'
+// }));
 
 // ✅ FIX: Increase payload size limit (AFTER fileUpload)
 app.use(express.json({ limit: '50mb' }));
