@@ -29,17 +29,25 @@ app.use(express.urlencoded({
   limit: '50mb'
 }));
 
-// ✅ FIXED CORS MIDDLEWARE
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://deepakch.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Content-Disposition');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+// ✅ FIX: CORS — single source of truth, allow multiple origins + credentials
+// Purana manual header wala middleware hata diya gaya hai — wo OPTIONS request
+// ko yahin reply kar deta tha, isliye niche wala cors() package kabhi chalta hi nahi tha
+// aur credentials header bhi missing tha (isi wajah se upload/preflight fail ho raha tha).
+const allowedOrigins = ['http://localhost:3000', 'https://deepakch.vercel.app'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (Postman, curl, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Content-Disposition']
+}));
 
 // ✅ FIX: Detect Render.com properly
 const isRender = process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production';
@@ -93,15 +101,6 @@ const createUploadsDirectory = () => {
 };
 
 const actualUploadsPath = createUploadsDirectory();
-
-// ✅ FIX: CRITICAL - ALSO KEEP THE CORS PACKAGE CONFIGURATION
-// YEH APNE FRONTEND DOMAINS KE LIYE IMPORTANT HAI
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://deepakch.vercel.app'], // ✅ YAHAN CHANGE KAREN
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 // ✅ FIX: Static file serving - SIMPLE AND CLEAN
 app.use('/uploads', express.static(actualUploadsPath, {
