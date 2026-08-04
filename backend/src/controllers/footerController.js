@@ -1,12 +1,4 @@
 const Footer = require('../models/Footer');
-const path = require('path');
-const fs = require('fs');
-
-// Uploads path — same logic as server.js
-const isRender = process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production';
-const uploadsPath = isRender
-  ? '/tmp/uploads'
-  : path.join(__dirname, '../../public/uploads'); // adjust if needed
 
 // @desc    Get footer
 // @route   GET /api/footer
@@ -89,86 +81,38 @@ const updateFooter = async (req, res) => {
   }
 };
 
-// @desc    Upload logo (express-fileupload)
+// @desc    Upload logo (Cloudinary via multer — same pattern as plant image upload)
 // @route   POST /api/footer/logo
 const uploadFooterLogo = async (req, res) => {
   try {
     console.log('📤 Logo upload request received');
-    console.log('Files:', req.files ? Object.keys(req.files) : 'none');
 
-    // express-fileupload se file aati hai
-    if (!req.files || !req.files.logo) {
+    // ✅ FIX: multer-storage-cloudinary gives us req.file (singular), not req.files
+    if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No logo file uploaded. Field name must be "logo"',
-        debug: {
-          hasFiles: !!req.files,
-          keys: req.files ? Object.keys(req.files) : []
-        }
+        message: 'No logo file uploaded. Field name must be "logo"'
       });
     }
 
-    const logo = req.files.logo;
-
-    // Validate type
-    if (!logo.mimetype.startsWith('image/')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Only image files are allowed'
-      });
-    }
-
-    // Validate size (2MB)
-    if (logo.size > 2 * 1024 * 1024) {
-      return res.status(400).json({
-        success: false,
-        message: 'Image must be under 2MB'
-      });
-    }
-
-    // Ensure uploads dir exists
-    if (!fs.existsSync(uploadsPath)) {
-      fs.mkdirSync(uploadsPath, { recursive: true });
-    }
-
-    // Unique filename
-    const ext = path.extname(logo.name) || '.png';
-    const fileName = `logo-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    const uploadPath = path.join(uploadsPath, fileName);
-
-    console.log('📁 Saving logo to:', uploadPath);
-
-    // Move file
-    await logo.mv(uploadPath);
-
-    // Verify
-    if (!fs.existsSync(uploadPath)) {
-      throw new Error('File saved but not found on disk');
-    }
+    // ✅ FIX: req.file.path is already the full Cloudinary URL after upload
+    const logoUrl = req.file.path;
 
     // Update DB
     let footer = await Footer.findOne({ isActive: true });
     if (!footer) footer = new Footer();
 
-    // Delete old logo (optional)
-    if (footer.logoImage && footer.logoImage.startsWith('/uploads/')) {
-      const oldFile = path.join(uploadsPath, path.basename(footer.logoImage));
-      if (fs.existsSync(oldFile)) {
-        try { fs.unlinkSync(oldFile); } catch (e) { console.log('Old logo delete failed:', e.message); }
-      }
-    }
-
-    footer.logoImage = `/uploads/${fileName}`;
+    footer.logoImage = logoUrl;
     await footer.save();
 
-    console.log('✅ Logo uploaded:', footer.logoImage);
+    console.log('✅ Logo uploaded to Cloudinary:', footer.logoImage);
 
     res.json({
       success: true,
       message: 'Logo uploaded successfully',
       data: {
         logoImage: footer.logoImage,
-        fullUrl: `https://my-site-backend-0661.onrender.com/uploads/${fileName}`
+        fullUrl: footer.logoImage
       }
     });
   } catch (error) {
