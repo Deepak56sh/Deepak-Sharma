@@ -1,63 +1,73 @@
-// backend/src/models/Hero.js
 const mongoose = require('mongoose');
 
-const heroSchema = new mongoose.Schema({
-  badge: {
+const slideSchema = new mongoose.Schema({
+  mediaType: {
     type: String,
-    required: true,
-    default: 'Welcome to the Future'
+    enum: ['image', 'video'],
+    default: 'image'
   },
-  mainTitle: {
-    type: String,
-    required: true,
-    default: 'Digital Innovation'
+  media: {
+    type: String, // Cloudinary URL
+    default: ''
   },
-  subTitle: {
+  poster: {
+    type: String, // video poster image URL
+    default: ''
+  },
+  title: {
     type: String,
-    required: true,
-    default: 'Starts Here'
+    default: 'Bring Nature'
+  },
+  subtitle: {
+    type: String,
+    default: 'Into Your Home'
   },
   description: {
     type: String,
-    required: true,
-    default: 'Transform your vision into reality with cutting-edge technology and stunning design that captivates your audience'
+    default: ''
   },
-  // Primary Button
-  primaryButton: {
+  primaryBtn: {
     type: String,
-    required: true,
-    default: 'Explore Services'
+    default: 'Shop Plants'
   },
-  primaryButtonType: {
+  primaryBtnLink: {
     type: String,
-    enum: ['page', 'external'],
-    default: 'page'
+    default: '/shop'
   },
-  primaryButtonLink: {
+  secondaryBtn: {
     type: String,
-    default: '/services'
+    default: 'Explore Collections'
   },
-  // Secondary Button
-  secondaryButton: {
+  secondaryBtnLink: {
     type: String,
-    required: true,
-    default: 'Get in Touch'
+    default: '/shop'
   },
-  secondaryButtonType: {
-    type: String,
-    enum: ['page', 'external'],
-    default: 'page'
-  },
-  secondaryButtonLink: {
-    type: String,
-    default: '/contact'
+  order: {
+    type: Number,
+    default: 0
   },
   isActive: {
     type: Boolean,
     default: true
   }
-}, {
-  timestamps: true
 });
+
+const heroSchema = new mongoose.Schema(
+  {
+    badge: {
+      type: String,
+      default: 'Free Shipping on orders above ₹999'
+    },
+    slides: {
+      type: [slideSchema],
+      default: []
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    }
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model('Hero', heroSchema);

@@ -1,15 +1,16 @@
-// backend/src/routes/heroRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  getHero,
-  updateHero
-} = require('../controllers/heroController');
+const upload = require('../middleware/upload');
+const { getHero, updateHero, uploadHeroMedia } = require('../controllers/heroController');
+const { protect } = require('../middleware/auth');
 
-// Public routes
+// Public
 router.get('/', getHero);
 
-// Admin routes
-router.put('/', updateHero);
+// Admin
+router.put('/', protect, updateHero);
+
+// Cloudinary upload — field name: "media" (image or video)
+router.post('/upload', protect, upload.single('media'), uploadHeroMedia);
 
 module.exports = router;
