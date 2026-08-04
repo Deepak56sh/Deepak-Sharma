@@ -20,10 +20,11 @@ export default function PlantsPage() {
   const [previewImage, setPreviewImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  // ✅ FIX: surface errors to the user instead of failing silently
+  const [errorMsg, setErrorMsg] = useState('');
 
   const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null);
 
-  // TODO: replace with real GET /plants call once backend route exists
   const fetchPlants = async () => {
     try {
       const token = getToken();
@@ -48,6 +49,7 @@ export default function PlantsPage() {
     setEditingPlant(null);
     setForm({ name: '', category: '', price: '', stock: '', description: '', image: '' });
     setPreviewImage('');
+    setErrorMsg('');
     setShowModal(true);
   };
 
@@ -62,24 +64,34 @@ export default function PlantsPage() {
       image: plant.image || '',
     });
     setPreviewImage(plant.image || '');
+    setErrorMsg('');
     setShowModal(true);
   };
 
-  // ✅ Image upload — same pattern as the profile picture uploader.
-  // Point this at your plants image-upload endpoint (e.g. POST /plants/upload-image).
+  // ✅ FIX: Image upload now checks token first, and shows the real error
+  // instead of silently keeping only a local (non-persisted) preview.
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) return;
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Please select a valid image file.');
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      setErrorMsg('You are not logged in (no admin token found). Please log in again.');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (ev) => setPreviewImage(ev.target.result);
     reader.readAsDataURL(file);
 
     setUploading(true);
+    setErrorMsg('');
     try {
-      const token = getToken();
       const fd = new FormData();
       fd.append('image', file);
 
@@ -89,25 +101,49 @@ export default function PlantsPage() {
         body: fd,
       });
 
-      if (res.ok) {
-        const result = await res.json();
-        if (result.success && result.data?.imageUrl) {
-          setForm((prev) => ({ ...prev, image: result.data.imageUrl }));
-        }
+      // ✅ FIX: always read the body so we can show the real error message
+      let result = null;
+      try {
+        result = await res.json();
+      } catch (parseErr) {
+        // response wasn't JSON (e.g. HTML error page from server crash)
+      }
+
+      if (res.ok && result?.success && result?.data?.imageUrl) {
+        setForm((prev) => ({ ...prev, image: result.data.imageUrl }));
+      } else {
+        // ✅ FIX: no more silent failure — tell the user exactly what happened
+        setErrorMsg(
+          result?.message ||
+            `Image upload failed (status ${res.status}). Please try again.`
+        );
+        // Roll back local preview so UI doesn't lie about upload state
+        setPreviewImage(form.image || '');
       }
     } catch (err) {
-      console.log('Upload endpoint not connected yet — preview shown locally only.');
+      console.error('Upload error:', err);
+      setErrorMsg('Could not reach the server to upload the image. Check your connection and try again.');
+      setPreviewImage(form.image || '');
     } finally {
       setUploading(false);
     }
   };
 
+  // ✅ FIX: Save no longer fakes success on failure. It shows the real
+  // error and does NOT touch local state unless the backend actually saved it.
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setErrorMsg('');
+
+    const token = getToken();
+    if (!token) {
+      setErrorMsg('You are not logged in (no admin token found). Please log in again.');
+      setSaving(false);
+      return;
+    }
 
     try {
-      const token = getToken();
       const url = editingPlant ? `${API_BASE_URL}/plants/${editingPlant._id}` : `${API_BASE_URL}/plants`;
       const method = editingPlant ? 'PUT' : 'POST';
 
@@ -117,31 +153,45 @@ export default function PlantsPage() {
         body: JSON.stringify(form),
       });
 
-      if (res.ok) {
-        await fetchPlants();
-      } else {
-        // Optimistic local update so the UI still reflects the change while backend is pending
-        if (editingPlant) {
-          setPlants((prev) => prev.map((p) => (p._id === editingPlant._id ? { ...p, ...form } : p)));
-        } else {
-          setPlants((prev) => [...prev, { _id: Date.now().toString(), ...form }]);
-        }
+      let result = null;
+      try {
+        result = await res.json();
+      } catch (parseErr) {
+        // non-JSON response
       }
+
+      if (res.ok && result?.success) {
+        await fetchPlants();
+        setShowModal(false);
+      } else {
+        // ✅ FIX: real error shown, modal stays open, no fake local insert
+        setErrorMsg(
+          result?.message || `Save failed (status ${res.status}). Please try again.`
+        );
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      setErrorMsg('Could not reach the server. Check your connection and try again.');
     } finally {
       setSaving(false);
-      setShowModal(false);
     }
   };
 
   const handleDelete = async (id) => {
     try {
       const token = getToken();
-      await fetch(`${API_BASE_URL}/plants/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/plants/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-    } finally {
-      setPlants((prev) => prev.filter((p) => p._id !== id));
+      if (res.ok) {
+        setPlants((prev) => prev.filter((p) => p._id !== id));
+      } else {
+        // ✅ FIX: don't remove from UI if the backend didn't actually delete it
+        console.error('Delete failed with status', res.status);
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
     }
   };
 
@@ -248,6 +298,13 @@ export default function PlantsPage() {
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-5">
+              {/* ✅ FIX: visible error banner instead of silent failure */}
+              {errorMsg && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-600 text-sm rounded-lg px-4 py-3">
+                  {errorMsg}
+                </div>
+              )}
+
               {/* Image upload */}
               <div className="flex flex-col items-center">
                 <div className="relative mb-3">
@@ -336,7 +393,7 @@ export default function PlantsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploading}
                   className="flex-1 py-3 bg-[var(--pa-primary)] text-white rounded-lg font-medium hover:bg-[var(--pa-primary-dark)] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
