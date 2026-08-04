@@ -1,0 +1,21 @@
+const express = require('express');
+const router = express.Router();
+const {
+  registerCustomer,
+  loginCustomer,
+  getAllCustomers,
+  toggleCustomerStatus,
+  deleteCustomer
+} = require('../controllers/customerController');
+const { protect } = require('../middleware/auth'); // same admin-token middleware used elsewhere
+
+// Public — used by the shop's /register and /login pages
+router.post('/register', registerCustomer);
+router.post('/login', loginCustomer);
+
+// Protected — admin panel only (Users & Roles page)
+router.get('/', protect, getAllCustomers);
+router.put('/:id/status', protect, toggleCustomerStatus);
+router.delete('/:id', protect, deleteCustomer);
+
+module.exports = router;

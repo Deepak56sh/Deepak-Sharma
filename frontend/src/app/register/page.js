@@ -1,13 +1,17 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // ✅ FIX: same redirect support as login — sent here from checkout, go back after register
+  const redirectTo = searchParams.get('redirect') || '/account';
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,7 +52,9 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      // ✅ FIX: shop customers now register through /api/customers/register,
+      // NOT /api/auth/register (that endpoint creates ADMIN accounts — wrong for shop signups)
+      const res = await fetch(`${API_URL}/customers/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,18 +70,13 @@ export default function RegisterPage() {
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/account');
+        router.push(redirectTo); // ✅ FIX: go back to checkout (or wherever) instead of always /account
       } else {
         setError(data.message || 'Registration failed');
       }
-    } catch {
-      // Demo mode
-      localStorage.setItem('token', 'demo-token');
-      localStorage.setItem(
-        'user',
-        JSON.stringify({ name: formData.name, email: formData.email })
-      );
-      router.push('/account');
+    } catch (err) {
+      console.error('Register error:', err);
+      setError('Could not reach the server. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -231,7 +232,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-[#6b7280] mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-[#2f9e44] font-semibold hover:underline">
+            <Link href={`/login${redirectTo !== '/account' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-[#2f9e44] font-semibold hover:underline">
               Login
             </Link>
           </p>
