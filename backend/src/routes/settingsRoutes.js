@@ -5,8 +5,10 @@ const {
   updateSettings
 } = require('../controllers/settingsController');
 
-// ✅ CORRECTED: Remove duplicate '/settings' from path
-router.get('/', getSettings);                         // GET /api/settings
-router.put('/', updateSettings);                      // PUT /api/settings
+// GET /api/settings
+router.get('/', getSettings);
+
+// PUT /api/settings
+router.put('/', updateSettings);
 
 module.exports = router;
