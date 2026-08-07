@@ -10,7 +10,7 @@ const serviceSchema = new mongoose.Schema({
   description: {
     type: String,
     required: [true, 'Please provide service description'],
-    maxlength: [500, 'Description cannot be more than 500 characters']
+    maxlength: [5000, 'Description cannot be more than 5000 characters'] // Rich content ke liye
   },
   image: {
     type: String,
@@ -25,7 +25,7 @@ const serviceSchema = new mongoose.Schema({
   color: {
     type: String,
     required: [true, 'Please provide gradient color'],
-    default: 'from-purple-500 to-pink-500'
+    default: 'from-green-600 to-emerald-500'   // Plantora theme ke hisaab se
   },
   features: [{
     type: String,
@@ -83,16 +83,16 @@ serviceSchema.pre('save', function(next) {
       .replace(/-+/g, '-')
       .replace(/^-+/, '')
       .replace(/-+$/, '');
-    
-    // Ensure slug is unique
+   
     const originalSlug = this.slug;
     let counter = 1;
+    
     const checkSlug = async () => {
-      const existing = await mongoose.model('Service').findOne({ 
-        slug: this.slug, 
-        _id: { $ne: this._id } 
+      const existing = await mongoose.model('Service').findOne({
+        slug: this.slug,
+        _id: { $ne: this._id }
       });
-      
+     
       if (existing) {
         this.slug = `${originalSlug}-${counter}`;
         counter++;
@@ -101,19 +101,11 @@ serviceSchema.pre('save', function(next) {
         next();
       }
     };
-    
+   
     checkSlug();
   } else {
     next();
   }
-});
-
-// Add createdBy before saving
-serviceSchema.pre('save', function(next) {
-  if (this.isNew && !this.createdBy) {
-    this.createdBy = this._conditions?.createdBy;
-  }
-  next();
 });
 
 // Index for better query performance
