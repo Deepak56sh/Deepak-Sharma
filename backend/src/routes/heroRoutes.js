@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../middleware/upload');
+const uploadHero = require('../middleware/uploadHero'); 
 const { getHero, updateHero, uploadHeroMedia } = require('../controllers/heroController');
 const { protect } = require('../middleware/auth');
 
@@ -11,6 +11,6 @@ router.get('/', getHero);
 router.put('/', protect, updateHero);
 
 // Cloudinary upload — field name: "media" (image or video)
-router.post('/upload', protect, upload.single('media'), uploadHeroMedia);
+router.post('/upload', protect, uploadHero.single('media'), uploadHeroMedia);
 
 module.exports = router;
