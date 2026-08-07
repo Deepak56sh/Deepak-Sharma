@@ -2,13 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Star, 
-  ShoppingCart, 
-  Heart, 
-  Minus, 
-  Plus, 
-  Truck, 
+import {
+  Star,
+  ShoppingCart,
+  Heart,
+  Minus,
+  Plus,
+  Truck,
   ShieldCheck,
   Leaf,
   ArrowLeft
@@ -145,11 +145,10 @@ export default function ProductDetailPage() {
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
-                    className={`w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
-                      selectedImage === i
+                    className={`w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${selectedImage === i
                         ? 'border-[#2f9e44]'
                         : 'border-transparent opacity-70 hover:opacity-100'
-                    }`}
+                      }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -214,11 +213,10 @@ export default function ProductDetailPage() {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                        selectedSize === size
+                      className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${selectedSize === size
                           ? 'bg-[#2f9e44] text-white border-[#2f9e44]'
                           : 'bg-white text-[#4b5563] border-[#e8ece9] hover:border-[#2f9e44]'
-                      }`}
+                        }`}
                     >
                       {size}
                     </button>
@@ -282,11 +280,10 @@ export default function ProductDetailPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-sm font-semibold capitalize transition-colors relative ${
-                  activeTab === tab
+                className={`pb-3 text-sm font-semibold capitalize transition-colors relative ${activeTab === tab
                     ? 'text-[#2f9e44]'
                     : 'text-[#6b7280] hover:text-[#14261d]'
-                }`}
+                  }`}
               >
                 {tab === 'care' ? 'Care Guide' : tab}
                 {activeTab === tab && (
@@ -315,11 +312,13 @@ export default function ProductDetailPage() {
             )}
 
             {activeTab === 'reviews' && (
-              <div className="space-y-4">
+              <div>
                 <p className="text-[#6b7280]">
                   {product.reviews} customer reviews with an average rating of {product.rating} stars.
                 </p>
-                <p className="text-sm text-[#9ca3af]">Reviews coming soon...</p>
+
+                {/* Customer Review Form */}
+                <ReviewForm productId={product._id} />
               </div>
             )}
           </div>

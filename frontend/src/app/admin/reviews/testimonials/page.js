@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Pencil, Trash2, X, Upload, Loader2, MessageSquareQuote, Star, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Upload, Loader2, MessageSquareQuote, Star, User, CheckCircle } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -15,6 +15,7 @@ export default function TestimonialsAdminPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyTestimonial);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [filter, setFilter] = useState('all'); // 'all', 'active', 'pending'
   const avatarRef = useRef(null);
 
   const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null);
@@ -27,7 +28,11 @@ export default function TestimonialsAdminPage() {
   const fetchTestimonials = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/testimonials/all`, {
+      let url = `${API_URL}/testimonials/all`;
+      if (filter === 'pending') {
+        url = `${API_URL}/testimonials/pending`;
+      }
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
@@ -42,7 +47,7 @@ export default function TestimonialsAdminPage() {
 
   useEffect(() => {
     fetchTestimonials();
-  }, []);
+  }, [filter]);
 
   const openAdd = () => {
     setForm({ ...emptyTestimonial, order: testimonials.length });
@@ -127,6 +132,24 @@ export default function TestimonialsAdminPage() {
     }
   };
 
+  const handleApprove = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/testimonials/${id}/approve`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showMsg('success', 'Review approved!');
+        fetchTestimonials();
+      } else {
+        showMsg('error', data.message || 'Approve failed');
+      }
+    } catch {
+      showMsg('error', 'Server error');
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this testimonial?')) return;
     try {
@@ -156,13 +179,36 @@ export default function TestimonialsAdminPage() {
           </h1>
           <p className="text-slate-500 text-sm">Customer reviews shown on the homepage.</p>
         </div>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-white font-medium"
-          style={{ backgroundColor: 'var(--pa-primary)' }}
-        >
-          <Plus className="w-4 h-4" /> Add Testimonial
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Filter Buttons */}
+          <div className="flex rounded-lg border border-[var(--pa-border)] overflow-hidden text-sm">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1.5 transition-colors ${filter === 'all' ? 'bg-[var(--pa-primary)] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            >
+              All ({testimonials.length})
+            </button>
+            <button
+              onClick={() => setFilter('active')}
+              className={`px-3 py-1.5 transition-colors ${filter === 'active' ? 'bg-[var(--pa-primary)] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setFilter('pending')}
+              className={`px-3 py-1.5 transition-colors ${filter === 'pending' ? 'bg-[var(--pa-primary)] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            >
+              Pending
+            </button>
+          </div>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-white font-medium"
+            style={{ backgroundColor: 'var(--pa-primary)' }}
+          >
+            <Plus className="w-4 h-4" /> Add Testimonial
+          </button>
+        </div>
       </div>
 
       {message.text && (
@@ -184,7 +230,7 @@ export default function TestimonialsAdminPage() {
           </div>
         ) : testimonials.length === 0 ? (
           <div className="py-16 text-center text-slate-400">
-            <p className="mb-3">No testimonials yet</p>
+            <p className="mb-3">No testimonials found</p>
             <button onClick={openAdd} className="text-[var(--pa-primary)] font-semibold hover:underline">
               Add first testimonial
             </button>
@@ -223,6 +269,11 @@ export default function TestimonialsAdminPage() {
                     </td>
                     <td className="px-4 py-3 text-slate-500 max-w-xs">
                       <p className="line-clamp-2">{t.text}</p>
+                      {t.source === 'customer' && (
+                        <span className="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full inline-block mt-1">
+                          Customer Review
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-0.5">
@@ -235,16 +286,31 @@ export default function TestimonialsAdminPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          t.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {t.isActive ? 'Active' : 'Hidden'}
-                      </span>
+                      {t.isPending ? (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700">
+                          Pending Approval
+                        </span>
+                      ) : t.isActive ? (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                          Hidden
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        {t.isPending && (
+                          <button
+                            onClick={() => handleApprove(t._id)}
+                            className="p-2 hover:bg-green-50 rounded-lg text-green-600"
+                            title="Approve"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        )}
                         <button onClick={() => openEdit(t)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -263,6 +329,7 @@ export default function TestimonialsAdminPage() {
         )}
       </div>
 
+      {/* Modal - Same as before */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-[var(--pa-border)]">

@@ -1,6 +1,6 @@
 const Testimonial = require('../models/Testimonial');
 
-// GET /api/testimonials — public, active only, sorted
+// GET /api/testimonials — public, active only
 const getTestimonials = async (req, res) => {
   try {
     const testimonials = await Testimonial.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
@@ -22,6 +22,53 @@ const getAllTestimonials = async (req, res) => {
   }
 };
 
+// GET /api/testimonials/pending — admin, pending reviews only
+const getPendingTestimonials = async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find({ isPending: true }).sort({ createdAt: -1 });
+    res.json({ success: true, data: testimonials });
+  } catch (error) {
+    console.error('Get pending testimonials error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching pending testimonials' });
+  }
+};
+
+// POST /api/testimonials/customer-review — customer submits review
+const submitCustomerReview = async (req, res) => {
+  try {
+    const { name, email, rating, text } = req.body;
+
+    if (!name || !text) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Name and review text are required' 
+      });
+    }
+
+    const review = await Testimonial.create({
+      name,
+      email: email || '',
+      rating: rating || 5,
+      text,
+      isActive: false,
+      isPending: true,
+      source: 'customer'
+    });
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Review submitted! Awaiting admin approval.',
+      data: review 
+    });
+  } catch (error) {
+    console.error('Customer review error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Failed to submit review' 
+    });
+  }
+};
+
 // POST /api/testimonials — admin, create
 const createTestimonial = async (req, res) => {
   try {
@@ -38,7 +85,8 @@ const createTestimonial = async (req, res) => {
       rating: rating || 5,
       text,
       order: order || 0,
-      isActive: isActive !== false
+      isActive: isActive !== false,
+      source: 'admin'
     });
 
     res.status(201).json({ success: true, message: 'Testimonial added successfully', data: testimonial });
@@ -69,6 +117,32 @@ const updateTestimonial = async (req, res) => {
   }
 };
 
+// PUT /api/testimonials/:id/approve — admin approves review
+const approveTestimonial = async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (!testimonial) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+
+    testimonial.isActive = true;
+    testimonial.isPending = false;
+    await testimonial.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Review approved successfully!',
+      data: testimonial 
+    });
+  } catch (error) {
+    console.error('Approve review error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while approving review' 
+    });
+  }
+};
+
 // DELETE /api/testimonials/:id — admin
 const deleteTestimonial = async (req, res) => {
   try {
@@ -84,7 +158,7 @@ const deleteTestimonial = async (req, res) => {
   }
 };
 
-// POST /api/testimonials/upload — admin, Cloudinary avatar image upload
+// POST /api/testimonials/upload — admin, Cloudinary avatar
 const uploadTestimonialAvatar = async (req, res) => {
   try {
     if (!req.file) {
@@ -105,8 +179,11 @@ const uploadTestimonialAvatar = async (req, res) => {
 module.exports = {
   getTestimonials,
   getAllTestimonials,
+  getPendingTestimonials,
+  submitCustomerReview,
   createTestimonial,
   updateTestimonial,
+  approveTestimonial,
   deleteTestimonial,
   uploadTestimonialAvatar
 };

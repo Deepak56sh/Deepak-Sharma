@@ -7,13 +7,18 @@ const testimonialSchema = new mongoose.Schema(
       required: [true, 'Name is required'],
       trim: true
     },
+    email: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     role: {
-      type: String, // e.g. city or job title
+      type: String,
       trim: true,
       default: ''
     },
     avatar: {
-      type: String, // Cloudinary image URL
+      type: String,
       default: ''
     },
     rating: {
@@ -33,6 +38,15 @@ const testimonialSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    isPending: {
+      type: Boolean,
+      default: false
+    },
+    source: {
+      type: String,
+      enum: ['admin', 'customer'],
+      default: 'admin'
     }
   },
   { timestamps: true }
