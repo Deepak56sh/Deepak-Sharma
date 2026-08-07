@@ -11,7 +11,6 @@ import {
   Truck,
   ShieldCheck,
   Leaf,
-  ArrowLeft
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
@@ -52,6 +51,164 @@ const defaultProduct = {
   ]
 };
 
+// ============================================
+// REVIEW FORM COMPONENT
+// ============================================
+function ReviewForm({ productId }) {
+  const [form, setForm] = useState({ 
+    name: '', 
+    email: '', 
+    rating: 5, 
+    text: '' 
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/testimonials/customer-review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ...form, 
+          productId: productId 
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setSubmitted(true);
+        setForm({ name: '', email: '', rating: 5, text: '' });
+      } else {
+        setError(data.message || 'Failed to submit review');
+      }
+    } catch (error) {
+      console.error('Review submit error:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="mt-6 p-6 bg-green-50 rounded-2xl border border-green-200">
+        <div className="text-center">
+          <div className="text-4xl mb-3">✅</div>
+          <p className="text-green-700 font-semibold text-lg">
+            Thank you for your review!
+          </p>
+          <p className="text-green-600 text-sm mt-1">
+            Your review is pending approval from our team.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-6 p-6 bg-[#f6f8f7] rounded-2xl">
+      <h3 className="font-semibold text-[#14261d] text-lg mb-4 flex items-center gap-2">
+        <span>✍️</span> Write a Review
+      </h3>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-[#14261d] mb-1">
+            Your Name *
+          </label>
+          <input
+            type="text"
+            placeholder="e.g., Priya Sharma"
+            required
+            value={form.name}
+            onChange={(e) => setForm({...form, name: e.target.value})}
+            className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#14261d] mb-1">
+            Your Email *
+          </label>
+          <input
+            type="email"
+            placeholder="e.g., priya@email.com"
+            required
+            value={form.email}
+            onChange={(e) => setForm({...form, email: e.target.value})}
+            className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition"
+          />
+        </div>
+      </div>
+      
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-[#14261d] mb-2">
+          Rating *
+        </label>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setForm({...form, rating: star})}
+              className="text-3xl hover:scale-110 transition-transform focus:outline-none"
+              aria-label={`Rate ${star} stars`}
+            >
+              {star <= form.rating ? '⭐' : '☆'}
+            </button>
+          ))}
+          <span className="ml-2 text-sm text-[#6b7280]">
+            ({form.rating} / 5)
+          </span>
+        </div>
+      </div>
+      
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-[#14261d] mb-1">
+          Your Review *
+        </label>
+        <textarea
+          placeholder="Share your experience with this plant..."
+          required
+          rows={4}
+          value={form.text}
+          onChange={(e) => setForm({...form, text: e.target.value})}
+          className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white resize-none focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition"
+        />
+      </div>
+      
+      <button
+        type="submit"
+        disabled={loading}
+        className="mt-4 px-8 py-2.5 bg-[#2f9e44] text-white rounded-xl font-medium hover:bg-[#1f7a34] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        {loading ? (
+          <>
+            <span className="animate-spin">⏳</span> Submitting...
+          </>
+        ) : (
+          'Submit Review'
+        )}
+      </button>
+    </form>
+  );
+}
+
+// ============================================
+// MAIN PRODUCT DETAIL PAGE
+// ============================================
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params?.slug;
@@ -74,7 +231,9 @@ export default function ProductDetailPage() {
         const data = await res.json();
         if (data.success && data.data) {
           setProduct(data.data);
-          if (data.data.sizes?.length) setSelectedSize(data.data.sizes[1] || data.data.sizes[0]);
+          if (data.data.sizes?.length) {
+            setSelectedSize(data.data.sizes[1] || data.data.sizes[0]);
+          }
         } else {
           setProduct(defaultProduct);
         }
@@ -145,10 +304,11 @@ export default function ProductDetailPage() {
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
-                    className={`w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${selectedImage === i
+                    className={`w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
+                      selectedImage === i
                         ? 'border-[#2f9e44]'
                         : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
+                    }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -213,10 +373,11 @@ export default function ProductDetailPage() {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${selectedSize === size
+                      className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                        selectedSize === size
                           ? 'bg-[#2f9e44] text-white border-[#2f9e44]'
                           : 'bg-white text-[#4b5563] border-[#e8ece9] hover:border-[#2f9e44]'
-                        }`}
+                      }`}
                     >
                       {size}
                     </button>
@@ -280,10 +441,11 @@ export default function ProductDetailPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-sm font-semibold capitalize transition-colors relative ${activeTab === tab
+                className={`pb-3 text-sm font-semibold capitalize transition-colors relative ${
+                  activeTab === tab
                     ? 'text-[#2f9e44]'
                     : 'text-[#6b7280] hover:text-[#14261d]'
-                  }`}
+                }`}
               >
                 {tab === 'care' ? 'Care Guide' : tab}
                 {activeTab === tab && (
@@ -313,11 +475,13 @@ export default function ProductDetailPage() {
 
             {activeTab === 'reviews' && (
               <div>
-                <p className="text-[#6b7280]">
+                <p className="text-[#6b7280] mb-4">
                   {product.reviews} customer reviews with an average rating of {product.rating} stars.
                 </p>
 
-                {/* Customer Review Form */}
+                {/* ============================================ */}
+                {/* REVIEW FORM - COMPLETE WORKING CODE */}
+                {/* ============================================ */}
                 <ReviewForm productId={product._id} />
               </div>
             )}
