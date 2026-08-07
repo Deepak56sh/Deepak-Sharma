@@ -1,26 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const uploadHero = require('../middleware/uploadHero'); // same image+video Cloudinary middleware used for Hero
 const {
   getReels,
   getAllReels,
   createReel,
   updateReel,
   deleteReel,
-  uploadReelMedia
+  uploadReelMedia  // ← Make sure this is imported
 } = require('../controllers/instagramController');
-const { protect } = require('../middleware/auth');
+const uploadHero = require('../middleware/uploadHero'); // ← Import your multer config
 
-// Public
+// Public routes
 router.get('/', getReels);
 
-// Admin
-router.get('/all', protect, getAllReels);
-router.post('/', protect, createReel);
-router.put('/:id', protect, updateReel);
-router.delete('/:id', protect, deleteReel);
+// Admin routes
+router.get('/all', getAllReels);
+router.post('/', createReel);
+router.put('/:id', updateReel);
+router.delete('/:id', deleteReel);
 
-// Cloudinary upload — field name: "media" (video, or poster image)
-router.post('/upload', protect, uploadHero.single('media'), uploadReelMedia);
+// ✅ ADD THIS ROUTE - Upload route
+router.post('/upload', uploadHero.single('media'), uploadReelMedia);
 
 module.exports = router;
