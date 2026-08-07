@@ -22,13 +22,13 @@ const mediaSections = [
     icon: Instagram,
     color: 'bg-pink-50 text-pink-600',
   },
-  {
-    name: 'Testimonials',
-    description: 'Customer reviews shown on the homepage',
-    href: '/admin/media/testimonials',
-    icon: MessageSquareQuote,
-    color: 'bg-amber-50 text-amber-600',
-  },
+  // {
+  //   name: 'Testimonials',
+  //   description: 'Customer reviews shown on the homepage',
+  //   href: '/admin/media/testimonials',
+  //   icon: MessageSquareQuote,
+  //   color: 'bg-amber-50 text-amber-600',
+  // },
 ];
 
 export default function MediaPage() {

@@ -12,11 +12,10 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  X,
-  Play,
-  Quote,
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
+import InstagramReels from '@/components/Instagram/InstagramReels'; // ✅ NEW: reusable, video-capable
+import Testimonials from '@/components/Testimonial/Testimonials'; // ✅ NEW: reusable
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -65,83 +64,11 @@ const bestSellers = [
   { name: 'Monstera Deliciosa', price: 899, original: 1199, rating: 4.9, reviews: 152, image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400&q=80' },
 ];
 
-const fallbackReels = [
-  {
-    id: '1',
-    video: 'https://cdn.coverr.co/videos/coverr-watering-a-plant-2652/1080p.mp4',
-    poster: 'https://images.unsplash.com/photo-1463320726281-696a485928c7?w=400&q=80',
-    title: 'Watering tips',
-  },
-  {
-    id: '2',
-    video: 'https://cdn.coverr.co/videos/coverr-green-plant-leaves-1586/1080p.mp4',
-    poster: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80',
-    title: 'New arrivals',
-  },
-  {
-    id: '3',
-    video: 'https://cdn.coverr.co/videos/coverr-a-plant-in-a-pot-5635/1080p.mp4',
-    poster: 'https://images.unsplash.com/photo-1459411552884-841db9b3aa2a?w=400&q=80',
-    title: 'Pot styling',
-  },
-  {
-    id: '4',
-    video: 'https://cdn.coverr.co/videos/coverr-watering-a-plant-2652/1080p.mp4',
-    poster: 'https://images.unsplash.com/photo-1593691509543-c55fb32e5cee?w=400&q=80',
-    title: 'Snake plant care',
-  },
-  {
-    id: '5',
-    video: 'https://cdn.coverr.co/videos/coverr-green-plant-leaves-1586/1080p.mp4',
-    poster: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400&q=80',
-    title: 'Monstera love',
-  },
-];
-
-const fallbackTestimonials = [
-  {
-    id: '1',
-    name: 'Priya Sharma',
-    role: 'Mumbai',
-    avatar: 'https://i.pravatar.cc/100?img=1',
-    rating: 5,
-    text: 'My Monstera arrived healthy and beautifully packed. Plantora is now my go-to for every plant!',
-  },
-  {
-    id: '2',
-    name: 'Rahul Verma',
-    role: 'Delhi',
-    avatar: 'https://i.pravatar.cc/100?img=12',
-    rating: 5,
-    text: 'Snake plant is thriving. Delivery was fast and the care guide helped a lot.',
-  },
-  {
-    id: '3',
-    name: 'Ananya Patel',
-    role: 'Bangalore',
-    avatar: 'https://i.pravatar.cc/100?img=5',
-    rating: 5,
-    text: 'Love the quality. Ordered thrice already — every plant looks exactly like the photos.',
-  },
-  {
-    id: '4',
-    name: 'Vikram Singh',
-    role: 'Jaipur',
-    avatar: 'https://i.pravatar.cc/100?img=8',
-    rating: 4,
-    text: 'Great packaging and healthy plants. Customer support answered all my care questions.',
-  },
-];
-
 export default function HomePage() {
   const [slides, setSlides] = useState(fallbackSlides);
   const [badge, setBadge] = useState('Free Shipping on orders above ₹999');
   const [current, setCurrent] = useState(0);
-  const [reels, setReels] = useState(fallbackReels);
-  const [testimonials, setTestimonials] = useState(fallbackTestimonials);
-  const [popupReel, setPopupReel] = useState(null);
   const videoRefs = useRef([]);
-  const reelHoverRefs = useRef({});
 
   useEffect(() => {
     const fetchHero = async () => {
@@ -159,9 +86,6 @@ export default function HomePage() {
     fetchHero();
   }, []);
 
-  // Optional: later wire /api/instagram-reels & /api/testimonials
-  // useEffect(() => { fetch reels + testimonials }, []);
-
   useEffect(() => {
     if (!slides.length || slides[current]?.mediaType === 'video') return;
     const timer = setTimeout(() => {
@@ -173,22 +97,6 @@ export default function HomePage() {
   const next = () => setCurrent((prev) => (prev + 1) % slides.length);
   const prev = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
   const slide = slides[current] || fallbackSlides[0];
-
-  const handleReelEnter = (id) => {
-    const el = reelHoverRefs.current[id];
-    if (el) {
-      el.currentTime = 0;
-      el.play().catch(() => {});
-    }
-  };
-
-  const handleReelLeave = (id) => {
-    const el = reelHoverRefs.current[id];
-    if (el) {
-      el.pause();
-      el.currentTime = 0;
-    }
-  };
 
   return (
     <div className="plant-store bg-white">
@@ -400,48 +308,8 @@ export default function HomePage() {
       </section>
 
       {/* ===================== TESTIMONIALS ===================== */}
-      <section className="py-14 lg:py-16 bg-[#f6f8f7]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">What Customers Say</h2>
-            <p className="text-[#6b7280] text-sm mt-1">Real love from plant parents across India</p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {testimonials.map((t) => (
-              <AnimatedSection key={t.id}>
-                <div className="h-full bg-white rounded-2xl border border-[#e8ece9] p-5 flex flex-col hover:shadow-md transition-shadow">
-                  <Quote className="w-8 h-8 text-[#2f9e44]/30 mb-3" />
-                  <p className="text-sm text-[#4b5563] leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-1 mt-4 mb-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-3.5 h-3.5 ${
-                          i < (t.rating || 5)
-                            ? 'fill-[#f5a623] text-[#f5a623]'
-                            : 'text-slate-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3 pt-3 border-t border-[#e8ece9]">
-                    <img
-                      src={t.avatar}
-                      alt={t.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-[#14261d]">{t.name}</p>
-                      <p className="text-xs text-[#9ca3af]">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ✅ NEW: now a reusable component, data managed from Admin → Testimonials */}
+      <Testimonials />
 
       {/* ===================== CTA ===================== */}
       <section className="py-14 lg:py-16" style={{ backgroundColor: '#14261d' }}>
@@ -463,77 +331,10 @@ export default function HomePage() {
           </AnimatedSection>
         </div>
       </section>
-            {/* ===================== INSTAGRAM REELS ===================== */}
-      <section className="py-14 lg:py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">Follow Us on Instagram</h2>
-            <p className="text-[#6b7280] text-sm mt-1">Hover to play · Click to watch full</p>
-          </div>
 
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-            {reels.map((reel) => (
-              <button
-                key={reel.id}
-                type="button"
-                onClick={() => setPopupReel(reel)}
-                onMouseEnter={() => handleReelEnter(reel.id)}
-                onMouseLeave={() => handleReelLeave(reel.id)}
-                className="relative flex-shrink-0 w-[160px] sm:w-[180px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#14261d] snap-start group cursor-pointer border border-[#e8ece9] hover:border-[#2f9e44]/40 transition-all"
-              >
-                <video
-                  ref={(el) => {
-                    if (el) reelHoverRefs.current[reel.id] = el;
-                  }}
-                  src={reel.video}
-                  poster={reel.poster}
-                  muted
-                  loop
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
-                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <Play className="w-5 h-5 text-white fill-white ml-0.5" />
-                  </div>
-                </div>
-                <p className="absolute bottom-3 left-3 right-3 text-white text-xs font-medium line-clamp-2 text-left">
-                  {reel.title}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Reel popup */}
-      {popupReel && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setPopupReel(null)}
-        >
-          <div
-            className="relative w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setPopupReel(null)}
-              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <video
-              src={popupReel.video}
-              poster={popupReel.poster}
-              autoPlay
-              controls
-              playsInline
-              className="w-full h-full object-contain"
-            />
-          </div>
-        </div>
-      )}
+      {/* ===================== INSTAGRAM REELS ===================== */}
+      {/* ✅ NEW: now a reusable component with real video upload, data managed from Admin → Instagram Reels */}
+      <InstagramReels />
     </div>
   );
 }

@@ -330,6 +330,8 @@ app.use('/api/settings', require('./src/routes/settingsRoutes'));
 app.use('/api/plants', require('./src/routes/plantRoutes'));
 app.use('/api/products', require('./src/routes/plantRoutes'));
 app.use('/api/customers', require('./src/routes/customerRoutes'));
+app.use('/api/instagram', require('./src/routes/instagramRoutes')); 
+app.use('/api/testimonials', require('./src/routes/testimonialRoutes')); 
 
 // 404 handler
 app.use('*', (req, res) => {

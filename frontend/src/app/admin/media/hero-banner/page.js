@@ -46,7 +46,7 @@ export default function HeroBannerAdminPage() {
 
   const showMsg = (type, text) => {
     setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
 
   const fetchHero = async () => {
@@ -77,6 +77,10 @@ export default function HeroBannerAdminPage() {
     setShowModal(true);
   };
 
+  // ✅ FIX: added AbortController timeout + real error messages + pre-upload
+  // size check. Previously if the request hung (server crash, network stall,
+  // etc.) fetch() would wait forever with no success and no error — this is
+  // exactly the "infinite spinner, nothing happens" symptom.
   const handleUpload = async (e, field = 'media') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -93,19 +97,45 @@ export default function HeroBannerAdminPage() {
       return;
     }
 
+    // ✅ FIX: warn upfront on huge files instead of letting them hang
+    if (file.size > 30 * 1024 * 1024) {
+      showMsg('error', `File is ${(file.size / 1024 / 1024).toFixed(1)}MB — please use a file under 30MB.`);
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      showMsg('error', 'Not logged in (no admin token found). Please log in again.');
+      return;
+    }
+
     setUploading(true);
+
+    // ✅ FIX: hard timeout so the UI can never hang forever with no feedback
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s cap
+
     try {
       const fd = new FormData();
       fd.append('media', file);
 
       const res = await fetch(`${API_URL}/hero/upload`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
+        signal: controller.signal,
       });
 
-      const result = await res.json();
-      if (result.success && result.data?.url) {
+      clearTimeout(timeoutId);
+
+      let result = null;
+      try {
+        result = await res.json();
+      } catch (parseErr) {
+        console.error('Hero upload: response was not JSON', parseErr);
+      }
+
+      if (res.ok && result?.success && result?.data?.url) {
         if (field === 'media') {
           setForm((prev) => ({
             ...prev,
@@ -117,10 +147,18 @@ export default function HeroBannerAdminPage() {
         }
         showMsg('success', 'Uploaded to Cloudinary');
       } else {
-        showMsg('error', result.message || 'Upload failed');
+        // ✅ FIX: real reason shown instead of failing silently
+        showMsg('error', result?.message || `Upload failed (status ${res.status}).`);
       }
-    } catch {
-      showMsg('error', 'Upload failed');
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        console.error('Hero upload timed out after 90s');
+        showMsg('error', 'Upload timed out after 90s. File may be too large, or the server is not responding — check Render logs.');
+      } else {
+        console.error('Hero upload error:', err);
+        showMsg('error', 'Could not reach the server. Check your connection and try again.');
+      }
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -379,10 +417,10 @@ export default function HeroBannerAdminPage() {
                       type="button"
                       disabled={uploading}
                       onClick={() => fileRef.current?.click()}
-                      className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-[var(--pa-primary-light)] text-[var(--pa-primary)]"
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-[var(--pa-primary-light)] text-[var(--pa-primary)] disabled:opacity-50"
                     >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      Upload
+                      {uploading ? 'Uploading...' : 'Upload'}
                     </button>
                     {form.media && (
                       <p className="text-[10px] text-slate-400 mt-1 max-w-[200px] truncate">{form.media}</p>
@@ -406,7 +444,7 @@ export default function HeroBannerAdminPage() {
                     type="button"
                     disabled={uploading}
                     onClick={() => posterRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-[var(--pa-border)] rounded-lg"
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-[var(--pa-border)] rounded-lg disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" /> Upload Poster
                   </button>
