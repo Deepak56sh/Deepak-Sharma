@@ -6,7 +6,7 @@ const {
   getAllCustomers,
   toggleCustomerStatus,
   deleteCustomer
-} = require('../controllers/customerController');
+} = require('../controllers/Customercontroller');
 const { protect } = require('../middleware/auth'); // same admin-token middleware used elsewhere
 
 // Public — used by the shop's /register and /login pages
