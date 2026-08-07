@@ -1,4 +1,3 @@
-// routes/serviceRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -11,21 +10,19 @@ const {
   reorderServices,
   getServiceStats
 } = require('../controllers/serviceController');
-
 const { protect, authorize } = require('../middleware/auth');
+const upload = require('../middleware/upload'); // ← your Cloudinary multer
 
-// Public routes
+// Public
 router.get('/', getAllServices);
 router.get('/:id', getService);
 
-// Admin routes - all protected
+// Admin
 router.use(protect);
+router.use(authorize('admin', 'super-admin'));
 
-// ✅ FIX: Allow both 'admin' and 'super-admin' roles
-router.use(authorize('admin', 'super-admin')); // Changed from 'superadmin' to 'super-admin'
-
-router.post('/', createService);
-router.put('/:id', updateService);
+router.post('/', upload.single('image'), createService);          // ← Cloudinary
+router.put('/:id', upload.single('image'), updateService);       // ← Cloudinary
 router.delete('/:id', deleteService);
 router.patch('/:id/toggle', toggleServiceStatus);
 router.put('/reorder', reorderServices);
