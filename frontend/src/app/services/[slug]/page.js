@@ -1,15 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Loader2, Clock, Tag, Wheat, Sprout } from 'lucide-react';
+import { ArrowRight, Loader2, Clock, Tag, Wheat, Sprout } from 'lucide-react';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
 
 export default function ServiceDetailPage() {
   const { slug } = useParams();
-  const router = useRouter();
 
   const [service, setService] = useState(null);
   const [related, setRelated] = useState([]);
@@ -81,30 +80,19 @@ export default function ServiceDetailPage() {
         .font-body { font-family: 'Inter', sans-serif; }
       `}</style>
 
-      {/* Top bar */}
-      <div className="bg-[#FCFAF3] border-b border-[#E4DFC9] pt-24 pb-4">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <button
-            onClick={() => router.back()}
-            className="font-body inline-flex items-center gap-2 text-sm text-[#5B6152] hover:text-[#3F6B44] transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Services
-          </button>
-        </div>
-      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-16 lg:pt-32 lg:pb-20 font-body">
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 lg:py-16 font-body">
-        <div className="flex flex-col lg:flex-row lg:flex-wrap gap-10 lg:gap-14">
+        {/* GRID LAYOUT — fixed-width image column, content flows independently */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 lg:gap-14 items-start">
 
-          {/* LEFT - CONTENT */}
-          <div className="w-full lg:w-[55%] lg:flex-1 order-2 lg:order-1">
+          {/* LEFT - CONTENT (flows freely, never affected by content length) */}
+          <div className="min-w-0">
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#C68B2E] mb-4">
               <Wheat className="w-3.5 h-3.5" />
               {service.category}
             </span>
 
-            <h1 className="font-display text-4xl md:text-5xl font-semibold text-[#23281D] mb-6 leading-[1.1]">
+            <h1 className="font-display text-4xl md:text-5xl font-semibold text-[#23281D] mb-6 leading-[1.1] break-words">
               {service.title}
             </h1>
 
@@ -127,14 +115,15 @@ export default function ServiceDetailPage() {
             {/* Dashed divider with leaf mark */}
             <div className="flex items-center gap-3 mb-8">
               <div className="flex-1 border-t border-dashed border-[#D8D2B8]" />
-              <Sprout className="w-4 h-4 text-[#3F6B44]/50" />
+              <Sprout className="w-4 h-4 text-[#3F6B44]/50 flex-shrink-0" />
               <div className="flex-1 border-t border-dashed border-[#D8D2B8]" />
             </div>
 
-           <div
-  className="prose prose-lg max-w-none prose-headings:font-display prose-headings:text-[#23281D] prose-p:text-[#3E4436] prose-strong:text-[#23281D] prose-a:text-[#3F6B44] mb-10"
-  dangerouslySetInnerHTML={{ __html: service.description }}
-/>
+            <div
+              className="prose prose-lg max-w-none prose-headings:font-display prose-headings:text-[#23281D] prose-p:text-[#3E4436] prose-strong:text-[#23281D] prose-a:text-[#3F6B44] mb-10 break-words"
+              dangerouslySetInnerHTML={{ __html: service.description }}
+            />
+
             <Link
               href="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 bg-[#3F6B44] hover:bg-[#2C4E30] text-white font-semibold rounded-xl transition shadow-sm"
@@ -144,26 +133,24 @@ export default function ServiceDetailPage() {
             </Link>
           </div>
 
-          {/* RIGHT - IMAGE with seed packet tag */}
-          <div className="w-full lg:w-[40%] order-1 lg:order-2">
-            <div className="lg:sticky lg:top-28 relative">
-              <div className="rounded-3xl overflow-hidden bg-white shadow-sm border border-[#E4DFC9]">
-                <img
-                  src={service.image}
-                  alt={service.title}
-                  className="w-full h-auto object-cover aspect-[4/5]"
-                  onError={(e) => { e.target.src = FALLBACK_IMG; }}
-                />
-              </div>
+          {/* RIGHT - IMAGE (fixed column width, sticky, never moves) */}
+          <div className="relative lg:sticky lg:top-28">
+            <div className="rounded-3xl overflow-hidden bg-white shadow-sm border border-[#E4DFC9]">
+              <img
+                src={service.image}
+                alt={service.title}
+                className="w-full h-auto object-cover aspect-[4/5]"
+                onError={(e) => { e.target.src = FALLBACK_IMG; }}
+              />
+            </div>
 
-              {/* Seed packet tag */}
-              <div className="absolute -top-4 -left-4 -rotate-6 bg-[#FCFAF3] border border-dashed border-[#C68B2E] rounded-lg px-3.5 py-2.5 shadow-md">
-                <div className="flex items-center gap-1.5 text-[#8A611E]">
-                  <Wheat className="w-3.5 h-3.5" />
-                  <span className="font-display text-xs font-semibold tracking-wide uppercase">
-                    {service.category}
-                  </span>
-                </div>
+            {/* Seed packet tag */}
+            <div className="absolute -top-4 -left-4 -rotate-6 bg-[#FCFAF3] border border-dashed border-[#C68B2E] rounded-lg px-3.5 py-2.5 shadow-md">
+              <div className="flex items-center gap-1.5 text-[#8A611E]">
+                <Wheat className="w-3.5 h-3.5" />
+                <span className="font-display text-xs font-semibold tracking-wide uppercase">
+                  {service.category}
+                </span>
               </div>
             </div>
           </div>
@@ -198,9 +185,9 @@ export default function ServiceDetailPage() {
                     <h3 className="font-display font-semibold text-[#23281D] group-hover:text-[#3F6B44] transition line-clamp-1 mb-1">
                       {item.title}
                     </h3>
-                   <p className="text-sm text-[#5B6152] mt-1 line-clamp-2">
-  {item.description.replace(/<[^>]*>/g, '').trim()}
-</p>
+                    <p className="text-sm text-[#5B6152] line-clamp-2">
+                      {item.description.replace(/<[^>]*>/g, '').trim()}
+                    </p>
                     {item.price && (
                       <p className="text-sm font-semibold text-[#3F6B44] mt-3">{item.price}</p>
                     )}
