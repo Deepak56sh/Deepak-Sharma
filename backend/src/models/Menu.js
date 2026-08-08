@@ -18,10 +18,6 @@ const headerSchema = new mongoose.Schema({
     topBarText: {
         type: String,
         default: 'Free Shipping on orders above ₹999'
-    },
-    isActive: {
-        type: Boolean,
-        default: true
     }
 }, {
     timestamps: true

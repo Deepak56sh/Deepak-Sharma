@@ -9,7 +9,6 @@ const getHeader = async (req, res) => {
     try {
         let header = await Header.findOne();
         
-        // If no header exists, create default
         if (!header) {
             header = await Header.create({
                 logoText: 'Plantora',
@@ -36,7 +35,7 @@ const getHeader = async (req, res) => {
 // @access  Private
 const updateHeader = async (req, res) => {
     try {
-        const { logoText, topBarText, isActive } = req.body;
+        const { logoText, topBarText } = req.body;
         const file = req.file;
 
         let header = await Header.findOne();
@@ -44,10 +43,8 @@ const updateHeader = async (req, res) => {
             header = new Header();
         }
 
-        // Update text fields
         if (logoText) header.logoText = logoText.trim();
         if (topBarText) header.topBarText = topBarText.trim();
-        if (isActive !== undefined) header.isActive = isActive;
 
         // Handle logo image upload
         if (file) {
@@ -94,7 +91,6 @@ const deleteLogo = async (req, res) => {
             });
         }
 
-        // Delete from cloudinary
         if (header.logoImagePublicId) {
             try {
                 await cloudinary.uploader.destroy(header.logoImagePublicId);

@@ -14,7 +14,7 @@ export default function Navbar() {
   const [navLinks, setNavLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // ✅ Header data - ab alag se API se lega
+  // ✅ Header data ke liye alag state
   const [headerData, setHeaderData] = useState({
     logoText: 'Plantora',
     logoImage: '',
@@ -34,14 +34,13 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // ✅ 1. Menu fetch - PEHLE JESA HI
       try {
-        // ✅ 1. Menu fetch karo
         const menuRes = await fetch(`${API_URL}/menu`);
         const menuData = await menuRes.json();
         if (menuData.success && menuData.data?.length) {
           setNavLinks(menuData.data);
         } else {
-          // Fallback menu
           setNavLinks([
             { name: 'Home', path: '/' },
             { name: 'Shop', path: '/shop' },
@@ -62,8 +61,8 @@ export default function Navbar() {
         ]);
       }
 
+      // ✅ 2. HEADER API se logo lo (Footer se nahi!)
       try {
-        // ✅ 2. HEADER API se logo aur top bar text lo (Footer nahi!)
         const headerRes = await fetch(`${API_URL}/header`);
         const headerData = await headerRes.json();
         if (headerData.success && headerData.data) {
@@ -75,7 +74,6 @@ export default function Navbar() {
         }
       } catch (err) {
         console.error('Error fetching header:', err);
-        // Default values already set
       } finally {
         setLoading(false);
       }
@@ -92,7 +90,7 @@ export default function Navbar() {
 
   return (
     <div className="plant-store-header">
-      {/* Top Free Shipping Bar - Dynamic */}
+      {/* Top Free Shipping Bar */}
       <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
         {headerData.topBarText}
@@ -103,7 +101,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             
-            {/* Logo - Header API se */}
+            {/* Logo - HEADER API se */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
               {getLogoUrl() ? (
                 <>
@@ -131,7 +129,7 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Desktop Links */}
+            {/* Desktop Links - PEHLE JESA HI */}
             <div className="hidden lg:flex items-center gap-8">
               {loading
                 ? [1, 2, 3, 4].map((i) => (
@@ -153,7 +151,7 @@ export default function Navbar() {
                   ))}
             </div>
 
-            {/* Right Icons */}
+            {/* Right Icons - PEHLE JESA HI */}
             <div className="flex items-center gap-0.5 sm:gap-1">
               <button className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex">
                 <Search className="w-5 h-5" />
@@ -199,7 +197,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - PEHLE JESA HI */}
           {isMenuOpen && (
             <div className="lg:hidden border-t border-[#e8ece9] py-3 space-y-1">
               {navLinks.map((link) => (

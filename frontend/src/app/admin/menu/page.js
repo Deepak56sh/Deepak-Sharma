@@ -145,7 +145,7 @@ export default function AdminHeaderPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-[#1f2937]">Header Settings</h1>
-          <p className="text-sm text-[#6b7280] mt-1">Manage logo, top bar text and header settings</p>
+          <p className="text-sm text-[#6b7280] mt-1">Manage logo and top bar text</p>
         </div>
       </div>
 
