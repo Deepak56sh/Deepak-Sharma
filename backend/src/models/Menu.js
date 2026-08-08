@@ -1,52 +1,30 @@
+// models/Header.js
 const mongoose = require('mongoose');
 
-const menuSchema = new mongoose.Schema({
-    name: {
+const headerSchema = new mongoose.Schema({
+    logoText: {
         type: String,
-        required: [true, 'Menu name is required'],
-        trim: true,
-        maxlength: [50, 'Menu name cannot be more than 50 characters']
-    },
-    path: {
-        type: String,
-        required: [true, 'Menu path is required'],
+        default: 'Plantora',
         trim: true
     },
-    type: {
+    logoImage: {
         type: String,
-        enum: ['internal', 'external'],
-        default: 'internal'
+        default: ''
     },
-    url: {
+    logoImagePublicId: {
         type: String,
-        trim: true
+        default: ''
     },
-    order: {
-        type: Number,
-        default: 0
+    topBarText: {
+        type: String,
+        default: 'Free Shipping on orders above ₹999'
     },
     isActive: {
         type: Boolean,
         default: true
-    },
-    icon: {
-        type: String,
-        trim: true
     }
 }, {
     timestamps: true
 });
 
-// For internal links, path is required
-// For external links, url is required
-menuSchema.pre('save', function(next) {
-    if (this.type === 'external' && !this.url) {
-        return next(new Error('URL is required for external links'));
-    }
-    if (this.type === 'internal' && !this.path) {
-        return next(new Error('Path is required for internal links'));
-    }
-    next();
-});
-
-module.exports = mongoose.model('Menu', menuSchema);
+module.exports = mongoose.model('Header', headerSchema);

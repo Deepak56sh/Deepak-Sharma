@@ -1,23 +1,19 @@
+// routes/headerRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
-    getMenu,
-    getAllMenu,
-    createMenuItem,
-    updateMenuItem,
-    deleteMenuItem,
-    reorderMenu
+    getHeader,
+    updateHeader,
+    deleteLogo
 } = require('../controllers/menuController');
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
-// Public route - for frontend to fetch active menu
-router.get('/', getMenu);
+// Public route - get header data
+router.get('/', getHeader);
 
-// Protected routes - for admin panel
-router.get('/all', protect, getAllMenu);
-router.post('/', protect, createMenuItem);
-router.put('/:id', protect, updateMenuItem);
-router.delete('/:id', protect, deleteMenuItem);
-router.put('/reorder', protect, reorderMenu);
+// Protected routes - admin only
+router.put('/', protect, upload.single('logoImage'), updateHeader);
+router.delete('/logo', protect, deleteLogo);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+// components/Navbar.js
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -12,8 +13,14 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [navLinks, setNavLinks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [logoText, setLogoText] = useState('Plantora');
-  const [logoImage, setLogoImage] = useState('');
+  
+  // ✅ Header data - ab alag se API se lega
+  const [headerData, setHeaderData] = useState({
+    logoText: 'Plantora',
+    logoImage: '',
+    topBarText: 'Free Shipping on orders above ₹999'
+  });
+  
   const pathname = usePathname();
 
   const cartCount = 3;
@@ -25,17 +32,24 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch Menu + Logo (from footer API)
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Menu
+        // ✅ 1. Menu fetch karo
         const menuRes = await fetch(`${API_URL}/menu`);
         const menuData = await menuRes.json();
         if (menuData.success && menuData.data?.length) {
           setNavLinks(menuData.data);
         } else {
-          throw new Error('empty menu');
+          // Fallback menu
+          setNavLinks([
+            { name: 'Home', path: '/' },
+            { name: 'Shop', path: '/shop' },
+            { name: 'Plants', path: '/shop?type=plants' },
+            { name: 'Pots & Planters', path: '/shop?type=planters' },
+            { name: 'Care Guide', path: '/care-guide' },
+            { name: 'About Us', path: '/about' },
+          ]);
         }
       } catch {
         setNavLinks([
@@ -49,15 +63,19 @@ export default function Navbar() {
       }
 
       try {
-        // Logo from Footer API
-        const footerRes = await fetch(`${API_URL}/footer`);
-        const footerData = await footerRes.json();
-        if (footerData.success && footerData.data) {
-          if (footerData.data.logoText) setLogoText(footerData.data.logoText);
-          if (footerData.data.logoImage) setLogoImage(footerData.data.logoImage);
+        // ✅ 2. HEADER API se logo aur top bar text lo (Footer nahi!)
+        const headerRes = await fetch(`${API_URL}/header`);
+        const headerData = await headerRes.json();
+        if (headerData.success && headerData.data) {
+          setHeaderData({
+            logoText: headerData.data.logoText || 'Plantora',
+            logoImage: headerData.data.logoImage || '',
+            topBarText: headerData.data.topBarText || 'Free Shipping on orders above ₹999'
+          });
         }
-      } catch {
-        // keep defaults
+      } catch (err) {
+        console.error('Error fetching header:', err);
+        // Default values already set
       } finally {
         setLoading(false);
       }
@@ -67,17 +85,17 @@ export default function Navbar() {
   }, []);
 
   const getLogoUrl = () => {
-    if (!logoImage) return null;
-    if (logoImage.startsWith('http')) return logoImage;
-    return `${BASE_URL}${logoImage}`;
+    if (!headerData.logoImage) return null;
+    if (headerData.logoImage.startsWith('http')) return headerData.logoImage;
+    return `${BASE_URL}${headerData.logoImage}`;
   };
 
   return (
     <div className="plant-store-header">
-      {/* Top Free Shipping Bar */}
+      {/* Top Free Shipping Bar - Dynamic */}
       <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
-        Free Shipping on orders above ₹999
+        {headerData.topBarText}
       </div>
 
       {/* Main Navbar */}
@@ -85,28 +103,31 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             
-            {/* Logo — image agar hai to dikhao, warna icon + text */}
+            {/* Logo - Header API se */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
               {getLogoUrl() ? (
-                <img
-                  src={getLogoUrl()}
-                  alt={logoText}
-                  className="h-9 w-auto object-contain"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
+                <>
+                  <img
+                    src={getLogoUrl()}
+                    alt={headerData.logoText}
+                    className="h-9 w-auto object-contain"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  <span className="text-xl font-bold text-[#14261d] hidden sm:inline">
+                    {headerData.logoText}
+                  </span>
+                </>
               ) : (
                 <>
                   <div className="w-9 h-9 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
                     <Sprout className="w-5 h-5 text-[#2f9e44]" />
                   </div>
-                  <span className="text-xl font-bold text-[#14261d]">{logoText}</span>
+                  <span className="text-xl font-bold text-[#14261d]">
+                    {headerData.logoText}
+                  </span>
                 </>
-              )}
-              {/* Agar sirf image hai aur text bhi chahiye: */}
-              {getLogoUrl() && (
-                <span className="text-xl font-bold text-[#14261d] hidden sm:inline">{logoText}</span>
               )}
             </Link>
 
