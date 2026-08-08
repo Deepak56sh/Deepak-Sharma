@@ -2,13 +2,9 @@
 const Header = require('../models/Menu');
 const cloudinary = require('../config/cloudinary');
 
-// @desc    Get header data
-// @route   GET /api/header
-// @access  Public
 const getHeader = async (req, res) => {
     try {
         let header = await Header.findOne();
-        
         if (!header) {
             header = await Header.create({
                 logoText: 'Plantora',
@@ -16,110 +12,57 @@ const getHeader = async (req, res) => {
                 topBarText: 'Free Shipping on orders above ₹999'
             });
         }
-
-        res.json({
-            success: true,
-            data: header
-        });
+        res.json({ success: true, data: header });
     } catch (error) {
-        console.error('Get header error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while fetching header'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// @desc    Update header
-// @route   PUT /api/header
-// @access  Private
 const updateHeader = async (req, res) => {
     try {
         const { logoText, topBarText } = req.body;
         const file = req.file;
 
         let header = await Header.findOne();
-        if (!header) {
-            header = new Header();
-        }
+        if (!header) header = new Header();
 
         if (logoText) header.logoText = logoText.trim();
         if (topBarText) header.topBarText = topBarText.trim();
 
-        // Handle logo image upload
         if (file) {
-            // Delete old logo from cloudinary if exists
             if (header.logoImagePublicId) {
-                try {
-                    await cloudinary.uploader.destroy(header.logoImagePublicId);
-                } catch (err) {
-                    console.error('Error deleting old logo:', err);
-                }
+                try { await cloudinary.uploader.destroy(header.logoImagePublicId); } catch (err) {}
             }
-            
             header.logoImage = file.path;
             header.logoImagePublicId = file.filename || file.public_id;
         }
 
         await header.save();
-
-        res.json({
-            success: true,
-            message: 'Header updated successfully',
-            data: header
-        });
-
+        res.json({ success: true, message: 'Header updated', data: header });
     } catch (error) {
-        console.error('Update header error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while updating header'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// @desc    Delete header logo
-// @route   DELETE /api/header/logo
-// @access  Private
 const deleteLogo = async (req, res) => {
     try {
         let header = await Header.findOne();
         if (!header) {
-            return res.status(404).json({
-                success: false,
-                message: 'Header not found'
-            });
+            return res.status(404).json({ success: false, message: 'Header not found' });
         }
 
         if (header.logoImagePublicId) {
-            try {
-                await cloudinary.uploader.destroy(header.logoImagePublicId);
-            } catch (err) {
-                console.error('Error deleting logo:', err);
-            }
+            try { await cloudinary.uploader.destroy(header.logoImagePublicId); } catch (err) {}
         }
 
         header.logoImage = '';
         header.logoImagePublicId = '';
         await header.save();
 
-        res.json({
-            success: true,
-            message: 'Logo deleted successfully',
-            data: header
-        });
-
+        res.json({ success: true, message: 'Logo deleted', data: header });
     } catch (error) {
-        console.error('Delete logo error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while deleting logo'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-module.exports = {
-    getHeader,
-    updateHeader,
-    deleteLogo
-};
+module.exports = { getHeader, updateHeader, deleteLogo };
