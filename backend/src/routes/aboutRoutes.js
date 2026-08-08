@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
 const upload = require("../middleware/upload");
-
 const {
   getAbout,
   updateAbout,
@@ -10,8 +8,11 @@ const {
   deleteStat,
   addValue,
   deleteValue,
+  addAward,
+  deleteAward,
+  addTeamMember,
+  deleteTeamMember,
 } = require("../controllers/aboutController");
-
 const { protect, authorize } = require("../middleware/auth");
 
 // ===== PUBLIC ROUTES =====
@@ -21,7 +22,7 @@ router.get("/", getAbout);
 router.use(protect);
 router.use(authorize("admin", "super-admin"));
 
-// ===== IMAGE UPLOAD =====
+// ===== IMAGE UPLOAD (used for team image, award images, member images) =====
 router.post("/upload", upload.single("image"), (req, res) => {
   try {
     if (!req.file) {
@@ -30,7 +31,6 @@ router.post("/upload", upload.single("image"), (req, res) => {
         message: "No image uploaded",
       });
     }
-
     res.status(200).json({
       success: true,
       message: "Image uploaded successfully",
@@ -41,7 +41,6 @@ router.post("/upload", upload.single("image"), (req, res) => {
     });
   } catch (error) {
     console.error("Upload Error:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
@@ -59,5 +58,13 @@ router.delete("/stats/:id", deleteStat);
 // ===== VALUES =====
 router.post("/values", addValue);
 router.delete("/values/:id", deleteValue);
+
+// ===== AWARDS =====
+router.post("/awards", addAward);
+router.delete("/awards/:id", deleteAward);
+
+// ===== TEAM MEMBERS =====
+router.post("/team", addTeamMember);
+router.delete("/team/:id", deleteTeamMember);
 
 module.exports = router;

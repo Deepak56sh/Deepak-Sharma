@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Leaf, CheckCircle } from 'lucide-react';
+import { Leaf, CheckCircle, Award as AwardIcon } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
@@ -21,7 +21,9 @@ const defaultAboutData = {
     { number: '150+', label: 'Plant Varieties' },
     { number: '99%', label: 'Customer Satisfaction' }
   ],
-  image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80'
+  image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
+  awards: [],
+  teamMembers: []
 };
 
 export default function AboutPage() {
@@ -62,9 +64,12 @@ export default function AboutPage() {
   }
 
   const data = aboutData || defaultAboutData;
+  const awards = data.awards || [];
+  const teamMembers = data.teamMembers || [];
 
   return (
     <div className="plant-store bg-white">
+      {/* ===== Hero / Story Section ===== */}
       <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -127,6 +132,80 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* ===== Awards Section (NEW) ===== */}
+      {awards.length > 0 && (
+        <section className="py-16 lg:py-20 bg-[#f6f8f7]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <AnimatedSection>
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#eaf7ee] mb-4">
+                  <AwardIcon className="w-7 h-7 text-[#2f9e44]" />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d] mb-2">
+                  Awards & Recognition
+                </h2>
+                <p className="text-[#6b7280] max-w-xl mx-auto">
+                  Honored for our commitment to quality and sustainable practices
+                </p>
+              </div>
+            </AnimatedSection>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {awards.map((award, i) => (
+                <AnimatedSection key={award._id || i}>
+                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+                    <img
+                      src={award.image}
+                      alt={award.title}
+                      className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+                    />
+                    <p className="text-[#14261d] font-medium leading-snug">
+                      {award.title}
+                    </p>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== Team Members Section (NEW) ===== */}
+      {teamMembers.length > 0 && (
+        <section className="py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <AnimatedSection>
+              <div className="text-center mb-12">
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d] mb-2">
+                  Meet Our Team
+                </h2>
+                <p className="text-[#6b7280] max-w-xl mx-auto">
+                  The people behind every plant we grow and every order we deliver
+                </p>
+              </div>
+            </AnimatedSection>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+              {teamMembers.map((member, i) => (
+                <AnimatedSection key={member._id || i}>
+                  <div className="text-center group">
+                    <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 bg-[#f6f8f7]">
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <h3 className="text-[#14261d] font-semibold">{member.name}</h3>
+                    <p className="text-sm text-[#2f9e44]">{member.position}</p>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
