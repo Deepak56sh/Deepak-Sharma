@@ -14,8 +14,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
-import InstagramReels from '@/components/Instagram/InstagramReels'; // ✅ NEW: reusable, video-capable
-import Testimonials from '@/components/Testimonial/Testimonials'; // ✅ NEW: reusable
+import InstagramReels from '@/components/Instagram/InstagramReels';
+import Testimonials from '@/components/Testimonial/Testimonials';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -64,12 +64,33 @@ const bestSellers = [
   { name: 'Monstera Deliciosa', price: 899, original: 1199, rating: 4.9, reviews: 152, image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400&q=80' },
 ];
 
+const defaultAboutData = {
+  title: 'About Us',
+  subtitle: 'Our Story',
+  description: 'Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and better.',
+  points: [
+    'Handpicked Healthy Plants',
+    'Expert Plant Care Guidance',
+    'Sustainable & Eco-Friendly',
+    'Happy Customer Support'
+  ],
+  stats: [
+    { number: '10K+', label: 'Happy Customers' },
+    { number: '50K+', label: 'Plants Delivered' },
+    { number: '150+', label: 'Plant Varieties' },
+    { number: '99%', label: 'Customer Satisfaction' }
+  ],
+  image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80'
+};
+
 export default function HomePage() {
   const [slides, setSlides] = useState(fallbackSlides);
   const [badge, setBadge] = useState('Free Shipping on orders above ₹999');
   const [current, setCurrent] = useState(0);
+  const [aboutData, setAboutData] = useState(defaultAboutData);
   const videoRefs = useRef([]);
 
+  // Fetch Hero
   useEffect(() => {
     const fetchHero = async () => {
       try {
@@ -86,6 +107,29 @@ export default function HomePage() {
     fetchHero();
   }, []);
 
+  // Fetch About
+  useEffect(() => {
+    const fetchAbout = async () => {
+      try {
+        const res = await fetch(`${API_URL}/about`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-cache'
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
+        const result = await res.json();
+        if (result.success && result.data) {
+          setAboutData(result.data);
+        }
+      } catch (err) {
+        console.error(err);
+        setAboutData(defaultAboutData);
+      }
+    };
+    fetchAbout();
+  }, []);
+
+  // Auto-slide logic
   useEffect(() => {
     if (!slides.length || slides[current]?.mediaType === 'video') return;
     const timer = setTimeout(() => {
@@ -253,47 +297,65 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===================== ABOUT ===================== */}
-      {awards.length > 0 && (
-        <section className="py-16 lg:py-20 bg-[#f6f8f7]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ===================== ABOUT (DYNAMIC) ===================== */}
+      <section className="py-14 lg:py-20 bg-[#f6f8f7]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <AnimatedSection>
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#eaf7ee] mb-4">
-                  <AwardIcon className="w-7 h-7 text-[#2f9e44]" />
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d] mb-2">
-                  Awards & Recognition
-                </h2>
-                <p className="text-[#6b7280] max-w-xl mx-auto">
-                  Honored for our commitment to quality and sustainable practices
-                </p>
+              <div className="relative">
+                <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
+                <img
+                  src={aboutData?.image || defaultAboutData.image}
+                  alt="About Plantora"
+                  className="relative rounded-3xl shadow-xl w-full h-[340px] sm:h-[400px] object-cover"
+                  onError={(e) => {
+                    e.target.src = defaultAboutData.image;
+                  }}
+                />
               </div>
             </AnimatedSection>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {awards.map((award, i) => (
-                <AnimatedSection key={award._id || i}>
-                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex items-center gap-4 hover:shadow-md transition-shadow flex-col text-center">
-                    <img
-                      src={award.image}
-                      alt={award.title}
-                      className="w-full h-full rounded-xl object-cover flex-shrink-0"
-                    />
-                    <p className="text-[#14261d] font-medium leading-snug">
-                      {award.title}
-                    </p>
-                  </div>
-                </AnimatedSection>
-              ))}
-            </div>
+            
+            <AnimatedSection>
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">
+                    {aboutData?.title || 'About Us'}
+                  </h2>
+                  <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">
+                    {aboutData?.subtitle || 'Our Story'}
+                  </h3>
+                </div>
+                
+                <p className="text-[#6b7280] leading-relaxed">
+                  {aboutData?.description || defaultAboutData.description}
+                </p>
+                
+                <ul className="space-y-3">
+                  {(aboutData?.points || defaultAboutData.points).map((item, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-[#14261d] font-medium text-sm sm:text-base">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
+                  {(aboutData?.stats || defaultAboutData.stats).map((stat, i) => (
+                    <div key={i} className="text-center p-3 bg-white rounded-xl border border-[#e8ece9]">
+                      <div className="text-xl font-bold text-[#2f9e44]">{stat.number}</div>
+                      <div className="text-[11px] text-[#6b7280] mt-0.5 leading-tight">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AnimatedSection>
           </div>
-        </section>
-      )}
-
+        </div>
+      </section>
 
       {/* ===================== TESTIMONIALS ===================== */}
-      {/* ✅ NEW: now a reusable component, data managed from Admin → Testimonials */}
       <Testimonials />
 
       {/* ===================== CTA ===================== */}
@@ -318,7 +380,6 @@ export default function HomePage() {
       </section>
 
       {/* ===================== INSTAGRAM REELS ===================== */}
-      {/* ✅ NEW: now a reusable component with real video upload, data managed from Admin → Instagram Reels */}
       <InstagramReels />
     </div>
   );
