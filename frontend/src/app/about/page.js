@@ -120,13 +120,13 @@ export default function AboutPage() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
                 <img
-                  src={data.image || defaultAboutData.image}
-                  alt="About Plantora"
-                  className="relative rounded-3xl shadow-xl w-full h-[400px] sm:h-[480px] object-cover"
-                  onError={(e) => {
-                    e.target.src = defaultAboutData.image;
-                  }}
-                />
+  src={data.teamImage || defaultAboutData.image}
+  alt="About Plantora"
+  className="relative rounded-3xl shadow-xl w-full h-[400px] sm:h-[480px] object-cover"
+  onError={(e) => {
+    e.target.src = defaultAboutData.image;
+  }}
+/>
               </div>
             </AnimatedSection>
           </div>
