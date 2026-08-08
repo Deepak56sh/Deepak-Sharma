@@ -1,6 +1,5 @@
 const Service = require('../models/Service');
 const asyncHandler = require('express-async-handler');
-const cloudinary = require('../config/cloudinary'); // apna existing cloudinary config
 
 // @desc    Get all services (Public)
 // @route   GET /api/services
@@ -14,7 +13,9 @@ exports.getAllServices = asyncHandler(async (req, res) => {
     query.category = category;
   }
 
-  if (active !== undefined) {
+  if (active === 'all') {
+    // admin: no filter, show everything
+  } else if (active !== undefined) {
     query.isActive = active === 'true';
   } else {
     query.isActive = true;
@@ -102,7 +103,7 @@ exports.createService = asyncHandler(async (req, res) => {
     });
   }
 
-  if (!description || !description.trim()) {
+  if (!description || !description.trim() || description === '<p><br></p>') {
     return res.status(400).json({
       success: false,
       message: 'Service description is required'
@@ -116,26 +117,9 @@ exports.createService = asyncHandler(async (req, res) => {
     });
   }
 
-  // Upload to Cloudinary
-  let imageUrl;
-  try {
-    const result = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: 'farming-services' },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      stream.end(req.file.buffer);
-    });
-    imageUrl = result.secure_url;
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: 'Image upload failed'
-    });
-  }
+  // multer-storage-cloudinary already uploaded the file —
+  // req.file.path holds the Cloudinary secure_url
+  const imageUrl = req.file.path;
 
   const cleanTitle = title.trim().substring(0, 100);
   const cleanDescription = description.trim().substring(0, 5000);
@@ -214,7 +198,7 @@ exports.updateService = asyncHandler(async (req, res) => {
   }
 
   if (updateData.description !== undefined) {
-    if (!updateData.description || !updateData.description.trim()) {
+    if (!updateData.description || !updateData.description.trim() || updateData.description === '<p><br></p>') {
       return res.status(400).json({
         success: false,
         message: 'Description cannot be empty'
@@ -239,26 +223,9 @@ exports.updateService = asyncHandler(async (req, res) => {
     updateData.isActive = updateData.isActive === 'true' || updateData.isActive === true;
   }
 
-  // New image uploaded?
+  // New image uploaded? multer-storage-cloudinary gives the URL in req.file.path
   if (req.file) {
-    try {
-      const result = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: 'farming-services' },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        stream.end(req.file.buffer);
-      });
-      updateData.image = result.secure_url;
-    } catch (err) {
-      return res.status(500).json({
-        success: false,
-        message: 'Image upload failed'
-      });
-    }
+    updateData.image = req.file.path;
   } else {
     delete updateData.image; // keep old image if not replaced
   }

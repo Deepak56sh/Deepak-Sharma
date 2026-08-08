@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Loader2, Clock, Tag, Leaf } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Clock, Tag, Wheat, Sprout } from 'lucide-react';
+
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
 
 export default function ServiceDetailPage() {
   const { slug } = useParams();
@@ -31,7 +33,6 @@ export default function ServiceDetailPage() {
       const data = await res.json();
       setService(data.data);
 
-      // Related
       const relatedRes = await fetch(
         `${baseUrl}/services?category=${data.data.category}&active=true&limit=4`,
         { cache: 'no-cache' }
@@ -53,18 +54,19 @@ export default function ServiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8faf8]">
-        <Loader2 className="w-10 h-10 text-[#0f5132] animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F4EC]">
+        <Loader2 className="w-9 h-9 text-[#3F6B44] animate-spin" />
       </div>
     );
   }
 
   if (error || !service) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8faf8] px-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-3">Service Not Found</h2>
-        <p className="text-gray-500 mb-6">{error}</p>
-        <Link href="/services" className="px-6 py-3 bg-[#0f5132] text-white rounded-xl font-medium">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F7F4EC] px-4">
+        <Sprout className="w-10 h-10 text-[#3F6B44]/40 mb-4" />
+        <h2 className="text-2xl font-bold text-[#23281D] mb-2">Service Not Found</h2>
+        <p className="text-[#5B6152] mb-6">{error}</p>
+        <Link href="/services" className="px-6 py-3 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium transition">
           Back to Services
         </Link>
       </div>
@@ -72,13 +74,19 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faf8]">
+    <div className="min-h-screen bg-[#F7F4EC]">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&display=swap');
+        .font-display { font-family: 'Fraunces', serif; }
+        .font-body { font-family: 'Inter', sans-serif; }
+      `}</style>
+
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 pt-24 pb-4">
+      <div className="bg-[#FCFAF3] border-b border-[#E4DFC9] pt-24 pb-4">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#0f5132] transition"
+            className="font-body inline-flex items-center gap-2 text-sm text-[#5B6152] hover:text-[#3F6B44] transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Services
@@ -86,73 +94,76 @@ export default function ServiceDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
-
-        {/* ========== MAIN LAYOUT ========== */}
-        {/* Desktop: Left Content | Right Image */}
-        <div className="flex flex-col lg:flex-row lg:flex-wrap gap-8 lg:gap-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 lg:py-16 font-body">
+        <div className="flex flex-col lg:flex-row lg:flex-wrap gap-10 lg:gap-14">
 
           {/* LEFT - CONTENT */}
           <div className="w-full lg:w-[55%] lg:flex-1 order-2 lg:order-1">
-            {/* Category */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-[#0f5132]" />
-              </div>
-              <span className="text-sm font-medium text-[#0f5132] bg-green-50 px-3 py-1 rounded-full">
-                {service.category}
-              </span>
-            </div>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#C68B2E] mb-4">
+              <Wheat className="w-3.5 h-3.5" />
+              {service.category}
+            </span>
 
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="font-display text-4xl md:text-5xl font-semibold text-[#23281D] mb-6 leading-[1.1]">
               {service.title}
             </h1>
 
-            {/* Price & Duration */}
-            <div className="flex flex-wrap gap-6 mb-8">
+            {/* Harvest tags: price & duration */}
+            <div className="flex flex-wrap gap-3 mb-8">
               {service.price && (
-                <div className="flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-gray-400" />
-                  <span className="text-lg font-bold text-[#0f5132]">{service.price}</span>
+                <div className="inline-flex items-center gap-2 bg-[#3F6B44]/10 text-[#2C4E30] px-4 py-2 rounded-full text-sm font-semibold">
+                  <Tag className="w-3.5 h-3.5" />
+                  {service.price}
                 </div>
               )}
               {service.duration && (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600">{service.duration}</span>
+                <div className="inline-flex items-center gap-2 bg-[#C68B2E]/10 text-[#8A611E] px-4 py-2 rounded-full text-sm font-medium">
+                  <Clock className="w-3.5 h-3.5" />
+                  {service.duration}
                 </div>
               )}
             </div>
 
-            {/* Description */}
-            <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 mb-10 whitespace-pre-line">
-              {service.description}
+            {/* Dashed divider with leaf mark */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className="flex-1 border-t border-dashed border-[#D8D2B8]" />
+              <Sprout className="w-4 h-4 text-[#3F6B44]/50" />
+              <div className="flex-1 border-t border-dashed border-[#D8D2B8]" />
             </div>
 
-            {/* CTA */}
-            <div className="pt-6 border-t border-gray-200">
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#0f5132] hover:bg-[#0d4529] text-white font-semibold rounded-xl transition shadow-md"
-              >
-                Get Started
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
+           <div
+  className="prose prose-lg max-w-none prose-headings:font-display prose-headings:text-[#23281D] prose-p:text-[#3E4436] prose-strong:text-[#23281D] prose-a:text-[#3F6B44] mb-10"
+  dangerouslySetInnerHTML={{ __html: service.description }}
+/>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-[#3F6B44] hover:bg-[#2C4E30] text-white font-semibold rounded-xl transition shadow-sm"
+            >
+              Get Started
+              <ArrowRight className="w-5 h-5" />
+            </Link>
           </div>
 
-          {/* RIGHT - IMAGE */}
+          {/* RIGHT - IMAGE with seed packet tag */}
           <div className="w-full lg:w-[40%] order-1 lg:order-2">
-            <div className="lg:sticky lg:top-28">
-              <div className="rounded-3xl overflow-hidden bg-white shadow-sm border border-gray-100">
+            <div className="lg:sticky lg:top-28 relative">
+              <div className="rounded-3xl overflow-hidden bg-white shadow-sm border border-[#E4DFC9]">
                 <img
                   src={service.image}
                   alt={service.title}
-                  className="w-full h-auto object-cover"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
-                  }}
+                  className="w-full h-auto object-cover aspect-[4/5]"
+                  onError={(e) => { e.target.src = FALLBACK_IMG; }}
                 />
+              </div>
+
+              {/* Seed packet tag */}
+              <div className="absolute -top-4 -left-4 -rotate-6 bg-[#FCFAF3] border border-dashed border-[#C68B2E] rounded-lg px-3.5 py-2.5 shadow-md">
+                <div className="flex items-center gap-1.5 text-[#8A611E]">
+                  <Wheat className="w-3.5 h-3.5" />
+                  <span className="font-display text-xs font-semibold tracking-wide uppercase">
+                    {service.category}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -160,10 +171,10 @@ export default function ServiceDetailPage() {
 
         {/* Related Services */}
         {related.length > 0 && (
-          <section className="mt-20 pt-12 border-t border-gray-200">
+          <section className="mt-24 pt-12 border-t border-[#E4DFC9]">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Related Services</h2>
-              <Link href="/services" className="text-sm font-medium text-[#0f5132] hover:underline flex items-center gap-1">
+              <h2 className="font-display text-2xl md:text-3xl font-semibold text-[#23281D]">More Services</h2>
+              <Link href="/services" className="text-sm font-medium text-[#3F6B44] hover:underline flex items-center gap-1">
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -173,23 +184,25 @@ export default function ServiceDetailPage() {
                 <Link
                   key={item._id}
                   href={`/services/${item.slug || item._id}`}
-                  className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all"
+                  className="group bg-white rounded-2xl overflow-hidden border border-[#E4DFC9] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all"
                 >
                   <div className="relative h-44 overflow-hidden">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute top-3 right-3 w-9 h-9 bg-white/90 rounded-lg flex items-center justify-center">
-                      <Leaf className="w-4 h-4 text-[#0f5132]" />
-                    </div>
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.target.src = FALLBACK_IMG; }}
+                    />
                   </div>
                   <div className="p-5">
-                    <h3 className="font-bold text-gray-900 group-hover:text-[#0f5132] transition line-clamp-1">
+                    <h3 className="font-display font-semibold text-[#23281D] group-hover:text-[#3F6B44] transition line-clamp-1 mb-1">
                       {item.title}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                      {item.description}
-                    </p>
+                   <p className="text-sm text-[#5B6152] mt-1 line-clamp-2">
+  {item.description.replace(/<[^>]*>/g, '').trim()}
+</p>
                     {item.price && (
-                      <p className="text-sm font-semibold text-[#0f5132] mt-3">{item.price}</p>
+                      <p className="text-sm font-semibold text-[#3F6B44] mt-3">{item.price}</p>
                     )}
                   </div>
                 </Link>
