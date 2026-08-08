@@ -154,7 +154,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {awards.map((award, i) => (
                 <AnimatedSection key={award._id || i}>
-                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex items-center gap-4 hover:shadow-md transition-shadow" flex-col text-center>
+                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex items-center gap-4 hover:shadow-md transition-shadow flex-col text-center">
                     <img
                       src={award.image}
                       alt={award.title}
