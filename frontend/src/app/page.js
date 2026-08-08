@@ -254,58 +254,43 @@ export default function HomePage() {
       </section>
 
       {/* ===================== ABOUT ===================== */}
-      <section className="py-14 lg:py-20 bg-[#f6f8f7]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      {awards.length > 0 && (
+        <section className="py-16 lg:py-20 bg-[#f6f8f7]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <AnimatedSection>
-              <div className="relative">
-                <img
-                  src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80"
-                  alt="About Plantora"
-                  className="rounded-3xl shadow-xl w-full h-[340px] sm:h-[400px] object-cover"
-                />
-              </div>
-            </AnimatedSection>
-            <AnimatedSection>
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">About Us</h2>
-                  <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">Our Story</h3>
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#eaf7ee] mb-4">
+                  <AwardIcon className="w-7 h-7 text-[#2f9e44]" />
                 </div>
-                <p className="text-[#6b7280] leading-relaxed">
-                  Plantora was born out of a passion for plants and a mission to bring nature closer to every home.
-                  We believe plants make people happier, healthier and better.
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d] mb-2">
+                  Awards & Recognition
+                </h2>
+                <p className="text-[#6b7280] max-w-xl mx-auto">
+                  Honored for our commitment to quality and sustainable practices
                 </p>
-                <ul className="space-y-3">
-                  {['Handpicked Healthy Plants', 'Expert Plant Care Guidance', 'Sustainable & Eco-Friendly', 'Happy Customer Support'].map(
-                    (item, i) => (
-                      <li key={i} className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0">
-                          <CheckCircle className="w-3 h-3 text-white" />
-                        </div>
-                        <span className="text-[#14261d] font-medium text-sm sm:text-base">{item}</span>
-                      </li>
-                    )
-                  )}
-                </ul>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
-                  {[
-                    { number: '10K+', label: 'Happy Customers' },
-                    { number: '50K+', label: 'Plants Delivered' },
-                    { number: '150+', label: 'Plant Varieties' },
-                    { number: '99%', label: 'Customer Satisfaction' },
-                  ].map((stat, i) => (
-                    <div key={i} className="text-center p-3 bg-white rounded-xl border border-[#e8ece9]">
-                      <div className="text-xl font-bold text-[#2f9e44]">{stat.number}</div>
-                      <div className="text-[11px] text-[#6b7280] mt-0.5 leading-tight">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </AnimatedSection>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {awards.map((award, i) => (
+                <AnimatedSection key={award._id || i}>
+                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex items-center gap-4 hover:shadow-md transition-shadow flex-col text-center">
+                    <img
+                      src={award.image}
+                      alt={award.title}
+                      className="w-full h-full rounded-xl object-cover flex-shrink-0"
+                    />
+                    <p className="text-[#14261d] font-medium leading-snug">
+                      {award.title}
+                    </p>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
 
       {/* ===================== TESTIMONIALS ===================== */}
       {/* ✅ NEW: now a reusable component, data managed from Admin → Testimonials */}
