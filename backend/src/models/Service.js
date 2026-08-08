@@ -10,31 +10,16 @@ const serviceSchema = new mongoose.Schema({
   description: {
     type: String,
     required: [true, 'Please provide service description'],
-    maxlength: [5000, 'Description cannot be more than 5000 characters'] // Rich content ke liye
+    maxlength: [5000, 'Description cannot be more than 5000 characters']
   },
   image: {
     type: String,
     required: [true, 'Please provide service image URL']
   },
-  icon: {
-    type: String,
-    required: [true, 'Please provide icon name'],
-    enum: ['Code', 'Smartphone', 'Palette', 'Cloud', 'Brain', 'TrendingUp', 'Database', 'Lock', 'Globe', 'Zap'],
-    default: 'Code'
-  },
-  color: {
-    type: String,
-    required: [true, 'Please provide gradient color'],
-    default: 'from-green-600 to-emerald-500'   // Plantora theme ke hisaab se
-  },
-  features: [{
-    type: String,
-    trim: true
-  }],
   category: {
     type: String,
     required: true,
-    enum: ['Development', 'Design', 'Marketing', 'Cloud', 'AI', 'Other'],
+    enum: ['Crop Farming', 'Organic Farming', 'Equipment', 'Consulting', 'Irrigation', 'Other'],
     default: 'Other'
   },
   price: {
@@ -49,22 +34,12 @@ const serviceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  order: {
-    type: Number,
-    default: 0
-  },
   slug: {
     type: String,
     unique: true,
     lowercase: true,
     sparse: true
   },
-  metaTitle: String,
-  metaDescription: String,
-  tags: [{
-    type: String,
-    trim: true
-  }],
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: 'Admin'
@@ -83,16 +58,16 @@ serviceSchema.pre('save', function(next) {
       .replace(/-+/g, '-')
       .replace(/^-+/, '')
       .replace(/-+$/, '');
-   
+
     const originalSlug = this.slug;
     let counter = 1;
-    
+
     const checkSlug = async () => {
       const existing = await mongoose.model('Service').findOne({
         slug: this.slug,
         _id: { $ne: this._id }
       });
-     
+
       if (existing) {
         this.slug = `${originalSlug}-${counter}`;
         counter++;
@@ -101,16 +76,15 @@ serviceSchema.pre('save', function(next) {
         next();
       }
     };
-   
+
     checkSlug();
   } else {
     next();
   }
 });
 
-// Index for better query performance
 serviceSchema.index({ slug: 1 });
-serviceSchema.index({ isActive: 1, order: 1 });
+serviceSchema.index({ isActive: 1 });
 serviceSchema.index({ category: 1 });
 serviceSchema.index({ createdBy: 1 });
 

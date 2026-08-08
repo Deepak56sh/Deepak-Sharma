@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  ArrowRight, Search, Filter, Loader2, 
-  Code, Smartphone, Palette, Cloud, Brain, 
-  TrendingUp, Database, Lock, Globe, Zap 
-} from 'lucide-react';
-
-const iconMap = {
-  Code, Smartphone, Palette, Cloud, Brain, 
-  TrendingUp, Database, Lock, Globe, Zap
-};
+import { ArrowRight, Search, Filter, Loader2, Leaf } from 'lucide-react';
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -20,7 +11,7 @@ export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = ['all', 'Development', 'Design', 'Marketing', 'Cloud', 'AI', 'Other'];
+  const categories = ['all', 'Crop Farming', 'Organic Farming', 'Equipment', 'Consulting', 'Irrigation', 'Other'];
 
   useEffect(() => {
     fetchServices();
@@ -64,7 +55,7 @@ export default function ServicesPage() {
             Our Services
           </h1>
           <p className="text-lg md:text-xl text-green-100 max-w-2xl mx-auto opacity-90">
-            High-quality digital solutions designed to help your business grow with modern technology and clean design.
+            Quality farming solutions to help your land grow with modern techniques and care.
           </p>
         </div>
       </section>
@@ -123,80 +114,62 @@ export default function ServicesPage() {
         {/* Services Grid */}
         {!loading && services.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {services.map((service) => {
-              const Icon = iconMap[service.icon] || Code;
+            {services.map((service) => (
+              <Link
+                key={service._id}
+                href={`/services/${service.slug || service._id}`}
+                className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+              >
+                {/* Image */}
+                <div className="relative h-52 overflow-hidden">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
-              return (
-                <Link
-                  key={service._id}
-                  href={`/services/${service.slug || service._id}`}
-                  className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
-                >
-                  {/* Image */}
-                  <div className="relative h-52 overflow-hidden">
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    
-                    {/* Icon badge */}
-                    <div className="absolute top-4 right-4 w-11 h-11 bg-white/90 backdrop-blur rounded-xl flex items-center justify-center shadow-sm">
-                      <Icon className="w-5 h-5 text-[#0f5132]" />
+                  {/* Icon badge (generic leaf) */}
+                  <div className="absolute top-4 right-4 w-11 h-11 bg-white/90 backdrop-blur rounded-xl flex items-center justify-center shadow-sm">
+                    <Leaf className="w-5 h-5 text-[#0f5132]" />
+                  </div>
+
+                  {/* Category */}
+                  <span className="absolute bottom-4 left-4 px-3 py-1 bg-white/90 backdrop-blur text-xs font-semibold text-[#0f5132] rounded-full">
+                    {service.category}
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 flex flex-col flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#0f5132] transition-colors line-clamp-1">
+                    {service.title}
+                  </h3>
+                  <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2 flex-1">
+                    {service.description}
+                  </p>
+
+                  {/* Price + CTA */}
+                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                    <div>
+                      {service.price && (
+                        <p className="text-[#0f5132] font-bold text-sm">{service.price}</p>
+                      )}
+                      {service.duration && (
+                        <p className="text-xs text-gray-400">{service.duration}</p>
+                      )}
                     </div>
-
-                    {/* Category */}
-                    <span className="absolute bottom-4 left-4 px-3 py-1 bg-white/90 backdrop-blur text-xs font-semibold text-[#0f5132] rounded-full">
-                      {service.category}
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0f5132] group-hover:gap-2.5 transition-all">
+                      View Details
+                      <ArrowRight className="w-4 h-4" />
                     </span>
                   </div>
-
-                  {/* Content */}
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#0f5132] transition-colors line-clamp-1">
-                      {service.title}
-                    </h3>
-                    <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2 flex-1">
-                      {service.description}
-                    </p>
-
-                    {/* Features preview */}
-                    {service.features?.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {service.features.slice(0, 3).map((f, i) => (
-                          <span
-                            key={i}
-                            className="text-xs px-2.5 py-1 bg-green-50 text-[#0f5132] rounded-full font-medium"
-                          >
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Price + CTA */}
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
-                      <div>
-                        {service.price && (
-                          <p className="text-[#0f5132] font-bold text-sm">{service.price}</p>
-                        )}
-                        {service.duration && (
-                          <p className="text-xs text-gray-400">{service.duration}</p>
-                        )}
-                      </div>
-                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0f5132] group-hover:gap-2.5 transition-all">
-                        View Details
-                        <ArrowRight className="w-4 h-4" />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            ))}
           </div>
         )}
 
@@ -237,10 +210,10 @@ export default function ServicesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { step: '01', title: 'Discovery', desc: 'Understanding your goals and requirements' },
+              { step: '01', title: 'Discovery', desc: 'Understanding your land and requirements' },
               { step: '02', title: 'Planning', desc: 'Creating a clear roadmap and strategy' },
-              { step: '03', title: 'Development', desc: 'Building with modern best practices' },
-              { step: '04', title: 'Launch', desc: 'Deployment, support & continuous improvement' },
+              { step: '03', title: 'Execution', desc: 'Working with modern farming practices' },
+              { step: '04', title: 'Support', desc: 'Ongoing support & continuous improvement' },
             ].map((item, i) => (
               <div
                 key={i}

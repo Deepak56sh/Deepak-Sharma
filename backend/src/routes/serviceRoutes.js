@@ -6,12 +6,10 @@ const {
   createService,
   updateService,
   deleteService,
-  toggleServiceStatus,
-  reorderServices,
-  getServiceStats
+  toggleServiceStatus
 } = require('../controllers/serviceController');
 const { protect, authorize } = require('../middleware/auth');
-const upload = require('../middleware/upload'); // ← your Cloudinary multer
+const upload = require('../middleware/upload'); // Cloudinary multer
 
 // Public
 router.get('/', getAllServices);
@@ -21,11 +19,9 @@ router.get('/:id', getService);
 router.use(protect);
 router.use(authorize('admin', 'super-admin'));
 
-router.post('/', upload.single('image'), createService);          // ← Cloudinary
-router.put('/:id', upload.single('image'), updateService);       // ← Cloudinary
+router.post('/', upload.single('image'), createService);
+router.put('/:id', upload.single('image'), updateService);
 router.delete('/:id', deleteService);
 router.patch('/:id/toggle', toggleServiceStatus);
-router.put('/reorder', reorderServices);
-router.get('/stats/all', getServiceStats);
 
 module.exports = router;

@@ -1,27 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { 
   Plus, Trash2, Edit2, ChevronDown, ChevronUp, 
-  Loader2, Image as ImageIcon, Eye, EyeOff, Save, X
+  Loader2, Image as ImageIcon, Eye, EyeOff, Save
 } from 'lucide-react';
-import 'react-quill-new/dist/quill.snow.css';
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
-const ICONS = ['Code', 'Smartphone', 'Palette', 'Cloud', 'Brain', 'TrendingUp', 'Database', 'Lock', 'Globe', 'Zap'];
-const CATEGORIES = ['Development', 'Design', 'Marketing', 'Cloud', 'AI', 'Other'];
-
-const quillModules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    [{ indent: '-1' }, { indent: '+1' }],
-    ['link'],
-    ['clean']
-  ]
-};
+const CATEGORIES = ['Crop Farming', 'Organic Farming', 'Equipment', 'Consulting', 'Irrigation', 'Other'];
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([]);
@@ -34,15 +19,10 @@ export default function AdminServicesPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    icon: 'Code',
-    color: 'from-green-600 to-emerald-500',
-    category: 'Development',
+    category: 'Crop Farming',
     price: '',
     duration: '',
-    features: '',
-    tags: '',
-    isActive: true,
-    order: 0
+    isActive: true
   });
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState('');
@@ -57,7 +37,7 @@ export default function AdminServicesPage() {
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseUrl}/services?limit=100`, {
+      const res = await fetch(`${baseUrl}/services?limit=100&active=all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -71,10 +51,8 @@ export default function AdminServicesPage() {
 
   const resetForm = () => {
     setForm({
-      title: '', description: '', icon: 'Code',
-      color: 'from-green-600 to-emerald-500', category: 'Development',
-      price: '', duration: '', features: '', tags: '',
-      isActive: true, order: 0
+      title: '', description: '', category: 'Crop Farming',
+      price: '', duration: '', isActive: true
     });
     setImageFile(null);
     setPreview('');
@@ -90,12 +68,12 @@ export default function AdminServicesPage() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!imageFile && !preview) {
+    if (!imageFile) {
       alert('Image is required');
       return;
     }
-    if (!form.description || form.description === '<p><br></p>') {
-      alert('Content is required');
+    if (!form.description.trim()) {
+      alert('Description is required');
       return;
     }
 
@@ -105,7 +83,7 @@ export default function AdminServicesPage() {
       Object.keys(form).forEach(key => {
         formData.append(key, form[key]);
       });
-      if (imageFile) formData.append('image', imageFile);
+      formData.append('image', imageFile);
 
       const res = await fetch(`${baseUrl}/services`, {
         method: 'POST',
@@ -192,15 +170,10 @@ export default function AdminServicesPage() {
     setForm({
       title: service.title,
       description: service.description || '',
-      icon: service.icon || 'Code',
-      color: service.color || 'from-green-600 to-emerald-500',
       category: service.category,
       price: service.price || '',
       duration: service.duration || '',
-      features: (service.features || []).join(', '),
-      tags: (service.tags || []).join(', '),
-      isActive: service.isActive,
-      order: service.order || 0
+      isActive: service.isActive
     });
     setPreview(service.image);
     setImageFile(null);
@@ -213,7 +186,7 @@ export default function AdminServicesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Services</h1>
-            <p className="text-gray-500 text-sm mt-1">Manage all services (Rich Text Editor + Cloudinary)</p>
+            <p className="text-gray-500 text-sm mt-1">Manage all farming services</p>
           </div>
           <button
             onClick={() => {
@@ -257,30 +230,28 @@ export default function AdminServicesPage() {
                 </div>
               </div>
 
-              {/* ========== RICH TEXT EDITOR ========== */}
+              {/* Description - simple textarea */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Content * (WordPress style editor)
+                  Description *
                 </label>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <ReactQuill
-                    theme="snow"
-                    value={form.description}
-                    onChange={(value) => setForm({ ...form, description: value })}
-                    modules={quillModules}
-                    placeholder="Write detailed content about this service..."
-                    className="min-h-[220px]"
-                  />
-                </div>
+                <textarea
+                  required
+                  rows={6}
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Write details about this service..."
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0f5132]/30 outline-none resize-none"
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Price</label>
                   <input
                     value={form.price}
                     onChange={e => setForm({ ...form, price: e.target.value })}
-                    placeholder="$500 - $5000"
+                    placeholder="₹500 - ₹5000"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none"
                   />
                 </div>
@@ -293,36 +264,6 @@ export default function AdminServicesPage() {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Icon</label>
-                  <select
-                    value={form.icon}
-                    onChange={e => setForm({ ...form, icon: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none"
-                  >
-                    {ICONS.map(i => <option key={i} value={i}>{i}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Features (comma separated)</label>
-                <input
-                  value={form.features}
-                  onChange={e => setForm({ ...form, features: e.target.value })}
-                  placeholder="React, Next.js, Responsive Design"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Tags (comma separated)</label>
-                <input
-                  value={form.tags}
-                  onChange={e => setForm({ ...form, tags: e.target.value })}
-                  placeholder="web, development, react"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none"
-                />
               </div>
 
               {/* Image Upload */}
@@ -340,7 +281,7 @@ export default function AdminServicesPage() {
                     <img src={preview} alt="Preview" className="w-16 h-16 object-cover rounded-lg border" />
                   )}
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Image Cloudinary pe upload hogi</p>
+                <p className="text-xs text-gray-400 mt-1">Image will be uploaded to Cloudinary</p>
               </div>
 
               <div className="flex items-center gap-3 pt-2">
@@ -439,21 +380,17 @@ export default function AdminServicesPage() {
                             </div>
                           </div>
 
-                          {/* Rich Editor in Edit mode */}
                           <div>
-                            <label className="block text-sm font-medium mb-1">Content</label>
-                            <div className="bg-white rounded-lg border overflow-hidden">
-                              <ReactQuill
-                                theme="snow"
-                                value={form.description}
-                                onChange={(value) => setForm({ ...form, description: value })}
-                                modules={quillModules}
-                                className="min-h-[180px]"
-                              />
-                            </div>
+                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <textarea
+                              rows={5}
+                              value={form.description}
+                              onChange={e => setForm({ ...form, description: e.target.value })}
+                              className="w-full px-3 py-2 border rounded-lg outline-none resize-none"
+                            />
                           </div>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-sm font-medium mb-1">Price</label>
                               <input value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-3 py-2 border rounded-lg outline-none" />
@@ -462,21 +399,6 @@ export default function AdminServicesPage() {
                               <label className="block text-sm font-medium mb-1">Duration</label>
                               <input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} className="w-full px-3 py-2 border rounded-lg outline-none" />
                             </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Icon</label>
-                              <select value={form.icon} onChange={e => setForm({ ...form, icon: e.target.value })} className="w-full px-3 py-2 border rounded-lg outline-none">
-                                {ICONS.map(i => <option key={i} value={i}>{i}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Order</label>
-                              <input type="number" value={form.order} onChange={e => setForm({ ...form, order: e.target.value })} className="w-full px-3 py-2 border rounded-lg outline-none" />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium mb-1">Features (comma separated)</label>
-                            <input value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} className="w-full px-3 py-2 border rounded-lg outline-none" />
                           </div>
 
                           <div>
@@ -511,17 +433,9 @@ export default function AdminServicesPage() {
                             <img src={service.image} alt={service.title} className="w-full h-40 object-cover rounded-xl" />
                           </div>
                           <div className="md:col-span-2">
-                            <div 
-                              className="prose prose-sm max-w-none text-gray-600"
-                              dangerouslySetInnerHTML={{ __html: service.description }}
-                            />
-                            {service.features?.length > 0 && (
-                              <div className="mt-4 flex flex-wrap gap-1.5">
-                                {service.features.map((f, i) => (
-                                  <span key={i} className="text-xs px-2.5 py-1 bg-green-50 text-[#0f5132] rounded-full">{f}</span>
-                                ))}
-                              </div>
-                            )}
+                            <p className="text-sm text-gray-600 whitespace-pre-line">
+                              {service.description}
+                            </p>
                             <div className="mt-4 flex gap-4 text-sm">
                               {service.price && <span><span className="text-gray-400">Price:</span> <strong className="text-[#0f5132]">{service.price}</strong></span>}
                               {service.duration && <span><span className="text-gray-400">Duration:</span> {service.duration}</span>}
