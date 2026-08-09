@@ -3,60 +3,53 @@ const { Menu, Header } = require('../models/Menu');
 const cloudinary = require('../config/cloudinary');
 
 // ============================================
-// ===== MENU FUNCTIONS (Pehle jese) =====
+// ===== MENU FUNCTIONS =====
 // ============================================
 
-// @desc    Get all active menu items
-// @route   GET /api/menu
-// @access  Public
 const getMenu = async (req, res) => {
     try {
         const menu = await Menu.find({ isActive: true })
             .sort({ order: 1, createdAt: 1 })
             .select('-__v');
-
-        res.json({
-            success: true,
-            data: menu
-        });
+        res.json({ success: true, data: menu });
     } catch (error) {
         console.error('Get menu error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while fetching menu'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// @desc    Get all menu items (for admin)
-// @route   GET /api/menu/all
-// @access  Private
 const getAllMenu = async (req, res) => {
     try {
-        const menu = await Menu.find()
-            .sort({ order: 1, createdAt: 1 })
-            .select('-__v');
-
-        res.json({
-            success: true,
-            data: menu
-        });
+        const menu = await Menu.find().sort({ order: 1, createdAt: 1 });
+        res.json({ success: true, data: menu });
     } catch (error) {
         console.error('Get all menu error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while fetching menu'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// @desc    Create new menu item
-// @route   POST /api/menu
-// @access  Private
 const createMenuItem = async (req, res) => {
     try {
+        console.log('📝 Creating menu item:', req.body);
+        
         const { name, path, type, url, order, icon } = req.body;
 
+        // ✅ Validation
+        if (!name || !name.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Name is required'
+            });
+        }
+
+        if (!path || !path.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Path is required'
+            });
+        }
+
+        // ✅ Check duplicate
         const existingMenu = await Menu.findOne({ 
             $or: [
                 { name: name.trim() },
@@ -73,12 +66,14 @@ const createMenuItem = async (req, res) => {
 
         const menuItem = await Menu.create({
             name: name.trim(),
-            path: path ? path.trim() : '',
-            type,
+            path: path.trim(),
+            type: type || 'internal',
             url: url ? url.trim() : '',
             order: order || 0,
             icon: icon ? icon.trim() : ''
         });
+
+        console.log('✅ Menu created:', menuItem);
 
         res.status(201).json({
             success: true,
@@ -87,7 +82,8 @@ const createMenuItem = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Create menu error:', error);
+        console.error('❌ Create menu error:', error);
+        console.error('❌ Stack:', error.stack);
         
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
@@ -99,16 +95,16 @@ const createMenuItem = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: 'Server error while creating menu item'
+            message: 'Server error while creating menu item',
+            error: error.message
         });
     }
 };
 
-// @desc    Update menu item
-// @route   PUT /api/menu/:id
-// @access  Private
 const updateMenuItem = async (req, res) => {
     try {
+        console.log('📝 Updating menu item:', req.params.id, req.body);
+        
         const { id } = req.params;
         const { name, path, type, url, order, isActive, icon } = req.body;
 
@@ -120,6 +116,7 @@ const updateMenuItem = async (req, res) => {
             });
         }
 
+        // ✅ Check duplicate
         if (name || path) {
             const existingMenu = await Menu.findOne({
                 _id: { $ne: id },
@@ -143,9 +140,11 @@ const updateMenuItem = async (req, res) => {
         if (url) menuItem.url = url.trim();
         if (order !== undefined) menuItem.order = order;
         if (isActive !== undefined) menuItem.isActive = isActive;
-        if (icon !== undefined) menuItem.icon = icon.trim();
+        if (icon) menuItem.icon = icon.trim();
 
         await menuItem.save();
+
+        console.log('✅ Menu updated:', menuItem);
 
         res.json({
             success: true,
@@ -154,7 +153,8 @@ const updateMenuItem = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Update menu error:', error);
+        console.error('❌ Update menu error:', error);
+        console.error('❌ Stack:', error.stack);
         
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
@@ -166,49 +166,26 @@ const updateMenuItem = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: 'Server error while updating menu item'
+            message: 'Server error while updating menu item',
+            error: error.message
         });
     }
 };
 
-// @desc    Delete menu item
-// @route   DELETE /api/menu/:id
-// @access  Private
 const deleteMenuItem = async (req, res) => {
     try {
         const { id } = req.params;
-
-        const menuItem = await Menu.findById(id);
-        if (!menuItem) {
-            return res.status(404).json({
-                success: false,
-                message: 'Menu item not found'
-            });
-        }
-
         await Menu.findByIdAndDelete(id);
-
-        res.json({
-            success: true,
-            message: 'Menu item deleted successfully'
-        });
-
+        res.json({ success: true, message: 'Deleted successfully' });
     } catch (error) {
         console.error('Delete menu error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while deleting menu item'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// @desc    Reorder menu items
-// @route   PUT /api/menu/reorder
-// @access  Private
 const reorderMenu = async (req, res) => {
     try {
         const { menuOrder } = req.body;
-
         if (!Array.isArray(menuOrder)) {
             return res.status(400).json({
                 success: false,
@@ -224,32 +201,21 @@ const reorderMenu = async (req, res) => {
         }));
 
         await Menu.bulkWrite(bulkOperations);
-
-        res.json({
-            success: true,
-            message: 'Menu order updated successfully'
-        });
+        res.json({ success: true, message: 'Reordered successfully' });
 
     } catch (error) {
         console.error('Reorder menu error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while reordering menu'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
 // ============================================
-// ===== HEADER FUNCTIONS (Naye - Logo + Top Bar) =====
+// ===== HEADER FUNCTIONS =====
 // ============================================
 
-// @desc    Get header data (Logo + Top Bar)
-// @route   GET /api/header
-// @access  Public
 const getHeader = async (req, res) => {
     try {
         let header = await Header.findOne();
-        
         if (!header) {
             header = await Header.create({
                 logoText: 'Plantora',
@@ -257,25 +223,18 @@ const getHeader = async (req, res) => {
                 topBarText: 'Free Shipping on orders above ₹999'
             });
         }
-
-        res.json({
-            success: true,
-            data: header
-        });
+        res.json({ success: true, data: header });
     } catch (error) {
         console.error('Get header error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while fetching header'
-        });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// @desc    Update header (Logo + Top Bar)
-// @route   PUT /api/header
-// @access  Private
 const updateHeader = async (req, res) => {
     try {
+        console.log('📝 Updating header:', req.body);
+        console.log('📎 File:', req.file);
+        
         const { logoText, topBarText } = req.body;
         const file = req.file;
 
@@ -288,18 +247,23 @@ const updateHeader = async (req, res) => {
         if (topBarText) header.topBarText = topBarText.trim();
 
         if (file) {
-            if (header.logoImagePublicId) {
-                try {
+            // Cloudinary try karo, agar fail ho toh bhi save ho
+            try {
+                if (header.logoImagePublicId) {
                     await cloudinary.uploader.destroy(header.logoImagePublicId);
-                } catch (err) {
-                    console.error('Error deleting old logo:', err);
                 }
+                header.logoImage = file.path;
+                header.logoImagePublicId = file.filename || file.public_id;
+            } catch (cloudinaryError) {
+                console.error('Cloudinary error:', cloudinaryError);
+                // Fallback
+                header.logoImage = file.path;
+                header.logoImagePublicId = 'local_' + Date.now();
             }
-            header.logoImage = file.path;
-            header.logoImagePublicId = file.filename || file.public_id;
         }
 
         await header.save();
+        console.log('✅ Header updated:', header);
 
         res.json({
             success: true,
@@ -308,17 +272,16 @@ const updateHeader = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Update header error:', error);
+        console.error('❌ Update header error:', error);
+        console.error('❌ Stack:', error.stack);
         res.status(500).json({
             success: false,
-            message: 'Server error while updating header'
+            message: 'Server error while updating header',
+            error: error.message
         });
     }
 };
 
-// @desc    Delete header logo
-// @route   DELETE /api/header/logo
-// @access  Private
 const deleteLogo = async (req, res) => {
     try {
         let header = await Header.findOne();
@@ -357,17 +320,16 @@ const deleteLogo = async (req, res) => {
 };
 
 // ============================================
-// ===== EXPORT SAB FUNCTIONS =====
+// ===== EXPORT =====
 // ============================================
+
 module.exports = {
-    // Menu Functions
     getMenu,
     getAllMenu,
     createMenuItem,
     updateMenuItem,
     deleteMenuItem,
     reorderMenu,
-    // Header Functions
     getHeader,
     updateHeader,
     deleteLogo
