@@ -2,12 +2,10 @@
 import { useState, useEffect } from 'react';
 import {
   Plus, Pencil, Trash2, Save, X, GripVertical,
-  ExternalLink, Link as LinkIcon, Eye, EyeOff, Upload
+  ExternalLink, Link as LinkIcon, Eye, EyeOff
 } from 'lucide-react';
 
-// ✅ FIX: API_URL same rakha, header calls mein /menu/header use kiya
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
 
 const emptyItem = {
   name: '',
@@ -20,7 +18,6 @@ const emptyItem = {
 };
 
 export default function AdminMenuPage() {
-  // Menu State
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,27 +26,12 @@ export default function AdminMenuPage() {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Header State
-  const [header, setHeader] = useState({
-    logoText: 'Plantora',
-    logoImage: '',
-    topBarText: 'Free Shipping on orders above ₹999'
-  });
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState('');
-  const [headerSaving, setHeaderSaving] = useState(false);
-
   const getToken = () =>
     typeof window !== 'undefined'
       ? localStorage.getItem('adminToken') || localStorage.getItem('token') || ''
       : '';
 
-  useEffect(() => {
-    fetchMenu();
-    fetchHeader();
-  }, []);
-
-  // ============ MENU FUNCTIONS ============
+  useEffect(() => { fetchMenu(); }, []);
 
   const fetchMenu = async () => {
     setLoading(true);
@@ -63,8 +45,7 @@ export default function AdminMenuPage() {
       } else {
         showMsg('error', data.message || 'Failed to load menu');
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       showMsg('error', 'Failed to load menu');
     } finally {
       setLoading(false);
@@ -104,36 +85,21 @@ export default function AdminMenuPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!form.name.trim()) {
-      showMsg('error', 'Name is required');
-      return;
-    }
-    if (form.type === 'internal' && !form.path.trim()) {
-      showMsg('error', 'Path is required for internal links');
-      return;
-    }
-    if (form.type === 'external' && !form.url.trim()) {
-      showMsg('error', 'URL is required for external links');
-      return;
-    }
+    if (!form.name.trim()) { showMsg('error', 'Name is required'); return; }
+    if (form.type === 'internal' && !form.path.trim()) { showMsg('error', 'Path is required'); return; }
+    if (form.type === 'external' && !form.url.trim()) { showMsg('error', 'URL is required'); return; }
 
     setSaving(true);
     try {
-      const url = editingId
-        ? `${API_URL}/menu/${editingId}`
-        : `${API_URL}/menu`;
+      const url = editingId ? `${API_URL}/menu/${editingId}` : `${API_URL}/menu`;
       const method = editingId ? 'PUT' : 'POST';
 
-      // ✅ FIX: external type mein path empty string bhejo — required validation bypass
       const payload = {
         ...form,
         path: form.type === 'external' ? '' : form.path,
@@ -172,12 +138,8 @@ export default function AdminMenuPage() {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       const data = await res.json();
-      if (data.success) {
-        showMsg('success', 'Deleted successfully');
-        fetchMenu();
-      } else {
-        showMsg('error', data.message || 'Failed to delete');
-      }
+      if (data.success) { showMsg('success', 'Deleted successfully'); fetchMenu(); }
+      else showMsg('error', data.message || 'Failed to delete');
     } catch {
       showMsg('error', 'Server error');
     }
@@ -187,130 +149,24 @@ export default function AdminMenuPage() {
     try {
       const res = await fetch(`${API_URL}/menu/${item._id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ isActive: !item.isActive })
       });
       const data = await res.json();
-      if (data.success) {
-        fetchMenu();
-      } else {
-        showMsg('error', 'Failed to update status');
-      }
+      if (data.success) fetchMenu();
+      else showMsg('error', 'Failed to update status');
     } catch {
       showMsg('error', 'Failed to update status');
     }
   };
 
-  // ============ HEADER FUNCTIONS ============
-
-  // ✅ FIX: /api/menu/header - pehle /api/header tha
-  const fetchHeader = async () => {
-    try {
-      const res = await fetch(`${API_URL}/menu/header`);
-      const data = await res.json();
-      if (data.success && data.data) {
-        setHeader(data.data);
-        if (data.data.logoImage) {
-          const imgUrl = data.data.logoImage.startsWith('http')
-            ? data.data.logoImage
-            : `${BASE_URL}${data.data.logoImage}`;
-          setLogoPreview(imgUrl);
-        }
-      }
-    } catch (err) {
-      console.error('Header fetch error:', err);
-    }
-  };
-
-  const handleHeaderChange = (e) => {
-    const { name, value } = e.target;
-    setHeader(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoPreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // ✅ FIX: /api/menu/header/logo
-  const removeLogo = async () => {
-    if (!confirm('Remove logo?')) return;
-    try {
-      const res = await fetch(`${API_URL}/menu/header/logo`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${getToken()}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setLogoPreview('');
-        setLogoFile(null);
-        setHeader(prev => ({ ...prev, logoImage: '' }));
-        showMsg('success', 'Logo removed successfully');
-      } else {
-        showMsg('error', data.message || 'Failed to remove logo');
-      }
-    } catch {
-      showMsg('error', 'Failed to remove logo');
-    }
-  };
-
-  // ✅ FIX: /api/menu/header
-  const saveHeader = async (e) => {
-    e.preventDefault();
-    setHeaderSaving(true);
-    try {
-      const formData = new FormData();
-      formData.append('logoText', header.logoText);
-      formData.append('topBarText', header.topBarText);
-      if (logoFile) formData.append('logoImage', logoFile);
-
-      const res = await fetch(`${API_URL}/menu/header`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${getToken()}` },
-        body: formData
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        showMsg('success', 'Header updated successfully!');
-        setHeader(data.data);
-        if (data.data.logoImage) {
-          const imgUrl = data.data.logoImage.startsWith('http')
-            ? data.data.logoImage
-            : `${BASE_URL}${data.data.logoImage}`;
-          setLogoPreview(imgUrl);
-        }
-        setLogoFile(null);
-      } else {
-        showMsg('error', data.message || 'Failed to update header');
-      }
-    } catch {
-      showMsg('error', 'Server error occurred');
-    } finally {
-      setHeaderSaving(false);
-    }
-  };
-
-  // ============ RENDER ============
-
   return (
     <div className="plant-admin p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1f2937]">Menu & Header Settings</h1>
-          <p className="text-sm text-[#6b7280] mt-1">Manage menu items, logo and top bar text</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#1f2937]">Menu Management</h1>
+        <p className="text-sm text-[#6b7280] mt-1">Add, edit, reorder navbar links</p>
       </div>
 
-      {/* Message */}
       {message.text && (
         <div className={`mb-6 p-4 rounded-xl text-sm font-medium ${
           message.type === 'success'
@@ -321,104 +177,11 @@ export default function AdminMenuPage() {
         </div>
       )}
 
-      {/* HEADER SECTION */}
-      <div className="bg-white rounded-2xl border border-[#e8ece9] p-6 mb-8">
-        <h2 className="text-lg font-semibold text-[#1f2937] mb-4">Header Settings</h2>
-
-        <form onSubmit={saveHeader} className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-[#1f2937] mb-1.5">Logo Text</label>
-              <input
-                name="logoText"
-                value={header.logoText || ''}
-                onChange={handleHeaderChange}
-                placeholder="Plantora"
-                className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30"
-              />
-              <p className="text-xs text-[#6b7280] mt-1">Shown when no logo image is uploaded</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#1f2937] mb-1.5">Logo Image</label>
-              <div className="flex items-center gap-3">
-                <label className="flex-1 cursor-pointer">
-                  <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#e8ece9] rounded-xl hover:border-[#2f9e44] transition-colors">
-                    <Upload className="w-4 h-4 text-[#6b7280]" />
-                    <span className="text-sm text-[#6b7280]">
-                      {logoFile ? logoFile.name : 'Upload Logo'}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      className="hidden"
-                    />
-                  </div>
-                </label>
-                {logoPreview && (
-                  <button
-                    type="button"
-                    onClick={removeLogo}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {logoPreview && (
-                <div className="mt-3 p-3 bg-[#f6f8f7] rounded-xl flex items-center gap-4">
-                  <img
-                    src={logoPreview}
-                    alt="Logo Preview"
-                    className="h-12 w-auto object-contain"
-                    onError={(e) => { e.target.src = ''; e.target.alt = 'Invalid image'; }}
-                  />
-                  <div className="text-sm">
-                    <p className="text-[#1f2937] font-medium">
-                      {logoFile ? logoFile.name : 'Current Logo'}
-                    </p>
-                    <p className="text-[#6b7280] text-xs">
-                      {logoFile ? `${(logoFile.size / 1024).toFixed(1)} KB` : 'Click upload to change'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#1f2937] mb-1.5">Top Bar Text</label>
-            <input
-              name="topBarText"
-              value={header.topBarText || ''}
-              onChange={handleHeaderChange}
-              placeholder="Free Shipping on orders above ₹999"
-              className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30"
-            />
-            <p className="text-xs text-[#6b7280] mt-1">Shown at the top of the page</p>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={headerSaving}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#2f9e44] hover:bg-[#237a35] text-white font-semibold rounded-xl transition-colors disabled:opacity-60"
-            >
-              <Save className="w-4 h-4" />
-              {headerSaving ? 'Saving...' : 'Save Header Settings'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* MENU SECTION */}
       <div className="bg-white rounded-2xl border border-[#e8ece9] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-[#e8ece9]">
           <div>
-            <h2 className="text-lg font-semibold text-[#1f2937]">Menu Management</h2>
-            <p className="text-sm text-[#6b7280]">Add, edit, reorder navbar links</p>
+            <h2 className="text-lg font-semibold text-[#1f2937]">Menu Items</h2>
+            <p className="text-sm text-[#6b7280]">Manage navbar links</p>
           </div>
           <button
             onClick={openAdd}
@@ -454,69 +217,61 @@ export default function AdminMenuPage() {
                 </tr>
               </thead>
               <tbody>
-                {[...menuItems]
-                  .sort((a, b) => a.order - b.order)
-                  .map((item) => (
-                    <tr key={item._id} className="border-t border-[#e8ece9] hover:bg-[#f6f8f7]/50">
-                      <td className="px-5 py-3.5 text-[#9ca3af]">
-                        <div className="flex items-center gap-1">
-                          <GripVertical className="w-4 h-4" />
-                          {item.order}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 font-medium text-[#1f2937]">{item.name}</td>
-                      <td className="px-5 py-3.5 text-[#6b7280] font-mono text-xs">
-                        {item.type === 'external' ? item.url : item.path}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          item.type === 'external'
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {item.type}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
+                {[...menuItems].sort((a, b) => a.order - b.order).map((item) => (
+                  <tr key={item._id} className="border-t border-[#e8ece9] hover:bg-[#f6f8f7]/50">
+                    <td className="px-5 py-3.5 text-[#9ca3af]">
+                      <div className="flex items-center gap-1">
+                        <GripVertical className="w-4 h-4" />
+                        {item.order}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 font-medium text-[#1f2937]">{item.name}</td>
+                    <td className="px-5 py-3.5 text-[#6b7280] font-mono text-xs">
+                      {item.type === 'external' ? item.url : item.path}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        item.type === 'external' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {item.type}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() => toggleActive(item)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          item.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {item.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        {item.isActive ? 'Active' : 'Hidden'}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => toggleActive(item)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            item.isActive
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-gray-100 text-gray-500'
-                          }`}
+                          onClick={() => openEdit(item)}
+                          className="p-2 rounded-lg text-[#6b7280] hover:bg-[#eaf7ee] hover:text-[#2f9e44] transition-colors"
                         >
-                          {item.isActive
-                            ? <Eye className="w-3 h-3" />
-                            : <EyeOff className="w-3 h-3" />}
-                          {item.isActive ? 'Active' : 'Hidden'}
+                          <Pencil className="w-4 h-4" />
                         </button>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEdit(item)}
-                            className="p-2 rounded-lg text-[#6b7280] hover:bg-[#eaf7ee] hover:text-[#2f9e44] transition-colors"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item._id)}
-                            className="p-2 rounded-lg text-[#6b7280] hover:bg-red-50 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="p-2 rounded-lg text-[#6b7280] hover:bg-red-50 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* MENU FORM MODAL */}
+      {/* MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
@@ -538,7 +293,7 @@ export default function AdminMenuPage() {
                   onChange={handleChange}
                   placeholder="Home / Shop / About Us"
                   required
-                  className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44]"
+                  className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30"
                 />
               </div>
 
@@ -614,7 +369,7 @@ export default function AdminMenuPage() {
                   name="isActive"
                   checked={form.isActive}
                   onChange={handleChange}
-                  className="w-4 h-4 rounded text-[#2f9e44] focus:ring-[#2f9e44]"
+                  className="w-4 h-4 rounded text-[#2f9e44]"
                 />
                 <span className="text-sm text-[#1f2937]">Active (show in navbar)</span>
               </label>
