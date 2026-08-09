@@ -1,10 +1,10 @@
-// app/admin/menu/page.js
+// app/admin/menu/page.js - BILKUL WAISA HI
 'use client';
 import { useState, useEffect } from 'react';
 import {
   Plus, Pencil, Trash2, Save, X, GripVertical,
   ExternalLink, Link as LinkIcon, Eye, EyeOff,
-  Upload, Image as ImageIcon
+  Upload
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
@@ -21,7 +21,7 @@ const emptyItem = {
 };
 
 export default function AdminMenuPage() {
-  // ===== MENU STATE =====
+  // Menu State
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,7 +30,7 @@ export default function AdminMenuPage() {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // ===== HEADER STATE (Logo + Top Bar) =====
+  // Header State (Logo + Top Bar)
   const [header, setHeader] = useState({
     logoText: 'Plantora',
     logoImage: '',
@@ -43,13 +43,12 @@ export default function AdminMenuPage() {
   const getToken = () =>
     typeof window !== 'undefined' ? localStorage.getItem('adminToken') || localStorage.getItem('token') : '';
 
-  // ===== FETCH DATA =====
+  // Fetch Data
   useEffect(() => {
     fetchMenu();
     fetchHeader();
   }, []);
 
-  // Fetch Menu
   const fetchMenu = async () => {
     setLoading(true);
     try {
@@ -68,7 +67,6 @@ export default function AdminMenuPage() {
     }
   };
 
-  // Fetch Header
   const fetchHeader = async () => {
     try {
       const res = await fetch(`${API_URL}/header`);
@@ -87,7 +85,7 @@ export default function AdminMenuPage() {
     }
   };
 
-  // ===== MENU FUNCTIONS =====
+  // Menu Functions
   const showMsg = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
@@ -207,7 +205,7 @@ export default function AdminMenuPage() {
     }
   };
 
-  // ===== HEADER FUNCTIONS (Logo + Top Bar) =====
+  // Header Functions
   const handleHeaderChange = (e) => {
     const { name, value } = e.target;
     setHeader(prev => ({ ...prev, [name]: value }));
@@ -295,7 +293,6 @@ export default function AdminMenuPage() {
         </div>
       </div>
 
-      {/* ===== MESSAGES ===== */}
       {message.text && (
         <div className={`mb-6 p-4 rounded-xl text-sm font-medium ${
           message.type === 'success'
@@ -306,17 +303,14 @@ export default function AdminMenuPage() {
         </div>
       )}
 
-      {/* ===== SECTION 1: HEADER SETTINGS (Logo + Top Bar) ===== */}
+      {/* HEADER SECTION */}
       <div className="bg-white rounded-2xl border border-[#e8ece9] p-6 mb-8">
         <h2 className="text-lg font-semibold text-[#1f2937] mb-4">Header Settings</h2>
 
         <form onSubmit={saveHeader} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Logo Text */}
             <div>
-              <label className="block text-sm font-medium text-[#1f2937] mb-1.5">
-                Logo Text
-              </label>
+              <label className="block text-sm font-medium text-[#1f2937] mb-1.5">Logo Text</label>
               <input
                 name="logoText"
                 value={header.logoText || ''}
@@ -327,11 +321,8 @@ export default function AdminMenuPage() {
               <p className="text-xs text-[#6b7280] mt-1">Shown when no logo image is uploaded</p>
             </div>
 
-            {/* Logo Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-[#1f2937] mb-1.5">
-                Logo Image
-              </label>
+              <label className="block text-sm font-medium text-[#1f2937] mb-1.5">Logo Image</label>
               <div className="flex items-center gap-3">
                 <label className="flex-1 cursor-pointer">
                   <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#e8ece9] rounded-xl hover:border-[#2f9e44] transition-colors">
@@ -352,7 +343,6 @@ export default function AdminMenuPage() {
                     type="button"
                     onClick={removeLogo}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Remove logo"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -383,11 +373,8 @@ export default function AdminMenuPage() {
             </div>
           </div>
 
-          {/* Top Bar Text */}
           <div>
-            <label className="block text-sm font-medium text-[#1f2937] mb-1.5">
-              Top Bar Text
-            </label>
+            <label className="block text-sm font-medium text-[#1f2937] mb-1.5">Top Bar Text</label>
             <input
               name="topBarText"
               value={header.topBarText || ''}
@@ -411,7 +398,7 @@ export default function AdminMenuPage() {
         </form>
       </div>
 
-      {/* ===== SECTION 2: MENU MANAGEMENT ===== */}
+      {/* MENU SECTION */}
       <div className="bg-white rounded-2xl border border-[#e8ece9] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-[#e8ece9]">
           <div>
@@ -427,7 +414,6 @@ export default function AdminMenuPage() {
           </button>
         </div>
 
-        {/* Menu Table */}
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2f9e44]" />
@@ -513,7 +499,7 @@ export default function AdminMenuPage() {
         )}
       </div>
 
-      {/* ===== MENU FORM MODAL ===== */}
+      {/* MENU FORM MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
