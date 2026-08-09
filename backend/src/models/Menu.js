@@ -10,7 +10,7 @@ const menuSchema = new mongoose.Schema({
     path: {
         type: String,
         trim: true,
-        default: '' // ✅ required hata diya, default empty
+        default: ''
     },
     type: {
         type: String,
@@ -27,19 +27,13 @@ const menuSchema = new mongoose.Schema({
     icon: { type: String, trim: true, default: '' }
 }, { timestamps: true });
 
-// ✅ Pre-save validation fix
-menuSchema.pre('save', function(next) {
-    if (this.type === 'external' && !this.url) {
-        return next(new Error('URL is required for external links'));
-    }
-    if (this.type === 'internal' && !this.path) {
-        return next(new Error('Path is required for internal links'));
-    }
-    next();
-});
+// ✅ pre('save) hook HATA DIYA — validation controller mein ho rahi hai
+// Hook wahan bhi fire hota tha jab sirf isActive update hota tha
+// aur path empty hone pe fail karta tha
 
 const Menu = mongoose.model('Menu', menuSchema);
 
+// Header model rakhna zaroori hai — baaki files import karti hain
 const headerSchema = new mongoose.Schema({
     logoText: { type: String, default: 'Plantora', trim: true },
     logoImage: { type: String, default: '' },
