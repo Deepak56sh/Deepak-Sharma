@@ -1,12 +1,11 @@
-// app/admin/menu/page.js - BILKUL WAISA HI
 'use client';
 import { useState, useEffect } from 'react';
 import {
   Plus, Pencil, Trash2, Save, X, GripVertical,
-  ExternalLink, Link as LinkIcon, Eye, EyeOff,
-  Upload
+  ExternalLink, Link as LinkIcon, Eye, EyeOff, Upload
 } from 'lucide-react';
 
+// ✅ FIX: API_URL same rakha, header calls mein /menu/header use kiya
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
 
@@ -30,7 +29,7 @@ export default function AdminMenuPage() {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Header State (Logo + Top Bar)
+  // Header State
   const [header, setHeader] = useState({
     logoText: 'Plantora',
     logoImage: '',
@@ -41,13 +40,16 @@ export default function AdminMenuPage() {
   const [headerSaving, setHeaderSaving] = useState(false);
 
   const getToken = () =>
-    typeof window !== 'undefined' ? localStorage.getItem('adminToken') || localStorage.getItem('token') : '';
+    typeof window !== 'undefined'
+      ? localStorage.getItem('adminToken') || localStorage.getItem('token') || ''
+      : '';
 
-  // Fetch Data
   useEffect(() => {
     fetchMenu();
     fetchHeader();
   }, []);
+
+  // ============ MENU FUNCTIONS ============
 
   const fetchMenu = async () => {
     setLoading(true);
@@ -58,34 +60,17 @@ export default function AdminMenuPage() {
       const data = await res.json();
       if (data.success) {
         setMenuItems(data.data || []);
+      } else {
+        showMsg('error', data.message || 'Failed to load menu');
       }
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: 'Failed to load menu' });
+      showMsg('error', 'Failed to load menu');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchHeader = async () => {
-    try {
-      const res = await fetch(`${API_URL}/header`);
-      const data = await res.json();
-      if (data.success && data.data) {
-        setHeader(data.data);
-        if (data.data.logoImage) {
-          const imgUrl = data.data.logoImage.startsWith('http')
-            ? data.data.logoImage
-            : `${BASE_URL}${data.data.logoImage}`;
-          setLogoPreview(imgUrl);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Menu Functions
   const showMsg = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
@@ -127,6 +112,7 @@ export default function AdminMenuPage() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
     if (!form.name.trim()) {
       showMsg('error', 'Name is required');
       return;
@@ -142,8 +128,17 @@ export default function AdminMenuPage() {
 
     setSaving(true);
     try {
-      const url = editingId ? `${API_URL}/menu/${editingId}` : `${API_URL}/menu`;
+      const url = editingId
+        ? `${API_URL}/menu/${editingId}`
+        : `${API_URL}/menu`;
       const method = editingId ? 'PUT' : 'POST';
+
+      // ✅ FIX: external type mein path empty string bhejo — required validation bypass
+      const payload = {
+        ...form,
+        path: form.type === 'external' ? '' : form.path,
+        url: form.type === 'internal' ? '' : form.url,
+      };
 
       const res = await fetch(url, {
         method,
@@ -151,7 +146,7 @@ export default function AdminMenuPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`
         },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -199,13 +194,37 @@ export default function AdminMenuPage() {
         body: JSON.stringify({ isActive: !item.isActive })
       });
       const data = await res.json();
-      if (data.success) fetchMenu();
+      if (data.success) {
+        fetchMenu();
+      } else {
+        showMsg('error', 'Failed to update status');
+      }
     } catch {
       showMsg('error', 'Failed to update status');
     }
   };
 
-  // Header Functions
+  // ============ HEADER FUNCTIONS ============
+
+  // ✅ FIX: /api/menu/header - pehle /api/header tha
+  const fetchHeader = async () => {
+    try {
+      const res = await fetch(`${API_URL}/menu/header`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setHeader(data.data);
+        if (data.data.logoImage) {
+          const imgUrl = data.data.logoImage.startsWith('http')
+            ? data.data.logoImage
+            : `${BASE_URL}${data.data.logoImage}`;
+          setLogoPreview(imgUrl);
+        }
+      }
+    } catch (err) {
+      console.error('Header fetch error:', err);
+    }
+  };
+
   const handleHeaderChange = (e) => {
     const { name, value } = e.target;
     setHeader(prev => ({ ...prev, [name]: value }));
@@ -216,48 +235,44 @@ export default function AdminMenuPage() {
     if (file) {
       setLogoFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
+      reader.onloadend = () => setLogoPreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
+  // ✅ FIX: /api/menu/header/logo
   const removeLogo = async () => {
     if (!confirm('Remove logo?')) return;
-
     try {
-      const res = await fetch(`${API_URL}/header/logo`, {
+      const res = await fetch(`${API_URL}/menu/header/logo`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${getToken()}` }
       });
-
       const data = await res.json();
       if (data.success) {
         setLogoPreview('');
         setLogoFile(null);
         setHeader(prev => ({ ...prev, logoImage: '' }));
         showMsg('success', 'Logo removed successfully');
+      } else {
+        showMsg('error', data.message || 'Failed to remove logo');
       }
-    } catch (err) {
+    } catch {
       showMsg('error', 'Failed to remove logo');
     }
   };
 
+  // ✅ FIX: /api/menu/header
   const saveHeader = async (e) => {
     e.preventDefault();
     setHeaderSaving(true);
-
     try {
       const formData = new FormData();
       formData.append('logoText', header.logoText);
       formData.append('topBarText', header.topBarText);
+      if (logoFile) formData.append('logoImage', logoFile);
 
-      if (logoFile) {
-        formData.append('logoImage', logoFile);
-      }
-
-      const res = await fetch(`${API_URL}/header`, {
+      const res = await fetch(`${API_URL}/menu/header`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${getToken()}` },
         body: formData
@@ -277,12 +292,14 @@ export default function AdminMenuPage() {
       } else {
         showMsg('error', data.message || 'Failed to update header');
       }
-    } catch (err) {
+    } catch {
       showMsg('error', 'Server error occurred');
     } finally {
       setHeaderSaving(false);
     }
   };
+
+  // ============ RENDER ============
 
   return (
     <div className="plant-admin p-6 lg:p-8">
@@ -293,6 +310,7 @@ export default function AdminMenuPage() {
         </div>
       </div>
 
+      {/* Message */}
       {message.text && (
         <div className={`mb-6 p-4 rounded-xl text-sm font-medium ${
           message.type === 'success'
@@ -355,10 +373,7 @@ export default function AdminMenuPage() {
                     src={logoPreview}
                     alt="Logo Preview"
                     className="h-12 w-auto object-contain"
-                    onError={(e) => {
-                      e.target.src = '';
-                      e.target.alt = 'Invalid image';
-                    }}
+                    onError={(e) => { e.target.src = ''; e.target.alt = 'Invalid image'; }}
                   />
                   <div className="text-sm">
                     <p className="text-[#1f2937] font-medium">
@@ -439,9 +454,9 @@ export default function AdminMenuPage() {
                 </tr>
               </thead>
               <tbody>
-                {menuItems
+                {[...menuItems]
                   .sort((a, b) => a.order - b.order)
-                  .map((item, i) => (
+                  .map((item) => (
                     <tr key={item._id} className="border-t border-[#e8ece9] hover:bg-[#f6f8f7]/50">
                       <td className="px-5 py-3.5 text-[#9ca3af]">
                         <div className="flex items-center gap-1">
@@ -471,7 +486,9 @@ export default function AdminMenuPage() {
                               : 'bg-gray-100 text-gray-500'
                           }`}
                         >
-                          {item.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                          {item.isActive
+                            ? <Eye className="w-3 h-3" />
+                            : <EyeOff className="w-3 h-3" />}
                           {item.isActive ? 'Active' : 'Hidden'}
                         </button>
                       </td>

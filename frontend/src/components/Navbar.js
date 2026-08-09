@@ -30,36 +30,22 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Menu fetch
+      // ✅ Menu fetch
       try {
         const menuRes = await fetch(`${API_URL}/menu`);
         const menuData = await menuRes.json();
         if (menuData.success && menuData.data?.length) {
           setNavLinks(menuData.data);
         } else {
-          setNavLinks([
-            { name: 'Home', path: '/' },
-            { name: 'Shop', path: '/shop' },
-            { name: 'Plants', path: '/shop?type=plants' },
-            { name: 'Pots & Planters', path: '/shop?type=planters' },
-            { name: 'Care Guide', path: '/care-guide' },
-            { name: 'About Us', path: '/about' },
-          ]);
+          setNavLinks(defaultLinks);
         }
       } catch {
-        setNavLinks([
-          { name: 'Home', path: '/' },
-          { name: 'Shop', path: '/shop' },
-          { name: 'Plants', path: '/shop?type=plants' },
-          { name: 'Pots & Planters', path: '/shop?type=planters' },
-          { name: 'Care Guide', path: '/care-guide' },
-          { name: 'About Us', path: '/about' },
-        ]);
+        setNavLinks(defaultLinks);
       }
 
-      // ✅ HEADER API se logo + top bar fetch - BILKUL WAISA HI
+      // ✅ FIX: /api/menu/header - pehle /api/header tha jo kaam nahi karta tha
       try {
-        const headerRes = await fetch(`${API_URL}/header`);
+        const headerRes = await fetch(`${API_URL}/menu/header`);
         const headerData = await headerRes.json();
         if (headerData.success && headerData.data) {
           setHeaderData({
@@ -78,6 +64,15 @@ export default function Navbar() {
     fetchData();
   }, []);
 
+  const defaultLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Shop', path: '/shop' },
+    { name: 'Plants', path: '/shop?type=plants' },
+    { name: 'Pots & Planters', path: '/shop?type=planters' },
+    { name: 'Care Guide', path: '/care-guide' },
+    { name: 'About Us', path: '/about' },
+  ];
+
   const getLogoUrl = () => {
     if (!headerData.logoImage) return null;
     if (headerData.logoImage.startsWith('http')) return headerData.logoImage;
@@ -86,7 +81,7 @@ export default function Navbar() {
 
   return (
     <div className="plant-store-header">
-      {/* Top Bar - Dynamic */}
+      {/* Top Bar */}
       <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
         {headerData.topBarText}
@@ -95,8 +90,8 @@ export default function Navbar() {
       <nav className={`sticky top-0 z-50 bg-white border-b border-[#e8ece9] transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            
-            {/* Logo - Dynamic */}
+
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
               {getLogoUrl() ? (
                 <>
@@ -104,9 +99,7 @@ export default function Navbar() {
                     src={getLogoUrl()}
                     alt={headerData.logoText}
                     className="h-9 w-auto object-contain"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
+                    onError={(e) => { e.target.style.display = 'none'; }}
                   />
                   <span className="text-xl font-bold text-[#14261d] hidden sm:inline">
                     {headerData.logoText}
@@ -124,7 +117,7 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Menu Links - Dynamic */}
+            {/* Desktop Menu Links */}
             <div className="hidden lg:flex items-center gap-8">
               {loading
                 ? [1, 2, 3, 4].map((i) => (

@@ -1,44 +1,25 @@
-// routes/menuRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
-    // Menu Functions
-    getMenu,
-    getAllMenu,
-    createMenuItem,
-    updateMenuItem,
-    deleteMenuItem,
-    reorderMenu,
-    // Header Functions (Naye - Logo + Top Bar)
-    getHeader,
-    updateHeader,
-    deleteLogo
+    getMenu, getAllMenu, createMenuItem, updateMenuItem,
+    deleteMenuItem, reorderMenu, getHeader, updateHeader, deleteLogo
 } = require('../controllers/menuController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// ============================================
-// ===== MENU ROUTES (Pehle jese) =====
-// ============================================
-
-// Public route - for frontend to fetch active menu
+// ============ MENU ROUTES ============
 router.get('/', getMenu);
-
-// Protected routes - for admin panel
 router.get('/all', protect, getAllMenu);
 router.post('/', protect, createMenuItem);
+
+// ✅ /reorder pehle aana chahiye /:id se — warna /:id match kar leta hai
+router.put('/reorder', protect, reorderMenu);
 router.put('/:id', protect, updateMenuItem);
 router.delete('/:id', protect, deleteMenuItem);
-router.put('/reorder', protect, reorderMenu);
 
-// ============================================
-// ===== HEADER ROUTES (Naye - Logo + Top Bar) =====
-// ============================================
-
-// Public route - get header data
+// ============ HEADER ROUTES ============
+// ✅ Ye routes /menu/header pe hain — frontend API_URL fix karna hoga
 router.get('/header', getHeader);
-
-// Protected routes - admin only
 router.put('/header', protect, upload.single('logoImage'), updateHeader);
 router.delete('/header/logo', protect, deleteLogo);
 
