@@ -31,10 +31,11 @@ const getAllMenu = async (req, res) => {
 const createMenuItem = async (req, res) => {
     try {
         console.log('📝 Creating menu item:', req.body);
-        
-        const { name, path, type, url, order, icon } = req.body;
 
-        // ✅ Validation
+        const { name, path, type, url, order, icon } = req.body;
+        const itemType = type || 'internal';
+
+        // ✅ Name validation
         if (!name || !name.trim()) {
             return res.status(400).json({
                 success: false,
@@ -42,33 +43,46 @@ const createMenuItem = async (req, res) => {
             });
         }
 
-        if (!path || !path.trim()) {
+        // ✅ FIX: type ke hisaab se validation
+        if (itemType === 'internal' && (!path || !path.trim())) {
             return res.status(400).json({
                 success: false,
-                message: 'Path is required'
+                message: 'Path is required for internal links'
             });
         }
 
-        // ✅ Check duplicate
-        const existingMenu = await Menu.findOne({ 
-            $or: [
-                { name: name.trim() },
-                { path: path.trim() }
-            ]
-        });
+        if (itemType === 'external' && (!url || !url.trim())) {
+            return res.status(400).json({
+                success: false,
+                message: 'URL is required for external links'
+            });
+        }
+
+        // ✅ Duplicate check — sirf relevant field pe
+        const duplicateQuery = { name: name.trim() };
+        if (itemType === 'internal' && path) {
+            duplicateQuery.$or = [{ name: name.trim() }, { path: path.trim() }];
+            delete duplicateQuery.name;
+        }
+
+        const existingMenu = await Menu.findOne(
+            itemType === 'internal'
+                ? { $or: [{ name: name.trim() }, { path: path.trim() }] }
+                : { name: name.trim() }
+        );
 
         if (existingMenu) {
             return res.status(400).json({
                 success: false,
-                message: 'Menu item with this name or path already exists'
+                message: 'Menu item with this name already exists'
             });
         }
 
         const menuItem = await Menu.create({
             name: name.trim(),
-            path: path.trim(),
-            type: type || 'internal',
-            url: url ? url.trim() : '',
+            path: itemType === 'internal' ? path.trim() : '',
+            type: itemType,
+            url: itemType === 'external' ? url.trim() : '',
             order: order || 0,
             icon: icon ? icon.trim() : ''
         });
@@ -83,16 +97,10 @@ const createMenuItem = async (req, res) => {
 
     } catch (error) {
         console.error('❌ Create menu error:', error);
-        console.error('❌ Stack:', error.stack);
-        
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({
-                success: false,
-                message: messages.join(', ')
-            });
+            return res.status(400).json({ success: false, message: messages.join(', ') });
         }
-
         res.status(500).json({
             success: false,
             message: 'Server error while creating menu item',
@@ -104,46 +112,59 @@ const createMenuItem = async (req, res) => {
 const updateMenuItem = async (req, res) => {
     try {
         console.log('📝 Updating menu item:', req.params.id, req.body);
-        
+
         const { id } = req.params;
         const { name, path, type, url, order, isActive, icon } = req.body;
 
         const menuItem = await Menu.findById(id);
         if (!menuItem) {
-            return res.status(404).json({
-                success: false,
-                message: 'Menu item not found'
-            });
+            return res.status(404).json({ success: false, message: 'Menu item not found' });
         }
 
-        // ✅ Check duplicate
-        if (name || path) {
-            const existingMenu = await Menu.findOne({
-                _id: { $ne: id },
-                $or: [
-                    { name: name?.trim() || menuItem.name },
-                    { path: path?.trim() || menuItem.path }
-                ]
-            });
+        const newType = type || menuItem.type;
 
-            if (existingMenu) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Menu item with this name or path already exists'
+        // ✅ FIX: Duplicate check — sirf jab name ya path change ho raha ho
+        // aur sirf isActive update ho toh skip karo
+        const onlyStatusUpdate = isActive !== undefined &&
+            !name && !path && !type && !url && order === undefined && !icon;
+
+        if (!onlyStatusUpdate && (name || path)) {
+            const orConditions = [];
+            if (name) orConditions.push({ name: name.trim() });
+            if (path && newType === 'internal') orConditions.push({ path: path.trim() });
+
+            if (orConditions.length > 0) {
+                const existingMenu = await Menu.findOne({
+                    _id: { $ne: id },
+                    $or: orConditions
                 });
+
+                if (existingMenu) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Menu item with this name or path already exists'
+                    });
+                }
             }
         }
 
+        // ✅ Update fields
         if (name) menuItem.name = name.trim();
-        if (path) menuItem.path = path.trim();
         if (type) menuItem.type = type;
-        if (url) menuItem.url = url.trim();
         if (order !== undefined) menuItem.order = order;
         if (isActive !== undefined) menuItem.isActive = isActive;
-        if (icon) menuItem.icon = icon.trim();
+        if (icon !== undefined) menuItem.icon = icon.trim();
+
+        // ✅ FIX: type ke hisaab se path/url update
+        if (newType === 'internal') {
+            if (path) menuItem.path = path.trim();
+            menuItem.url = '';
+        } else {
+            if (url) menuItem.url = url.trim();
+            menuItem.path = '';
+        }
 
         await menuItem.save();
-
         console.log('✅ Menu updated:', menuItem);
 
         res.json({
@@ -154,16 +175,10 @@ const updateMenuItem = async (req, res) => {
 
     } catch (error) {
         console.error('❌ Update menu error:', error);
-        console.error('❌ Stack:', error.stack);
-        
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({
-                success: false,
-                message: messages.join(', ')
-            });
+            return res.status(400).json({ success: false, message: messages.join(', ') });
         }
-
         res.status(500).json({
             success: false,
             message: 'Server error while updating menu item',
@@ -187,10 +202,7 @@ const reorderMenu = async (req, res) => {
     try {
         const { menuOrder } = req.body;
         if (!Array.isArray(menuOrder)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Menu order must be an array'
-            });
+            return res.status(400).json({ success: false, message: 'Menu order must be an array' });
         }
 
         const bulkOperations = menuOrder.map(item => ({
@@ -232,9 +244,9 @@ const getHeader = async (req, res) => {
 
 const updateHeader = async (req, res) => {
     try {
-        console.log('📝 Updating header:', req.body);
+        console.log('📝 Updating header body:', req.body);
         console.log('📎 File:', req.file);
-        
+
         const { logoText, topBarText } = req.body;
         const file = req.file;
 
@@ -243,22 +255,26 @@ const updateHeader = async (req, res) => {
             header = new Header();
         }
 
-        if (logoText) header.logoText = logoText.trim();
-        if (topBarText) header.topBarText = topBarText.trim();
+        // ✅ FIX: undefined check — empty string bhi accept karo
+        if (logoText !== undefined) header.logoText = logoText.trim();
+        if (topBarText !== undefined) header.topBarText = topBarText.trim();
 
+        // ✅ File upload — Cloudinary pe already upload ho chuka hota hai multer se
         if (file) {
-            // Cloudinary try karo, agar fail ho toh bhi save ho
             try {
+                // Purana logo delete karo Cloudinary se
                 if (header.logoImagePublicId) {
                     await cloudinary.uploader.destroy(header.logoImagePublicId);
                 }
+                // ✅ Cloudinary storage use kar raha hai — file.path = cloudinary URL
+                // file.filename = public_id
                 header.logoImage = file.path;
-                header.logoImagePublicId = file.filename || file.public_id;
+                header.logoImagePublicId = file.filename;
             } catch (cloudinaryError) {
                 console.error('Cloudinary error:', cloudinaryError);
-                // Fallback
-                header.logoImage = file.path;
-                header.logoImagePublicId = 'local_' + Date.now();
+                // Fallback — phir bhi save karo
+                header.logoImage = file.path || '';
+                header.logoImagePublicId = file.filename || 'local_' + Date.now();
             }
         }
 
@@ -286,17 +302,14 @@ const deleteLogo = async (req, res) => {
     try {
         let header = await Header.findOne();
         if (!header) {
-            return res.status(404).json({
-                success: false,
-                message: 'Header not found'
-            });
+            return res.status(404).json({ success: false, message: 'Header not found' });
         }
 
         if (header.logoImagePublicId) {
             try {
                 await cloudinary.uploader.destroy(header.logoImagePublicId);
             } catch (err) {
-                console.error('Error deleting logo:', err);
+                console.error('Error deleting logo from Cloudinary:', err);
             }
         }
 
@@ -312,10 +325,7 @@ const deleteLogo = async (req, res) => {
 
     } catch (error) {
         console.error('Delete logo error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while deleting logo'
-        });
+        res.status(500).json({ success: false, message: 'Server error while deleting logo' });
     }
 };
 
