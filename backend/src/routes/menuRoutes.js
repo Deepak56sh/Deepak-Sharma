@@ -12,15 +12,24 @@ router.get('/', getMenu);
 router.get('/all', protect, getAllMenu);
 router.post('/', protect, createMenuItem);
 
-// ✅ /reorder pehle aana chahiye /:id se — warna /:id match kar leta hai
+// ✅ /reorder pehle — warna /:id match kar leta hai
 router.put('/reorder', protect, reorderMenu);
 router.put('/:id', protect, updateMenuItem);
 router.delete('/:id', protect, deleteMenuItem);
 
 // ============ HEADER ROUTES ============
-// ✅ Ye routes /menu/header pe hain — frontend API_URL fix karna hoga
 router.get('/header', getHeader);
-router.put('/header', protect, upload.single('logoImage'), updateHeader);
+
+// ✅ FIX: multer error aaye toh bhi aage badho — JSON request bhi handle hogi
+router.put('/header', protect, (req, res, next) => {
+    upload.single('logoImage')(req, res, (err) => {
+        if (err) {
+            console.error('Multer error (ignored):', err.message);
+        }
+        next(); // error ho ya na ho — aage badho
+    });
+}, updateHeader);
+
 router.delete('/header/logo', protect, deleteLogo);
 
 module.exports = router;

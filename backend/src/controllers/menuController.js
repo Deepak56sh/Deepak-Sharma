@@ -244,51 +244,39 @@ const getHeader = async (req, res) => {
 
 const updateHeader = async (req, res) => {
     try {
-        console.log('📝 Updating header body:', req.body);
+        console.log('📝 Body:', req.body);
         console.log('📎 File:', req.file);
+        console.log('📋 Content-Type:', req.headers['content-type']);
 
-        const { logoText, topBarText } = req.body;
+        const logoText = req.body?.logoText;
+        const topBarText = req.body?.topBarText;
         const file = req.file;
 
         let header = await Header.findOne();
-        if (!header) {
-            header = new Header();
-        }
+        if (!header) header = new Header();
 
-        // ✅ FIX: undefined check — empty string bhi accept karo
         if (logoText !== undefined) header.logoText = logoText.trim();
         if (topBarText !== undefined) header.topBarText = topBarText.trim();
 
-        // ✅ File upload — Cloudinary pe already upload ho chuka hota hai multer se
         if (file) {
             try {
-                // Purana logo delete karo Cloudinary se
                 if (header.logoImagePublicId) {
                     await cloudinary.uploader.destroy(header.logoImagePublicId);
                 }
-                // ✅ Cloudinary storage use kar raha hai — file.path = cloudinary URL
-                // file.filename = public_id
                 header.logoImage = file.path;
                 header.logoImagePublicId = file.filename;
             } catch (cloudinaryError) {
                 console.error('Cloudinary error:', cloudinaryError);
-                // Fallback — phir bhi save karo
                 header.logoImage = file.path || '';
-                header.logoImagePublicId = file.filename || 'local_' + Date.now();
+                header.logoImagePublicId = 'local_' + Date.now();
             }
         }
 
         await header.save();
-        console.log('✅ Header updated:', header);
-
-        res.json({
-            success: true,
-            message: 'Header updated successfully',
-            data: header
-        });
+        res.json({ success: true, message: 'Header updated successfully', data: header });
 
     } catch (error) {
-        console.error('❌ Update header error:', error);
+        console.error('❌ Update header error:', error.message);
         console.error('❌ Stack:', error.stack);
         res.status(500).json({
             success: false,
