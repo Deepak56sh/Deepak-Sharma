@@ -320,7 +320,7 @@ app.get('/api/test-files', (req, res) => {
 
 // API Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
-// app.use('/api/menu', require('./src/routes/menuRoutes'));
+app.use('/api/menu', require('./src/routes/menuRoutes'));
 app.use('/api', require('./src/routes/menuRoutes'));
 app.use('/api/footer', require('./src/routes/footerRoutes'));
 app.use('/api/services', require('./src/routes/serviceRoutes'));
