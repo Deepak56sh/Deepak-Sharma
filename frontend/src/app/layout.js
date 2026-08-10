@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
+import DynamicFavicon from '@/components/DynamicFavicon';
 
 import '../styles/globals.css';
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
+        <DynamicFavicon />
         <Loader />
         <Navbar />
         <main className="min-h-screen">{children}</main>
