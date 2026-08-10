@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Minus, Plus, X, Tag, ArrowRight, ShoppingBag, Sprout } from 'lucide-react';
-import { useCart } from '@/context/CartContext'; // ✅ NEW
+import { useCart } from '../../context/CartContext'; // ✅ NEW
 
 export default function CartPage() {
   // ✅ CHANGED — dummy initialItems hata ke context se le rahe hain
