@@ -27,11 +27,11 @@ export default function AdminMenuPage() {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const getToken = () =>
-    typeof window !== 'undefined' ? localStorage.getItem('adminToken') || localStorage.getItem('token') : '';
+    typeof window !== 'undefined'
+      ? localStorage.getItem('adminToken') || localStorage.getItem('token') || ''
+      : '';
 
-  useEffect(() => {
-    fetchMenu();
-  }, []);
+  useEffect(() => { fetchMenu(); }, []);
 
   const fetchMenu = async () => {
     setLoading(true);
@@ -42,10 +42,11 @@ export default function AdminMenuPage() {
       const data = await res.json();
       if (data.success) {
         setMenuItems(data.data || []);
+      } else {
+        showMsg('error', data.message || 'Failed to load menu');
       }
-    } catch (err) {
-      console.error(err);
-      setMessage({ type: 'error', text: 'Failed to load menu' });
+    } catch {
+      showMsg('error', 'Failed to load menu');
     } finally {
       setLoading(false);
     }
@@ -84,31 +85,26 @@ export default function AdminMenuPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) {
-      showMsg('error', 'Name is required');
-      return;
-    }
-    if (form.type === 'internal' && !form.path.trim()) {
-      showMsg('error', 'Path is required for internal links');
-      return;
-    }
-    if (form.type === 'external' && !form.url.trim()) {
-      showMsg('error', 'URL is required for external links');
-      return;
-    }
+
+    if (!form.name.trim()) { showMsg('error', 'Name is required'); return; }
+    if (form.type === 'internal' && !form.path.trim()) { showMsg('error', 'Path is required'); return; }
+    if (form.type === 'external' && !form.url.trim()) { showMsg('error', 'URL is required'); return; }
 
     setSaving(true);
     try {
       const url = editingId ? `${API_URL}/menu/${editingId}` : `${API_URL}/menu`;
       const method = editingId ? 'PUT' : 'POST';
+
+      const payload = {
+        ...form,
+        path: form.type === 'external' ? '' : form.path,
+        url: form.type === 'internal' ? '' : form.url,
+      };
 
       const res = await fetch(url, {
         method,
@@ -116,7 +112,7 @@ export default function AdminMenuPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`
         },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -142,12 +138,8 @@ export default function AdminMenuPage() {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       const data = await res.json();
-      if (data.success) {
-        showMsg('success', 'Deleted successfully');
-        fetchMenu();
-      } else {
-        showMsg('error', data.message || 'Failed to delete');
-      }
+      if (data.success) { showMsg('success', 'Deleted successfully'); fetchMenu(); }
+      else showMsg('error', data.message || 'Failed to delete');
     } catch {
       showMsg('error', 'Server error');
     }
@@ -157,14 +149,12 @@ export default function AdminMenuPage() {
     try {
       const res = await fetch(`${API_URL}/menu/${item._id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ isActive: !item.isActive })
       });
       const data = await res.json();
       if (data.success) fetchMenu();
+      else showMsg('error', 'Failed to update status');
     } catch {
       showMsg('error', 'Failed to update status');
     }
@@ -172,18 +162,9 @@ export default function AdminMenuPage() {
 
   return (
     <div className="plant-admin p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1f2937]">Menu Management</h1>
-          <p className="text-sm text-[#6b7280] mt-1">Add, edit, reorder navbar links</p>
-        </div>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2f9e44] hover:bg-[#237a35] text-white font-semibold rounded-xl transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Menu Item
-        </button>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#1f2937]">Menu Management</h1>
+        <p className="text-sm text-[#6b7280] mt-1">Add, edit, reorder navbar links</p>
       </div>
 
       {message.text && (
@@ -196,7 +177,101 @@ export default function AdminMenuPage() {
         </div>
       )}
 
-      {/* Form Modal */}
+      <div className="bg-white rounded-2xl border border-[#e8ece9] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-[#e8ece9]">
+          <div>
+            <h2 className="text-lg font-semibold text-[#1f2937]">Menu Items</h2>
+            <p className="text-sm text-[#6b7280]">Manage navbar links</p>
+          </div>
+          <button
+            onClick={openAdd}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2f9e44] hover:bg-[#237a35] text-white font-semibold rounded-xl transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Menu Item
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2f9e44]" />
+          </div>
+        ) : menuItems.length === 0 ? (
+          <div className="text-center py-16 text-[#6b7280]">
+            <p className="mb-4">No menu items yet</p>
+            <button onClick={openAdd} className="text-[#2f9e44] font-semibold hover:underline">
+              Add your first menu item
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#f6f8f7] text-[#6b7280]">
+                  <th className="text-left px-5 py-3 font-medium w-10">#</th>
+                  <th className="text-left px-5 py-3 font-medium">Name</th>
+                  <th className="text-left px-5 py-3 font-medium">Path / URL</th>
+                  <th className="text-left px-5 py-3 font-medium">Type</th>
+                  <th className="text-left px-5 py-3 font-medium">Status</th>
+                  <th className="text-right px-5 py-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...menuItems].sort((a, b) => a.order - b.order).map((item) => (
+                  <tr key={item._id} className="border-t border-[#e8ece9] hover:bg-[#f6f8f7]/50">
+                    <td className="px-5 py-3.5 text-[#9ca3af]">
+                      <div className="flex items-center gap-1">
+                        <GripVertical className="w-4 h-4" />
+                        {item.order}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 font-medium text-[#1f2937]">{item.name}</td>
+                    <td className="px-5 py-3.5 text-[#6b7280] font-mono text-xs">
+                      {item.type === 'external' ? item.url : item.path}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        item.type === 'external' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {item.type}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() => toggleActive(item)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          item.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {item.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        {item.isActive ? 'Active' : 'Hidden'}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openEdit(item)}
+                          className="p-2 rounded-lg text-[#6b7280] hover:bg-[#eaf7ee] hover:text-[#2f9e44] transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="p-2 rounded-lg text-[#6b7280] hover:bg-red-50 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
@@ -218,7 +293,7 @@ export default function AdminMenuPage() {
                   onChange={handleChange}
                   placeholder="Home / Shop / About Us"
                   required
-                  className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44]"
+                  className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30"
                 />
               </div>
 
@@ -294,7 +369,7 @@ export default function AdminMenuPage() {
                   name="isActive"
                   checked={form.isActive}
                   onChange={handleChange}
-                  className="w-4 h-4 rounded text-[#2f9e44] focus:ring-[#2f9e44]"
+                  className="w-4 h-4 rounded text-[#2f9e44]"
                 />
                 <span className="text-sm text-[#1f2937]">Active (show in navbar)</span>
               </label>
@@ -320,91 +395,6 @@ export default function AdminMenuPage() {
           </div>
         </div>
       )}
-
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#e8ece9] overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2f9e44]" />
-          </div>
-        ) : menuItems.length === 0 ? (
-          <div className="text-center py-16 text-[#6b7280]">
-            <p className="mb-4">No menu items yet</p>
-            <button onClick={openAdd} className="text-[#2f9e44] font-semibold hover:underline">
-              Add your first menu item
-            </button>
-          </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-[#f6f8f7] text-[#6b7280]">
-                <th className="text-left px-5 py-3 font-medium w-10">#</th>
-                <th className="text-left px-5 py-3 font-medium">Name</th>
-                <th className="text-left px-5 py-3 font-medium">Path / URL</th>
-                <th className="text-left px-5 py-3 font-medium">Type</th>
-                <th className="text-left px-5 py-3 font-medium">Status</th>
-                <th className="text-right px-5 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {menuItems
-                .sort((a, b) => a.order - b.order)
-                .map((item, i) => (
-                  <tr key={item._id} className="border-t border-[#e8ece9] hover:bg-[#f6f8f7]/50">
-                    <td className="px-5 py-3.5 text-[#9ca3af]">
-                      <div className="flex items-center gap-1">
-                        <GripVertical className="w-4 h-4" />
-                        {item.order}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 font-medium text-[#1f2937]">{item.name}</td>
-                    <td className="px-5 py-3.5 text-[#6b7280] font-mono text-xs">
-                      {item.type === 'external' ? item.url : item.path}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        item.type === 'external'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {item.type}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <button
-                        onClick={() => toggleActive(item)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          item.isActive
-                            ? 'bg-green-50 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {item.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                        {item.isActive ? 'Active' : 'Hidden'}
-                      </button>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEdit(item)}
-                          className="p-2 rounded-lg text-[#6b7280] hover:bg-[#eaf7ee] hover:text-[#2f9e44] transition-colors"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item._id)}
-                          className="p-2 rounded-lg text-[#6b7280] hover:bg-red-50 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        )}
-      </div>
     </div>
   );
 }

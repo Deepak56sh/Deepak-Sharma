@@ -33,10 +33,10 @@ const staticPages = [
   },
   {
     id: '3',
-    name: 'Care Guide',
-    slug: 'care-guide',
-    path: '/care-guide',
-    adminPath: '/admin/pages/care-guide',
+    name: 'services',
+    slug: 'services',
+    path: '/services',
+    adminPath: '/admin/pages/services',
     status: 'published',
     updatedAt: '2026-08-01'
   },
