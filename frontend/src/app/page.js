@@ -2,20 +2,13 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowRight,
-  Leaf,
-  ShieldCheck,
-  Truck,
-  Heart,
-  Star,
-  ShoppingBag,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle,
+  ArrowRight, Leaf, ShieldCheck, Truck, Heart,
+  Star, ShoppingBag, ChevronLeft, ChevronRight, CheckCircle,
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 import InstagramReels from '@/components/Instagram/InstagramReels';
 import Testimonials from '@/components/Testimonial/Testimonials';
+import CategoriesSlider from '@/components/CategoriesSlider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -67,13 +60,8 @@ const bestSellers = [
 const defaultAboutData = {
   title: 'About Us',
   subtitle: 'Our Story',
-  description: 'Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and better.',
-  points: [
-    'Handpicked Healthy Plants',
-    'Expert Plant Care Guidance',
-    'Sustainable & Eco-Friendly',
-    'Happy Customer Support'
-  ],
+  description: 'Plantora was born out of a passion for plants and a mission to bring nature closer to every home.',
+  points: ['Handpicked Healthy Plants', 'Expert Plant Care Guidance', 'Sustainable & Eco-Friendly', 'Happy Customer Support'],
   stats: [
     { number: '10K+', label: 'Happy Customers' },
     { number: '50K+', label: 'Plants Delivered' },
@@ -88,6 +76,7 @@ export default function HomePage() {
   const [badge, setBadge] = useState('Free Shipping on orders above ₹999');
   const [current, setCurrent] = useState(0);
   const [aboutData, setAboutData] = useState(defaultAboutData);
+  const [categories, setCategories] = useState([]); // ✅ categories state
   const videoRefs = useRef([]);
 
   // Fetch Hero
@@ -100,41 +89,44 @@ export default function HomePage() {
           setSlides(data.data.slides);
           if (data.data.badge) setBadge(data.data.badge);
         }
-      } catch {
-        // fallback
-      }
+      } catch {}
     };
     fetchHero();
+  }, []);
+
+  // ✅ Fetch Categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${API_URL}/categories`);
+        const data = await res.json();
+        if (data.success && data.data?.length) {
+          setCategories(data.data);
+        }
+      } catch {}
+    };
+    fetchCategories();
   }, []);
 
   // Fetch About
   useEffect(() => {
     const fetchAbout = async () => {
       try {
-        const res = await fetch(`${API_URL}/about`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'no-cache'
-        });
-        if (!res.ok) throw new Error('Failed to fetch');
+        const res = await fetch(`${API_URL}/about`, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('Failed');
         const result = await res.json();
-        if (result.success && result.data) {
-          setAboutData(result.data);
-        }
-      } catch (err) {
-        console.error(err);
+        if (result.success && result.data) setAboutData(result.data);
+      } catch {
         setAboutData(defaultAboutData);
       }
     };
     fetchAbout();
   }, []);
 
-  // Auto-slide logic
+  // Auto-slide
   useEffect(() => {
     if (!slides.length || slides[current]?.mediaType === 'video') return;
-    const timer = setTimeout(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    const timer = setTimeout(() => setCurrent((prev) => (prev + 1) % slides.length), 5000);
     return () => clearTimeout(timer);
   }, [current, slides]);
 
@@ -144,6 +136,7 @@ export default function HomePage() {
 
   return (
     <div className="plant-store bg-white">
+
       {/* ===================== HERO ===================== */}
       <section className="relative w-full h-[520px] sm:h-[600px] lg:h-[680px] overflow-hidden bg-[#14261d]">
         <div className="absolute inset-0">
@@ -153,9 +146,7 @@ export default function HomePage() {
               ref={(el) => (videoRefs.current[current] = el)}
               src={slide.media}
               poster={slide.poster}
-              autoPlay
-              muted
-              playsInline
+              autoPlay muted playsInline
               onEnded={next}
               className="w-full h-full object-cover"
             />
@@ -172,51 +163,31 @@ export default function HomePage() {
               {badge}
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-white leading-[1.1]">
-              {slide.title}
-              <br />
+              {slide.title}<br />
               <span className="text-[#7ee2a8]">{slide.subtitle}</span>
             </h1>
             <p className="text-base sm:text-lg text-white/80 max-w-md leading-relaxed">{slide.description}</p>
             <div className="flex flex-wrap gap-3 pt-1">
-              <Link
-                href={slide.primaryBtnLink || '/shop'}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all shadow-md"
-              >
-                {slide.primaryBtn || 'Shop Plants'}
-                <ArrowRight className="w-4 h-4" />
+              <Link href={slide.primaryBtnLink || '/shop'} className="inline-flex items-center gap-2 px-6 py-3 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all shadow-md">
+                {slide.primaryBtn || 'Shop Plants'} <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link
-                href={slide.secondaryBtnLink || '/shop'}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/20 font-semibold rounded-xl transition-all"
-              >
+              <Link href={slide.secondaryBtnLink || '/shop'} className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/20 font-semibold rounded-xl transition-all">
                 {slide.secondaryBtn || 'Explore'}
               </Link>
             </div>
           </div>
         </div>
 
-        <button
-          onClick={prev}
-          className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all"
-        >
+        <button onClick={prev} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all">
           <ChevronLeft className="w-5 h-5 text-white" />
         </button>
-        <button
-          onClick={next}
-          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all"
-        >
+        <button onClick={next} className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all">
           <ChevronRight className="w-5 h-5 text-white" />
         </button>
 
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
           {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === current ? 'w-8 bg-[#2f9e44]' : 'w-2 bg-white/40'
-              }`}
-            />
+            <button key={i} onClick={() => setCurrent(i)} className={`h-2 rounded-full transition-all duration-300 ${i === current ? 'w-8 bg-[#2f9e44]' : 'w-2 bg-white/40'}`} />
           ))}
         </div>
       </section>
@@ -245,6 +216,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===================== CATEGORIES SLIDER ===================== */}
+      {categories.length > 0 && <CategoriesSlider categories={categories} />}
+
       {/* ===================== BEST SELLERS ===================== */}
       <section className="py-12 lg:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -253,10 +227,7 @@ export default function HomePage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">Best Sellers</h2>
               <p className="text-[#6b7280] text-sm mt-1">Handpicked plants loved by our customers</p>
             </div>
-            <Link
-              href="/shop"
-              className="hidden sm:inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm hover:underline"
-            >
+            <Link href="/shop" className="hidden sm:inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm hover:underline">
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -265,16 +236,10 @@ export default function HomePage() {
               <Link key={i} href="/shop" className="group block">
                 <div className="bg-white border border-[#e8ece9] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#2f9e44]/25 transition-all duration-300">
                   <div className="aspect-square overflow-hidden bg-[#f6f8f7]">
-                    <img
-                      src={plant.image}
-                      alt={plant.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <img src={plant.image} alt={plant.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-3.5">
-                    <h3 className="font-semibold text-[#14261d] text-sm line-clamp-1 group-hover:text-[#2f9e44] transition-colors">
-                      {plant.name}
-                    </h3>
+                    <h3 className="font-semibold text-[#14261d] text-sm line-clamp-1 group-hover:text-[#2f9e44] transition-colors">{plant.name}</h3>
                     <div className="flex items-center gap-1 mt-1">
                       <Star className="w-3.5 h-3.5 fill-[#f5a623] text-[#f5a623]" />
                       <span className="text-xs font-medium text-[#14261d]">{plant.rating}</span>
@@ -297,7 +262,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===================== ABOUT (DYNAMIC) ===================== */}
+      {/* ===================== ABOUT ===================== */}
       <section className="py-14 lg:py-20 bg-[#f6f8f7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -308,28 +273,17 @@ export default function HomePage() {
                   src={aboutData?.image || defaultAboutData.image}
                   alt="About Plantora"
                   className="relative rounded-3xl shadow-xl w-full h-[340px] sm:h-[400px] object-cover"
-                  onError={(e) => {
-                    e.target.src = defaultAboutData.image;
-                  }}
+                  onError={(e) => { e.target.src = defaultAboutData.image; }}
                 />
               </div>
             </AnimatedSection>
-            
             <AnimatedSection>
               <div className="space-y-5">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">
-                    {aboutData?.title || 'About Us'}
-                  </h2>
-                  <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">
-                    {aboutData?.subtitle || 'Our Story'}
-                  </h3>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">{aboutData?.title || 'About Us'}</h2>
+                  <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">{aboutData?.subtitle || 'Our Story'}</h3>
                 </div>
-                
-                <p className="text-[#6b7280] leading-relaxed">
-                  {aboutData?.description || defaultAboutData.description}
-                </p>
-                
+                <p className="text-[#6b7280] leading-relaxed">{aboutData?.description || defaultAboutData.description}</p>
                 <ul className="space-y-3">
                   {(aboutData?.points || defaultAboutData.points).map((item, i) => (
                     <li key={i} className="flex items-center gap-3">
@@ -340,7 +294,6 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
                   {(aboutData?.stats || defaultAboutData.stats).map((stat, i) => (
                     <div key={i} className="text-center p-3 bg-white rounded-xl border border-[#e8ece9]">
@@ -362,18 +315,10 @@ export default function HomePage() {
       <section className="py-14 lg:py-16" style={{ backgroundColor: '#14261d' }}>
         <div className="max-w-4xl mx-auto px-4 text-center">
           <AnimatedSection>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-              Ready to bring nature home?
-            </h2>
-            <p className="text-white/70 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
-              Explore our collection of premium indoor plants and transform your space today.
-            </p>
-            <Link
-              href="/shop"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all"
-            >
-              Shop Now
-              <ArrowRight className="w-5 h-5" />
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">Ready to bring nature home?</h2>
+            <p className="text-white/70 text-base sm:text-lg mb-8 max-w-2xl mx-auto">Explore our collection of premium indoor plants and transform your space today.</p>
+            <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all">
+              Shop Now <ArrowRight className="w-5 h-5" />
             </Link>
           </AnimatedSection>
         </div>
