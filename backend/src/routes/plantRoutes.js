@@ -7,19 +7,27 @@ const {
   createPlant,
   updatePlant,
   deletePlant,
-  uploadPlantImage
+  uploadPlantImage,
+  uploadPlantGalleryImages
 } = require('../controllers/plantController');
 const { protect } = require('../middleware/auth');
 
 // Public list
 router.get('/', getPlants);
 
-// Upload MUST be before /:idOrSlug
+// Uploads MUST be before /:idOrSlug
 router.post(
   "/upload-image",
   protect,
   upload.single("image"),
   uploadPlantImage
+);
+
+router.post(
+  "/upload-gallery-images",
+  protect,
+  upload.array("images", 6), // ✅ up to 6 gallery/slider images
+  uploadPlantGalleryImages
 );
 
 // Admin CRUD

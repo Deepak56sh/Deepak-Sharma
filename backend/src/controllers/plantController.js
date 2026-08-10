@@ -3,14 +3,12 @@ const path = require('path');
 const fs = require('fs');
 const cloudinary = require("../config/cloudinary");
 
-// Same uploads path logic as server.js
 const isRender = process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production';
 const uploadsPath = isRender
   ? '/tmp/uploads'
   : path.join(__dirname, '../../public/uploads');
 
 // ---------- GET all (admin + public) ----------
-// GET /api/plants  OR  GET /api/products
 const getPlants = async (req, res) => {
   try {
     const {
@@ -29,7 +27,6 @@ const getPlants = async (req, res) => {
 
     const filter = {};
 
-    // Public shop usually wants only active
     if (active === 'true' || active === true) {
       filter.isActive = true;
     }
@@ -80,17 +77,14 @@ const getPlants = async (req, res) => {
 };
 
 // ---------- GET single by id or slug ----------
-// GET /api/plants/:idOrSlug  OR  GET /api/products/:idOrSlug
 const getPlant = async (req, res) => {
   try {
     const { idOrSlug } = req.params;
     let plant = null;
 
-    // Try by MongoDB id
     if (idOrSlug.match(/^[0-9a-fA-F]{24}$/)) {
       plant = await Plant.findById(idOrSlug);
     }
-    // Try by slug
     if (!plant) {
       plant = await Plant.findOne({ slug: idOrSlug });
     }
@@ -99,7 +93,6 @@ const getPlant = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Plant not found' });
     }
 
-    // Related plants (same category, exclude self)
     const related = await Plant.find({
       _id: { $ne: plant._id },
       isActive: true,
@@ -119,7 +112,6 @@ const getPlant = async (req, res) => {
 };
 
 // ---------- CREATE ----------
-// POST /api/plants
 const createPlant = async (req, res) => {
   try {
     const {
@@ -129,6 +121,8 @@ const createPlant = async (req, res) => {
       stock,
       description,
       image,
+      images,        // ✅ gallery images from admin
+      careGuide,     // ✅ care guide object from admin
       originalPrice,
       plantType,
       light,
@@ -138,7 +132,6 @@ const createPlant = async (req, res) => {
       isBestSeller,
       isLowMaintenance,
       isAirPurifying,
-      sizes,
       badges,
       tags,
       isActive
@@ -151,6 +144,12 @@ const createPlant = async (req, res) => {
       });
     }
 
+    // main image should always be part of the gallery, first position
+    let finalImages = Array.isArray(images) ? images.filter(Boolean) : [];
+    if (image && !finalImages.includes(image)) {
+      finalImages = [image, ...finalImages];
+    }
+
     const plant = await Plant.create({
       name,
       category: category || 'Indoor Plants',
@@ -159,8 +158,9 @@ const createPlant = async (req, res) => {
       originalPrice: originalPrice ? Number(originalPrice) : Number(price),
       stock: stock !== undefined ? Number(stock) : 0,
       description: description || '',
-      image: image || '',
-      images: image ? [image] : [],
+      image: image || (finalImages[0] || ''),
+      images: finalImages,
+      careGuide: careGuide || undefined,
       light: light || 'Bright Indirect',
       careLevel: careLevel || 'Easy',
       petFriendly: petFriendly === true || petFriendly === 'true',
@@ -168,9 +168,8 @@ const createPlant = async (req, res) => {
       isBestSeller: isBestSeller === true || isBestSeller === 'true',
       isLowMaintenance: isLowMaintenance === true || isLowMaintenance === 'true',
       isAirPurifying: isAirPurifying === true || isAirPurifying === 'true',
-      sizes: sizes || ['5 inch', '7 inch', '9 inch'],
-      badges: badges || [],
-      tags: tags || [],
+      badges: Array.isArray(badges) ? badges : [],
+      tags: Array.isArray(tags) ? tags : [],
       isActive: isActive !== false
     });
 
@@ -189,7 +188,6 @@ const createPlant = async (req, res) => {
 };
 
 // ---------- UPDATE ----------
-// PUT /api/plants/:id
 const updatePlant = async (req, res) => {
   try {
     const plant = await Plant.findById(req.params.id);
@@ -199,9 +197,9 @@ const updatePlant = async (req, res) => {
 
     const fields = [
       'name', 'category', 'plantType', 'price', 'originalPrice', 'stock',
-      'description', 'image', 'light', 'careLevel', 'petFriendly', 'potIncluded',
-      'isBestSeller', 'isLowMaintenance', 'isAirPurifying', 'sizes', 'badges',
-      'tags', 'isActive', 'rating', 'reviews', 'careGuide', 'order'
+      'description', 'light', 'careLevel', 'petFriendly', 'potIncluded',
+      'isBestSeller', 'isLowMaintenance', 'isAirPurifying', 'badges',
+      'tags', 'isActive', 'rating', 'reviews', 'careGuide', 'order', 'images' // ✅ images added
     ];
 
     fields.forEach((key) => {
@@ -210,12 +208,10 @@ const updatePlant = async (req, res) => {
       }
     });
 
-    // Numbers
     if (req.body.price !== undefined) plant.price = Number(req.body.price);
     if (req.body.originalPrice !== undefined) plant.originalPrice = Number(req.body.originalPrice);
     if (req.body.stock !== undefined) plant.stock = Number(req.body.stock);
 
-    // Booleans
     if (req.body.petFriendly !== undefined) {
       plant.petFriendly = req.body.petFriendly === true || req.body.petFriendly === 'true';
     }
@@ -235,7 +231,7 @@ const updatePlant = async (req, res) => {
       plant.isActive = req.body.isActive === true || req.body.isActive === 'true';
     }
 
-    // Keep images in sync with main image
+    // Keep main image in sync with gallery
     if (req.body.image) {
       plant.image = req.body.image;
       if (!plant.images.includes(req.body.image)) {
@@ -257,7 +253,6 @@ const updatePlant = async (req, res) => {
 };
 
 // ---------- DELETE ----------
-// DELETE /api/plants/:id
 const deletePlant = async (req, res) => {
   try {
     const plant = await Plant.findById(req.params.id);
@@ -265,7 +260,6 @@ const deletePlant = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Plant not found' });
     }
 
-    // Optional: delete image file
     if (plant.image && plant.image.startsWith('/uploads/')) {
       const filePath = path.join(uploadsPath, path.basename(plant.image));
       if (fs.existsSync(filePath)) {
@@ -284,7 +278,8 @@ const deletePlant = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error while deleting plant' });
   }
 };
-// ---------- UPLOAD IMAGE (Cloudinary) ----------
+
+// ---------- UPLOAD MAIN IMAGE (Cloudinary) ----------
 const uploadPlantImage = async (req, res) => {
   try {
     if (!req.file) {
@@ -305,18 +300,46 @@ const uploadPlantImage = async (req, res) => {
     });
   } catch (error) {
     console.error("Upload plant image error:", error);
-
     return res.status(500).json({
       success: false,
       message: error.message || "Server error while uploading image",
     });
   }
 };
+
+// ---------- UPLOAD GALLERY IMAGES (Cloudinary, multiple) ----------
+// ✅ NEW: these become the slider images on shop/[slug]
+const uploadPlantGalleryImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No images uploaded",
+      });
+    }
+
+    const imageUrls = req.files.map((f) => f.path);
+
+    return res.status(200).json({
+      success: true,
+      message: "Images uploaded successfully",
+      data: { imageUrls },
+    });
+  } catch (error) {
+    console.error("Upload plant gallery images error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error while uploading images",
+    });
+  }
+};
+
 module.exports = {
   getPlants,
   getPlant,
   createPlant,
   updatePlant,
   deletePlant,
-  uploadPlantImage
+  uploadPlantImage,
+  uploadPlantGalleryImages
 };

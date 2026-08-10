@@ -3,6 +3,7 @@ const router = express.Router();
 const upload = require('../middleware/upload');
 const {
   getTestimonials,
+  getProductReviews,
   getAllTestimonials,
   getPendingTestimonials,
   submitCustomerReview,
@@ -16,6 +17,7 @@ const { protect } = require('../middleware/auth');
 
 // Public routes
 router.get('/', getTestimonials);
+router.get('/product/:productId', getProductReviews); // ✅ NEW
 router.post('/customer-review', submitCustomerReview);
 
 // Admin routes

@@ -1,6 +1,6 @@
 const Testimonial = require('../models/Testimonial');
 
-// GET /api/testimonials — public, active only
+// GET /api/testimonials — public, active only (homepage)
 const getTestimonials = async (req, res) => {
   try {
     const testimonials = await Testimonial.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
@@ -8,6 +8,21 @@ const getTestimonials = async (req, res) => {
   } catch (error) {
     console.error('Get testimonials error:', error);
     res.status(500).json({ success: false, message: 'Server error while fetching testimonials' });
+  }
+};
+
+// ✅ NEW: GET /api/testimonials/product/:productId — public, reviews for ONE plant
+const getProductReviews = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const reviews = await Testimonial.find({ productId, isActive: true }).sort({ createdAt: -1 });
+    const avgRating = reviews.length
+      ? Number((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1))
+      : null;
+    res.json({ success: true, data: reviews, count: reviews.length, avgRating });
+  } catch (error) {
+    console.error('Get product reviews error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching reviews' });
   }
 };
 
@@ -33,15 +48,15 @@ const getPendingTestimonials = async (req, res) => {
   }
 };
 
-// POST /api/testimonials/customer-review — customer submits review
+// POST /api/testimonials/customer-review — customer submits review for a product
 const submitCustomerReview = async (req, res) => {
   try {
-    const { name, email, rating, text } = req.body;
+    const { name, email, rating, text, productId } = req.body;
 
     if (!name || !text) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Name and review text are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Name and review text are required'
       });
     }
 
@@ -50,21 +65,22 @@ const submitCustomerReview = async (req, res) => {
       email: email || '',
       rating: rating || 5,
       text,
+      productId: productId || null, // ✅ now actually saved
       isActive: false,
       isPending: true,
       source: 'customer'
     });
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       message: 'Review submitted! Awaiting admin approval.',
-      data: review 
+      data: review
     });
   } catch (error) {
     console.error('Customer review error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.message || 'Failed to submit review' 
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to submit review'
     });
   }
 };
@@ -72,7 +88,7 @@ const submitCustomerReview = async (req, res) => {
 // POST /api/testimonials — admin, create
 const createTestimonial = async (req, res) => {
   try {
-    const { name, role, avatar, rating, text, order, isActive } = req.body;
+    const { name, role, avatar, rating, text, order, isActive, productId } = req.body;
 
     if (!name || !text) {
       return res.status(400).json({ success: false, message: 'Name and testimonial text are required' });
@@ -84,6 +100,7 @@ const createTestimonial = async (req, res) => {
       avatar: avatar || '',
       rating: rating || 5,
       text,
+      productId: productId || null,
       order: order || 0,
       isActive: isActive !== false,
       source: 'admin'
@@ -104,7 +121,7 @@ const updateTestimonial = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Testimonial not found' });
     }
 
-    const fields = ['name', 'role', 'avatar', 'rating', 'text', 'order', 'isActive'];
+    const fields = ['name', 'role', 'avatar', 'rating', 'text', 'order', 'isActive', 'productId'];
     fields.forEach((key) => {
       if (req.body[key] !== undefined) testimonial[key] = req.body[key];
     });
@@ -129,16 +146,16 @@ const approveTestimonial = async (req, res) => {
     testimonial.isPending = false;
     await testimonial.save();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Review approved successfully!',
-      data: testimonial 
+      data: testimonial
     });
   } catch (error) {
     console.error('Approve review error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error while approving review' 
+    res.status(500).json({
+      success: false,
+      message: 'Server error while approving review'
     });
   }
 };
@@ -178,6 +195,7 @@ const uploadTestimonialAvatar = async (req, res) => {
 
 module.exports = {
   getTestimonials,
+  getProductReviews,
   getAllTestimonials,
   getPendingTestimonials,
   submitCustomerReview,

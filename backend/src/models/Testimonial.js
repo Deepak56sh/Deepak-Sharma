@@ -31,6 +31,13 @@ const testimonialSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Testimonial text is required']
     },
+
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Plant',
+      default: null,
+      index: true
+    },
     order: {
       type: Number,
       default: 0
