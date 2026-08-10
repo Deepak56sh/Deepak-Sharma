@@ -10,14 +10,15 @@ const {
 } = require('../controllers/menuController');
 const { protect } = require('../middleware/auth');
 
-// Public route - for frontend to fetch active menu
+
 router.get('/', getMenu);
 
-// Protected routes - for admin panel
+
 router.get('/all', protect, getAllMenu);
 router.post('/', protect, createMenuItem);
+
+router.put('/reorder', protect, reorderMenu);
 router.put('/:id', protect, updateMenuItem);
 router.delete('/:id', protect, deleteMenuItem);
-router.put('/reorder', protect, reorderMenu);
 
 module.exports = router;

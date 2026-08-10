@@ -9,8 +9,8 @@ const menuSchema = new mongoose.Schema({
     },
     path: {
         type: String,
-        required: [true, 'Menu path is required'],
-        trim: true
+        trim: true,
+        default: ''        // ✅ required NAHI — external links mein path nahi hota
     },
     type: {
         type: String,
@@ -19,7 +19,8 @@ const menuSchema = new mongoose.Schema({
     },
     url: {
         type: String,
-        trim: true
+        trim: true,
+        default: ''
     },
     order: {
         type: Number,
@@ -31,22 +32,10 @@ const menuSchema = new mongoose.Schema({
     },
     icon: {
         type: String,
-        trim: true
+        trim: true,
+        default: ''
     }
-}, {
-    timestamps: true
-});
+}, { timestamps: true });
 
-// For internal links, path is required
-// For external links, url is required
-menuSchema.pre('save', function(next) {
-    if (this.type === 'external' && !this.url) {
-        return next(new Error('URL is required for external links'));
-    }
-    if (this.type === 'internal' && !this.path) {
-        return next(new Error('Path is required for internal links'));
-    }
-    next();
-});
 
 module.exports = mongoose.model('Menu', menuSchema);
