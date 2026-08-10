@@ -411,7 +411,7 @@ export default function AdminFooterPage() {
         </div>
 
         {/* Link Sections */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-2 gap-6">
           <LinkEditor title="Quick Links" listKey="quickLinks" />
           <LinkEditor title="Collections" listKey="serviceLinks" />
           <LinkEditor title="Customer Care" listKey="customerCare" />
