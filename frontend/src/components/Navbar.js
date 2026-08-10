@@ -95,7 +95,7 @@ export default function Navbar() {
                 <img
                   src={settings.siteLogo}
                   alt={settings.siteName}
-                  className="h-9 w-auto max-w-[160px] object-contain"
+                  className="h-16 w-auto max-w-[160px] object-contain"
                 />
               ) : (
                 <>
