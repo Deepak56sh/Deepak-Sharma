@@ -4,38 +4,60 @@ const mongoose = require('mongoose');
 const settingsSchema = new mongoose.Schema({
   siteName: {
     type: String,
-    default: 'NexGen'
+    default: 'Plantora'
   },
   siteTagline: {
     type: String,
-    default: 'Digital Innovation'
+    default: 'Bring Nature Home'
+  },
+  siteUrl: {
+    type: String,
+    default: ''
+  },
+  // ✅ NEW — shown in header/navbar
+  siteLogo: {
+    type: String,
+    default: ''
+  },
+  // ✅ NEW — shown in browser tab
+  siteFavicon: {
+    type: String,
+    default: ''
   },
   contactEmail: {
     type: String,
     required: true,
-    default: 'hello@nexgen.com'
+    default: 'hello@plantora.com'
   },
   contactPhone: {
     type: String,
     required: true,
-    default: '+1 (555) 123-4567'
+    default: '+91 98765 43210'
   },
   contactAddress: {
     type: String,
     required: true,
-    default: 'San Francisco, CA'
+    default: 'Ahmedabad, Gujarat'
   },
   socialGithub: {
     type: String,
-    default: 'https://github.com/nexgen'
+    default: ''
   },
   socialTwitter: {
     type: String,
-    default: 'https://twitter.com/nexgen'
+    default: ''
   },
   socialLinkedin: {
     type: String,
-    default: 'https://linkedin.com/company/nexgen'
+    default: ''
+  },
+  socialInstagram: {
+    type: String,
+    default: ''
+  },
+  socialFacebook: {
+    type: String,
+    default: ''
   },
   businessHours: {
     weekdays: {

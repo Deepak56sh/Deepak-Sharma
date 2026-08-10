@@ -15,11 +15,18 @@ const defaultLinks = [
   { name: 'About Us', path: '/about' },
 ];
 
+const defaultSettings = {
+  siteName: 'Plantora',
+  siteTagline: '',
+  siteLogo: '',
+};
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [navLinks, setNavLinks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(defaultSettings);
   const pathname = usePathname();
 
   const cartCount = 3;
@@ -50,6 +57,26 @@ export default function Navbar() {
     fetchMenu();
   }, []);
 
+  // ✅ NEW — pulls logo / site name from the Settings page (admin)
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch(`${API_URL}/settings`, { cache: 'no-store' });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setSettings({
+            siteName: data.data.siteName || defaultSettings.siteName,
+            siteTagline: data.data.siteTagline || '',
+            siteLogo: data.data.siteLogo || '',
+          });
+        }
+      } catch {
+        // keep defaults
+      }
+    };
+    fetchSettings();
+  }, []);
+
   return (
     <div className="plant-store-header">
       {/* Top Bar */}
@@ -62,12 +89,22 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
 
-            {/* Logo */}
+            {/* Logo — uses admin-uploaded logo if set, else falls back to icon + name */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-              <div className="w-9 h-9 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
-                <Sprout className="w-5 h-5 text-[#2f9e44]" />
-              </div>
-              <span className="text-xl font-bold text-[#14261d]">Plantora</span>
+              {settings.siteLogo ? (
+                <img
+                  src={settings.siteLogo}
+                  alt={settings.siteName}
+                  className="h-9 w-auto max-w-[160px] object-contain"
+                />
+              ) : (
+                <>
+                  <div className="w-9 h-9 bg-[#eaf7ee] rounded-xl flex items-center justify-center">
+                    <Sprout className="w-5 h-5 text-[#2f9e44]" />
+                  </div>
+                  <span className="text-xl font-bold text-[#14261d]">{settings.siteName}</span>
+                </>
+              )}
             </Link>
 
             {/* Desktop Menu */}
