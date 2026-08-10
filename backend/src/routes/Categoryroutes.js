@@ -6,7 +6,7 @@ const {
     createCategory,
     updateCategory,
     deleteCategory
-} = require('../controllers/categoryController');
+} = require('../controllers/Categorycontroller');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
