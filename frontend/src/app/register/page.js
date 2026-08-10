@@ -8,9 +8,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661
 
 function RegisterContent() {
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  // ✅ FIX: same redirect support as login — sent here from checkout, go back after register
-  // const redirectTo = searchParams.get('redirect') || '/account';
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/account';
 
   const [formData, setFormData] = useState({
     name: '',
@@ -52,8 +51,6 @@ function RegisterContent() {
     }
 
     try {
-      // ✅ FIX: shop customers now register through /api/customers/register,
-      // NOT /api/auth/register (that endpoint creates ADMIN accounts — wrong for shop signups)
       const res = await fetch(`${API_URL}/customers/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +67,7 @@ function RegisterContent() {
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/account');// ✅ FIX: go back to checkout (or wherever) instead of always /account
+        router.push(redirectTo);
       } else {
         setError(data.message || 'Registration failed');
       }
@@ -232,7 +229,10 @@ function RegisterContent() {
 
           <p className="text-center text-sm text-[#6b7280] mt-6">
             Already have an account?{' '}
-            <Link href={`/login${redirectTo !== '/account' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-[#2f9e44] font-semibold hover:underline">
+            <Link 
+              href={`/login${redirectTo !== '/account' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} 
+              className="text-[#2f9e44] font-semibold hover:underline"
+            >
               Login
             </Link>
           </p>
@@ -241,9 +241,10 @@ function RegisterContent() {
     </div>
   );
 }
- export default function RegisterPage() {
+
+export default function RegisterPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <RegisterContent />
     </Suspense>
   );

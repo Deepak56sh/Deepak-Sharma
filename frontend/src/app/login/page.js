@@ -1,13 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/account';
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -32,7 +35,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      // ✅ FIX: Correct endpoint for customer login
+      const res = await fetch(`${API_URL}/customers/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -46,19 +50,14 @@ export default function LoginPage() {
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/account');
+        // ✅ FIX: Redirect to original page (checkout, etc.)
+        router.push(redirectTo);
       } else {
         setError(data.message || 'Invalid email or password');
       }
-    } catch {
-      // Demo mode
-      if (formData.email && formData.password) {
-        localStorage.setItem('token', 'demo-token');
-        localStorage.setItem('user', JSON.stringify({ name: 'Rohan', email: formData.email }));
-        router.push('/account');
-      } else {
-        setError('Failed to login. Please try again.');
-      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Could not reach the server. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -189,12 +188,24 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-[#6b7280] mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-[#2f9e44] font-semibold hover:underline">
+            <Link 
+              href={`/register${redirectTo !== '/account' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} 
+              className="text-[#2f9e44] font-semibold hover:underline"
+            >
               Register
             </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+// ✅ Main export with Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
