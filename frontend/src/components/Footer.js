@@ -72,22 +72,22 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
 
-          {/* Brand */}
+          {/* Brand - LOGO BIGGER & CLEANER */}
           <div className="lg:col-span-4">
-            <Link href="/" className="flex items-center gap-2.5 mb-5">
+            <Link href="/" className="flex items-center gap-3 mb-5">
               {data.logoImage ? (
                 <img
                   src={data.logoImage}
                   alt={data.logoText || 'Plantora'}
-                  className="h-10 w-auto object-contain"
+                  className="h-14 w-auto object-contain" // ✅ Bigger: h-10 → h-14
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               ) : (
-                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                  <Sprout className="w-5 h-5 text-[#2f9e44]" />
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                  <Sprout className="w-6 h-6 text-[#2f9e44]" />
                 </div>
               )}
-              <span className="text-2xl font-bold">{data.logoText || 'Plantora'}</span>
+              <span className="text-2xl font-bold tracking-tight">{data.logoText || 'Plantora'}</span>
             </Link>
             <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
               {data.description}
@@ -104,9 +104,9 @@ export default function Footer() {
                       href={social.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#2f9e44] flex items-center justify-center transition-colors"
+                      className="w-10 h-10 rounded-lg bg-white/10 hover:bg-[#2f9e44] flex items-center justify-center transition-colors duration-300"
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-4.5 h-4.5" />
                     </a>
                   );
                 })}
@@ -116,11 +116,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Quick Links</h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white/80">Quick Links</h4>
             <ul className="space-y-3">
               {(data.quickLinks || defaultFooter.quickLinks).map((link, i) => (
                 <li key={i}>
-                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
+                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -130,11 +130,11 @@ export default function Footer() {
 
           {/* Collections */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Collections</h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white/80">Collections</h4>
             <ul className="space-y-3">
               {(data.serviceLinks || defaultFooter.serviceLinks).map((link, i) => (
                 <li key={i}>
-                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
+                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -144,11 +144,11 @@ export default function Footer() {
 
           {/* Customer Care */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Customer Care</h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white/80">Customer Care</h4>
             <ul className="space-y-3">
               {(data.customerCare || defaultFooter.customerCare).map((link, i) => (
                 <li key={i}>
-                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
+                  <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -158,7 +158,7 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div className="lg:col-span-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Join the Plant Lovers Club</h4>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-5 text-white/80">Join the Plant Lovers Club</h4>
             <p className="text-sm text-white/60 mb-4">Get plant care tips, offers and more.</p>
             <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-2">
               <input
@@ -166,11 +166,11 @@ export default function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="w-full px-4 py-2.5 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#2f9e44]"
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#2f9e44] focus:ring-1 focus:ring-[#2f9e44]"
               />
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white text-sm font-semibold rounded-xl transition-colors duration-300 flex items-center justify-center gap-2"
               >
                 Subscribe
                 <Send className="w-3.5 h-3.5" />
@@ -182,9 +182,9 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-white/50">
-            © {currentYear} {data.logoText}. {data.copyrightText || 'All rights reserved.'}
+            &copy; {currentYear} {data.logoText}. {data.copyrightText || 'All rights reserved.'}
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap justify-center">
             {['VISA', 'Mastercard', 'UPI', 'RuPay'].map((method) => (
               <span key={method} className="px-3 py-1.5 bg-white/10 rounded-lg text-[11px] font-medium text-white/70">
                 {method}

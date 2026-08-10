@@ -79,7 +79,6 @@ export default function AdminFooterPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // ---- Link list helpers ----
   const updateLink = (listKey, index, field, value) => {
     setForm((prev) => {
       const list = [...prev[listKey]];
@@ -102,7 +101,6 @@ export default function AdminFooterPage() {
     }));
   };
 
-  // ---- Social helpers ----
   const updateSocial = (index, field, value) => {
     setForm((prev) => {
       const list = [...prev.socialLinks];
@@ -129,7 +127,6 @@ export default function AdminFooterPage() {
     }));
   };
 
-  // ---- Logo Upload (same robust pattern as Settings → logo/favicon) ----
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -145,10 +142,9 @@ export default function AdminFooterPage() {
       return;
     }
 
-    // ✅ FIX: check token BEFORE trying to upload, so the real reason shows up
     const token = getToken();
     if (!token) {
-      showMsg('error', 'You are not logged in (no admin token found). Please log in again.');
+      showMsg('error', 'You are not logged in. Please log in again.');
       if (fileRef.current) fileRef.current.value = '';
       return;
     }
@@ -164,23 +160,20 @@ export default function AdminFooterPage() {
         body: fd
       });
 
-      // ✅ FIX: always read the body so real errors surface instead of a generic message
       let result = null;
       try {
         result = await res.json();
-      } catch (parseErr) {
-        // non-JSON response (e.g. server crashed / HTML error page)
-      }
+      } catch (parseErr) {}
 
       if (res.ok && result?.success && result?.data?.logoImage) {
         setForm((prev) => ({ ...prev, logoImage: result.data.logoImage }));
         showMsg('success', 'Logo uploaded successfully.');
       } else {
-        showMsg('error', result?.message || `Logo upload failed (status ${res.status}). Please try again.`);
+        showMsg('error', result?.message || `Logo upload failed (status ${res.status}).`);
       }
     } catch (err) {
       console.error('Logo upload error:', err);
-      showMsg('error', 'Could not reach the server to upload the logo. Check your connection and try again.');
+      showMsg('error', 'Could not reach the server to upload the logo.');
     } finally {
       setUploadingLogo(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -191,13 +184,12 @@ export default function AdminFooterPage() {
     setForm((prev) => ({ ...prev, logoImage: '' }));
   };
 
-  // ---- Save all ----
   const handleSave = async (e) => {
     e.preventDefault();
 
     const token = getToken();
     if (!token) {
-      showMsg('error', 'You are not logged in (no admin token found). Please log in again.');
+      showMsg('error', 'You are not logged in. Please log in again.');
       return;
     }
 
@@ -224,19 +216,18 @@ export default function AdminFooterPage() {
       }
     } catch (err) {
       console.error('Save footer error:', err);
-      showMsg('error', 'Could not reach the server. Check your connection and try again.');
+      showMsg('error', 'Could not reach the server.');
     } finally {
       setSaving(false);
     }
   };
 
-  // ✅ FIX: Cloudinary already returns a full https:// URL — no more manual BASE_URL prefixing,
-  // which used to be needed only for the old local /uploads/ path format.
   const getLogoUrl = () => {
     if (!form.logoImage) return null;
     return form.logoImage;
   };
 
+  // ✅ IMPROVED: Link Editor with better layout
   const LinkEditor = ({ title, listKey }) => (
     <div className="bg-white rounded-2xl border border-[#e8ece9] p-5">
       <div className="flex items-center justify-between mb-4">
@@ -244,7 +235,7 @@ export default function AdminFooterPage() {
         <button
           type="button"
           onClick={() => addLink(listKey)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#eaf7ee] text-[#2f9e44] rounded-lg hover:bg-[#d4edda]"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#eaf7ee] text-[#2f9e44] rounded-lg hover:bg-[#d4edda] transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add
         </button>
@@ -255,29 +246,29 @@ export default function AdminFooterPage() {
       ) : (
         <div className="space-y-3">
           {form[listKey].map((link, i) => (
-            <div key={i} className="flex gap-2 items-start">
+            <div key={i} className="flex gap-2 items-center bg-[#f8faf8] p-2 rounded-xl">
               <input
                 value={link.name}
                 onChange={(e) => updateLink(listKey, i, 'name', e.target.value)}
                 placeholder="Name"
-                className="flex-1 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
+                className="flex-1 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44] bg-white"
               />
               <input
                 value={link.url}
                 onChange={(e) => updateLink(listKey, i, 'url', e.target.value)}
                 placeholder="/path or https://"
-                className="flex-[1.5] px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
+                className="flex-[1.5] px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44] bg-white"
               />
               <input
                 type="number"
                 value={link.order}
                 onChange={(e) => updateLink(listKey, i, 'order', Number(e.target.value))}
-                className="w-16 px-2 py-2 border border-[#e8ece9] rounded-lg text-sm text-center focus:outline-none focus:border-[#2f9e44]"
+                className="w-14 px-2 py-2 border border-[#e8ece9] rounded-lg text-sm text-center focus:outline-none focus:border-[#2f9e44] bg-white"
               />
               <button
                 type="button"
                 onClick={() => removeLink(listKey, i)}
-                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -290,18 +281,19 @@ export default function AdminFooterPage() {
 
   if (loading) {
     return (
-      <div className="plant-admin flex justify-center items-center py-20">
+      <div className="flex justify-center items-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-[#2f9e44]" />
       </div>
     );
   }
 
   return (
-    <div className="plant-admin p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-[#1f2937]">Footer Management</h1>
-          <p className="text-sm text-[#6b7280] mt-1">Logo, links, social icons & copyright</p>
+          <p className="text-sm text-[#6b7280] mt-1">Logo, links, social icons &amp; copyright</p>
         </div>
         <button
           onClick={handleSave}
@@ -324,33 +316,33 @@ export default function AdminFooterPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Logo + Brand */}
+        {/* Logo + Brand - IMPROVED */}
         <div className="bg-white rounded-2xl border border-[#e8ece9] p-6">
-          <h3 className="font-bold text-[#1f2937] mb-5">Brand & Logo</h3>
+          <h3 className="font-bold text-[#1f2937] mb-5">Brand &amp; Logo</h3>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Logo Upload */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Logo Upload - IMPROVED */}
             <div>
-              <label className="block text-sm font-medium text-[#1f2937] mb-2">Logo Image</label>
-              <div className="flex items-center gap-4">
-                <div className="relative w-20 h-20 flex-shrink-0 rounded-xl border-2 border-dashed border-[#e8ece9] bg-[#f6f8f7] flex items-center justify-center overflow-hidden">
+              <label className="block text-sm font-medium text-[#1f2937] mb-3">Logo Image</label>
+              <div className="flex items-center gap-6">
+                <div className="relative w-28 h-28 flex-shrink-0 rounded-2xl border-2 border-dashed border-[#e8ece9] bg-[#f6f8f7] flex items-center justify-center overflow-hidden">
                   {getLogoUrl() ? (
                     <img
                       src={getLogoUrl()}
                       alt="Logo"
-                      className="w-full h-full object-contain p-1.5"
+                      className="w-full h-full object-contain p-3"
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                   ) : (
-                    <ImageIcon className="w-8 h-8 text-[#9ca3af]" />
+                    <ImageIcon className="w-10 h-10 text-[#9ca3af]" />
                   )}
                   {uploadingLogo && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
                     </div>
                   )}
                 </div>
-                <div>
+                <div className="flex-1">
                   <input
                     ref={fileRef}
                     type="file"
@@ -359,12 +351,12 @@ export default function AdminFooterPage() {
                     className="hidden"
                     disabled={uploadingLogo}
                   />
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
                       disabled={uploadingLogo}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#eaf7ee] text-[#2f9e44] text-sm font-semibold rounded-xl hover:bg-[#d4edda] disabled:opacity-60"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#eaf7ee] text-[#2f9e44] text-sm font-semibold rounded-xl hover:bg-[#d4edda] transition-colors disabled:opacity-60"
                     >
                       <Upload className="w-4 h-4" />
                       {uploadingLogo ? 'Uploading...' : form.logoImage ? 'Change Logo' : 'Upload Logo'}
@@ -373,14 +365,14 @@ export default function AdminFooterPage() {
                       <button
                         type="button"
                         onClick={removeLogo}
-                        className="p-2 text-[#9ca3af] hover:text-red-500 hover:bg-red-50 rounded-xl"
-                        title="Remove logo (falls back to icon)"
+                        className="p-2 text-[#9ca3af] hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        title="Remove logo"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                  <p className="text-xs text-[#9ca3af] mt-1.5">PNG, JPG up to 2MB. Transparent background recommended.</p>
+                  <p className="text-xs text-[#9ca3af] mt-2">PNG, JPG up to 2MB. Transparent background recommended.</p>
                 </div>
               </div>
             </div>
@@ -394,6 +386,7 @@ export default function AdminFooterPage() {
                   value={form.logoText}
                   onChange={handleTextChange}
                   className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44]"
+                  placeholder="Plantora"
                 />
               </div>
               <div>
@@ -404,27 +397,28 @@ export default function AdminFooterPage() {
                   onChange={handleTextChange}
                   rows={3}
                   className="w-full px-4 py-2.5 border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44] resize-none"
+                  placeholder="Bringing nature closer to home..."
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Link Sections */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Link Sections - IMPROVED Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <LinkEditor title="Quick Links" listKey="quickLinks" />
           <LinkEditor title="Collections" listKey="serviceLinks" />
           <LinkEditor title="Customer Care" listKey="customerCare" />
         </div>
 
-        {/* Social Links */}
-        <div className="bg-white rounded-2xl border border-[#e8ece9] p-5">
-          <div className="flex items-center justify-between mb-4">
+        {/* Social Links - IMPROVED */}
+        <div className="bg-white rounded-2xl border border-[#e8ece9] p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <h3 className="font-bold text-[#1f2937]">Social Links</h3>
             <button
               type="button"
               onClick={addSocial}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#eaf7ee] text-[#2f9e44] rounded-lg hover:bg-[#d4edda]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#eaf7ee] text-[#2f9e44] rounded-lg hover:bg-[#d4edda] transition-colors"
             >
               <Plus className="w-3.5 h-3.5" /> Add Social
             </button>
@@ -435,11 +429,11 @@ export default function AdminFooterPage() {
           ) : (
             <div className="space-y-3">
               {form.socialLinks.map((social, i) => (
-                <div key={i} className="flex gap-2 items-center">
+                <div key={i} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-[#f8faf8] p-3 rounded-xl">
                   <select
                     value={social.platform}
                     onChange={(e) => updateSocial(i, 'platform', e.target.value)}
-                    className="w-36 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
+                    className="w-full sm:w-36 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44] bg-white"
                   >
                     {PLATFORM_OPTIONS.map((p) => (
                       <option key={p.value} value={p.value}>{p.label}</option>
@@ -449,12 +443,12 @@ export default function AdminFooterPage() {
                     value={social.url}
                     onChange={(e) => updateSocial(i, 'url', e.target.value)}
                     placeholder="https://..."
-                    className="flex-1 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
+                    className="flex-1 w-full px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44] bg-white"
                   />
                   <button
                     type="button"
                     onClick={() => removeSocial(i)}
-                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -465,7 +459,7 @@ export default function AdminFooterPage() {
         </div>
 
         {/* Copyright */}
-        <div className="bg-white rounded-2xl border border-[#e8ece9] p-5">
+        <div className="bg-white rounded-2xl border border-[#e8ece9] p-6">
           <h3 className="font-bold text-[#1f2937] mb-4">Copyright</h3>
           <input
             name="copyrightText"
@@ -477,7 +471,7 @@ export default function AdminFooterPage() {
         </div>
 
         {/* Save bottom */}
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4">
           <button
             type="submit"
             disabled={saving}
