@@ -3,14 +3,17 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Sprout, Instagram, Facebook, Twitter, Youtube, Send } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+
 const defaultFooter = {
   logoText: 'Plantora',
+  logoImage: '',
   description: 'Bringing nature closer to home. Premium plants carefully packed and delivered to your door.',
   socialLinks: [
-    { icon: 'Instagram', url: '#' },
-    { icon: 'Facebook', url: '#' },
-    { icon: 'Twitter', url: '#' },
-    { icon: 'Youtube', url: '#' },
+    { platform: 'instagram', icon: 'Instagram', url: '#' },
+    { platform: 'facebook', icon: 'Facebook', url: '#' },
+    { platform: 'twitter', icon: 'Twitter', url: '#' },
+    { platform: 'youtube', icon: 'Youtube', url: '#' },
   ],
   quickLinks: [
     { name: 'Home', url: '/' },
@@ -19,7 +22,7 @@ const defaultFooter = {
     { name: 'About Us', url: '/about' },
     { name: 'Contact Us', url: '/contact' },
   ],
-  collections: [
+  serviceLinks: [
     { name: 'Indoor Plants', url: '/shop?type=indoor' },
     { name: 'Air Purifying', url: '/shop?type=air-purifying' },
     { name: 'Low Maintenance', url: '/shop?type=low-maintenance' },
@@ -35,6 +38,7 @@ const defaultFooter = {
     { name: 'Terms & Conditions', url: '/terms' },
     { name: 'Privacy Policy', url: '/privacy' },
   ],
+  copyrightText: 'All rights reserved.',
 };
 
 const iconMap = { Instagram, Facebook, Twitter, Youtube };
@@ -47,7 +51,7 @@ export default function Footer() {
   useEffect(() => {
     const fetchFooter = async () => {
       try {
-        const res = await fetch('https://my-site-backend-0661.onrender.com/api/footer');
+        const res = await fetch(`${API_URL}/footer`, { cache: 'no-store' });
         const data = await res.json();
         if (data.success && data.data) {
           setFooterData(data.data);
@@ -67,36 +71,48 @@ export default function Footer() {
     <footer style={{ backgroundColor: '#14261d' }} className="text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
-          
-       {/* Brand */}
-<div className="lg:col-span-4">
-  <Link href="/" className="flex items-center gap-2.5 mb-5">
-    {(() => {
-      const img = data.logoImage;
-      if (img) {
-        const src = img.startsWith('http') ? img : `https://my-site-backend-0661.onrender.com${img}`;
-        return (
-          <img
-            src={src}
-            alt={data.logoText || 'Plantora'}
-            className="h-10 w-auto object-contain"
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        );
-      }
-      return (
-        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-          <Sprout className="w-5 h-5 text-[#2f9e44]" />
-        </div>
-      );
-    })()}
-    <span className="text-2xl font-bold">{data.logoText || 'Plantora'}</span>
-  </Link>
-  <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
-    {data.description}
-  </p>
-  {/* social links same... */}
-</div>
+
+          {/* Brand */}
+          <div className="lg:col-span-4">
+            <Link href="/" className="flex items-center gap-2.5 mb-5">
+              {data.logoImage ? (
+                <img
+                  src={data.logoImage}
+                  alt={data.logoText || 'Plantora'}
+                  className="h-10 w-auto object-contain"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                  <Sprout className="w-5 h-5 text-[#2f9e44]" />
+                </div>
+              )}
+              <span className="text-2xl font-bold">{data.logoText || 'Plantora'}</span>
+            </Link>
+            <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
+              {data.description}
+            </p>
+
+            {/* Social links */}
+            {data.socialLinks && data.socialLinks.length > 0 && (
+              <div className="flex items-center gap-3">
+                {data.socialLinks.map((social, i) => {
+                  const Icon = iconMap[social.icon] || Instagram;
+                  return (
+                    <a
+                      key={i}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#2f9e44] flex items-center justify-center transition-colors"
+                    >
+                      <Icon className="w-4 h-4" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Quick Links */}
           <div className="lg:col-span-2">
@@ -116,7 +132,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <h4 className="font-semibold text-sm uppercase tracking-wider mb-5">Collections</h4>
             <ul className="space-y-3">
-              {(data.collections || defaultFooter.collections).map((link, i) => (
+              {(data.serviceLinks || defaultFooter.serviceLinks).map((link, i) => (
                 <li key={i}>
                   <Link href={link.url} className="text-sm text-white/60 hover:text-[#2f9e44] transition-colors">
                     {link.name}
@@ -166,7 +182,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-white/50">
-            © {currentYear} {data.logoText}. All rights reserved.
+            © {currentYear} {data.logoText}. {data.copyrightText || 'All rights reserved.'}
           </p>
           <div className="flex items-center gap-3">
             {['VISA', 'Mastercard', 'UPI', 'RuPay'].map((method) => (

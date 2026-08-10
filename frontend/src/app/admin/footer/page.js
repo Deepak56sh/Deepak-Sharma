@@ -1,12 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import {
-  Save, Plus, Trash2, Upload, Image as ImageIcon,
+  Save, Plus, Trash2, Upload, Image as ImageIcon, Loader2, X,
   Instagram, Facebook, Twitter, Youtube, Github, Linkedin, Mail
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
 
 const PLATFORM_OPTIONS = [
   { value: 'instagram', icon: 'Instagram', label: 'Instagram' },
@@ -24,7 +23,7 @@ const emptySocial = { platform: 'instagram', url: '', icon: 'Instagram' };
 export default function AdminFooterPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const fileRef = useRef(null);
 
@@ -40,11 +39,12 @@ export default function AdminFooterPage() {
   });
 
   const getToken = () =>
-    typeof window !== 'undefined' ? localStorage.getItem('adminToken') || localStorage.getItem('token') : '';
+    typeof window !== 'undefined' ? (localStorage.getItem('adminToken') || localStorage.getItem('token')) : '';
 
-  useEffect(() => {
-    fetchFooter();
-  }, []);
+  const showMsg = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+  };
 
   const fetchFooter = async () => {
     setLoading(true);
@@ -65,16 +65,15 @@ export default function AdminFooterPage() {
       }
     } catch (err) {
       console.error(err);
-      showMsg('error', 'Failed to load footer data');
+      showMsg('error', 'Failed to load footer data. Check your connection.');
     } finally {
       setLoading(false);
     }
   };
 
-  const showMsg = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  };
+  useEffect(() => {
+    fetchFooter();
+  }, []);
 
   const handleTextChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -130,77 +129,112 @@ export default function AdminFooterPage() {
     }));
   };
 
-  // ---- Logo Upload ----
+  // ---- Logo Upload (same robust pattern as Settings → logo/favicon) ----
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showMsg('error', 'Please upload an image file');
+      showMsg('error', 'Please select a valid image file.');
+      if (fileRef.current) fileRef.current.value = '';
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      showMsg('error', 'Image must be under 2MB');
+      showMsg('error', 'Image must be under 2MB.');
+      if (fileRef.current) fileRef.current.value = '';
       return;
     }
 
-    setUploading(true);
+    // ✅ FIX: check token BEFORE trying to upload, so the real reason shows up
+    const token = getToken();
+    if (!token) {
+      showMsg('error', 'You are not logged in (no admin token found). Please log in again.');
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
+
+    setUploadingLogo(true);
     try {
       const fd = new FormData();
       fd.append('logo', file);
 
       const res = await fetch(`${API_URL}/footer/logo`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd
       });
 
-      const data = await res.json();
-      if (data.success) {
-        setForm((prev) => ({ ...prev, logoImage: data.data.logoImage }));
-        showMsg('success', 'Logo uploaded successfully');
-      } else {
-        showMsg('error', data.message || 'Upload failed');
+      // ✅ FIX: always read the body so real errors surface instead of a generic message
+      let result = null;
+      try {
+        result = await res.json();
+      } catch (parseErr) {
+        // non-JSON response (e.g. server crashed / HTML error page)
       }
-    } catch {
-      showMsg('error', 'Upload failed');
+
+      if (res.ok && result?.success && result?.data?.logoImage) {
+        setForm((prev) => ({ ...prev, logoImage: result.data.logoImage }));
+        showMsg('success', 'Logo uploaded successfully.');
+      } else {
+        showMsg('error', result?.message || `Logo upload failed (status ${res.status}). Please try again.`);
+      }
+    } catch (err) {
+      console.error('Logo upload error:', err);
+      showMsg('error', 'Could not reach the server to upload the logo. Check your connection and try again.');
     } finally {
-      setUploading(false);
+      setUploadingLogo(false);
       if (fileRef.current) fileRef.current.value = '';
     }
+  };
+
+  const removeLogo = () => {
+    setForm((prev) => ({ ...prev, logoImage: '' }));
   };
 
   // ---- Save all ----
   const handleSave = async (e) => {
     e.preventDefault();
+
+    const token = getToken();
+    if (!token) {
+      showMsg('error', 'You are not logged in (no admin token found). Please log in again.');
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await fetch(`${API_URL}/footer`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(form)
       });
 
-      const data = await res.json();
-      if (data.success) {
-        showMsg('success', 'Footer saved successfully');
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (parseErr) {}
+
+      if (res.ok && data?.success) {
+        showMsg('success', 'Footer saved successfully.');
       } else {
-        showMsg('error', data.message || 'Failed to save');
+        showMsg('error', data?.message || `Failed to save (status ${res.status}).`);
       }
-    } catch {
-      showMsg('error', 'Server error');
+    } catch (err) {
+      console.error('Save footer error:', err);
+      showMsg('error', 'Could not reach the server. Check your connection and try again.');
     } finally {
       setSaving(false);
     }
   };
 
+  // ✅ FIX: Cloudinary already returns a full https:// URL — no more manual BASE_URL prefixing,
+  // which used to be needed only for the old local /uploads/ path format.
   const getLogoUrl = () => {
     if (!form.logoImage) return null;
-    if (form.logoImage.startsWith('http')) return form.logoImage;
-    return `${BASE_URL}${form.logoImage}`;
+    return form.logoImage;
   };
 
   const LinkEditor = ({ title, listKey }) => (
@@ -257,7 +291,7 @@ export default function AdminFooterPage() {
   if (loading) {
     return (
       <div className="plant-admin flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2f9e44]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#2f9e44]" />
       </div>
     );
   }
@@ -274,7 +308,7 @@ export default function AdminFooterPage() {
           disabled={saving}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2f9e44] hover:bg-[#237a35] text-white font-semibold rounded-xl transition-colors disabled:opacity-60"
         >
-          <Save className="w-4 h-4" />
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {saving ? 'Saving...' : 'Save Footer'}
         </button>
       </div>
@@ -299,11 +333,21 @@ export default function AdminFooterPage() {
             <div>
               <label className="block text-sm font-medium text-[#1f2937] mb-2">Logo Image</label>
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-xl border-2 border-dashed border-[#e8ece9] bg-[#f6f8f7] flex items-center justify-center overflow-hidden">
+                <div className="relative w-20 h-20 flex-shrink-0 rounded-xl border-2 border-dashed border-[#e8ece9] bg-[#f6f8f7] flex items-center justify-center overflow-hidden">
                   {getLogoUrl() ? (
-                    <img src={getLogoUrl()} alt="Logo" className="w-full h-full object-contain" />
+                    <img
+                      src={getLogoUrl()}
+                      alt="Logo"
+                      className="w-full h-full object-contain p-1.5"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
                   ) : (
                     <ImageIcon className="w-8 h-8 text-[#9ca3af]" />
+                  )}
+                  {uploadingLogo && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    </div>
                   )}
                 </div>
                 <div>
@@ -313,17 +357,30 @@ export default function AdminFooterPage() {
                     accept="image/*"
                     onChange={handleLogoUpload}
                     className="hidden"
+                    disabled={uploadingLogo}
                   />
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#eaf7ee] text-[#2f9e44] text-sm font-semibold rounded-xl hover:bg-[#d4edda] disabled:opacity-60"
-                  >
-                    <Upload className="w-4 h-4" />
-                    {uploading ? 'Uploading...' : 'Upload Logo'}
-                  </button>
-                  <p className="text-xs text-[#9ca3af] mt-1.5">PNG, JPG up to 2MB</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#eaf7ee] text-[#2f9e44] text-sm font-semibold rounded-xl hover:bg-[#d4edda] disabled:opacity-60"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadingLogo ? 'Uploading...' : form.logoImage ? 'Change Logo' : 'Upload Logo'}
+                    </button>
+                    {form.logoImage && !uploadingLogo && (
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="p-2 text-[#9ca3af] hover:text-red-500 hover:bg-red-50 rounded-xl"
+                        title="Remove logo (falls back to icon)"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#9ca3af] mt-1.5">PNG, JPG up to 2MB. Transparent background recommended.</p>
                 </div>
               </div>
             </div>
@@ -426,7 +483,7 @@ export default function AdminFooterPage() {
             disabled={saving}
             className="inline-flex items-center gap-2 px-8 py-3 bg-[#2f9e44] hover:bg-[#237a35] text-white font-semibold rounded-xl transition-colors disabled:opacity-60"
           >
-            <Save className="w-4 h-4" />
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving...' : 'Save All Changes'}
           </button>
         </div>
