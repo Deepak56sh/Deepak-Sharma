@@ -1,16 +1,11 @@
-// ============================================
-// FILE: src/app/checkout/page.js
-// ============================================
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // ✅ NEW
 import { Check, ArrowRight, Sprout, MapPin, Truck, CreditCard, ShieldCheck } from 'lucide-react';
+import { useCart } from '@/context/CartContext'; // ✅ NEW
 
-const orderItems = [
-  { id: 1, name: 'Monstera Deliciosa', size: '7 inch Pot', qty: 1, price: 899 },
-  { id: 2, name: 'Snake Plant', size: '5 inch Pot', qty: 1, price: 499 },
-  { id: 3, name: 'Peace Lily', size: '7 inch Pot', qty: 1, price: 599 },
-];
+// ❌ REMOVE — const orderItems = [...] hardcoded array hata do
 
 const steps = [
   { id: 1, label: 'Information' },
@@ -25,6 +20,8 @@ const deliverySlots = [
 ];
 
 export default function CheckoutPage() {
+  const router = useRouter(); // ✅ NEW
+  const { cart, cartTotal, clearCart } = useCart(); // ✅ NEW — real cart data
   const [step, setStep] = useState(1);
   const [slot, setSlot] = useState('tomorrow');
   const [payment, setPayment] = useState('card');
@@ -32,9 +29,10 @@ export default function CheckoutPage() {
     fullName: '', email: '', phone: '', address: '', landmark: '', city: '', state: '', pincode: '',
   });
 
-  const subtotal = orderItems.reduce((sum, it) => sum + it.price * it.qty, 0);
-  const discount = 300;
-  const shipping = 0;
+  // ✅ CHANGED — orderItems ki jagah cart, aur subtotal context ke cartTotal se
+  const subtotal = cartTotal;
+  const discount = 0; // TODO: real coupon logic checkout par bhi chahiye to CartContext me le jao
+  const shipping = subtotal >= 999 || subtotal === 0 ? 0 : 99;
   const total = subtotal - discount + shipping;
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -42,12 +40,28 @@ export default function CheckoutPage() {
   const goNext = () => setStep((s) => Math.min(3, s + 1));
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
+  // ✅ CHANGED — order placed hone ke baad cart clear karo, thank-you par order id bhejo
   const placeOrder = (e) => {
     e.preventDefault();
-    // TODO: POST to /orders once the backend endpoint exists.
-    window.location.href = '/checkout/thank-you';
+    // TODO: POST to /orders once the backend endpoint exists — real orderId wahan se aayega
+    const orderId = 'PLTS' + Math.floor(1000 + Math.random() * 9000);
+    clearCart(); // ✅ order place hote hi cart khali
+    router.push(`/checkout/thank-you?orderId=${orderId}`);
   };
 
+  // agar cart khali hai to checkout khulne hi na de
+  if (cart.length === 0) { // ✅ NEW guard
+    return (
+      <div className="plant-store min-h-screen bg-[var(--ps-section)] flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-slate-500 mb-4">Your cart is empty.</p>
+          <Link href="/shop" className="px-6 py-3 rounded-lg text-white font-medium" style={{ backgroundColor: 'var(--ps-primary)' }}>
+            Go to Shop
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="plant-store min-h-screen bg-[var(--ps-section)] py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
@@ -57,9 +71,8 @@ export default function CheckoutPage() {
             <div key={s.id} className="flex items-center">
               <div className="flex items-center gap-2">
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${
-                    step >= s.id ? 'text-white' : 'bg-slate-100 text-slate-400'
-                  }`}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${step >= s.id ? 'text-white' : 'bg-slate-100 text-slate-400'
+                    }`}
                   style={step >= s.id ? { backgroundColor: 'var(--ps-primary)' } : undefined}
                 >
                   {step > s.id ? <Check className="w-3.5 h-3.5" /> : s.id}
@@ -151,9 +164,8 @@ export default function CheckoutPage() {
                       type="button"
                       key={s.id}
                       onClick={() => setSlot(s.id)}
-                      className={`p-4 rounded-xl border text-left transition-all ${
-                        slot === s.id ? 'border-[var(--ps-primary)] bg-[var(--ps-primary-light)]' : 'border-[var(--ps-border)] hover:border-slate-300'
-                      }`}
+                      className={`p-4 rounded-xl border text-left transition-all ${slot === s.id ? 'border-[var(--ps-primary)] bg-[var(--ps-primary-light)]' : 'border-[var(--ps-border)] hover:border-slate-300'
+                        }`}
                     >
                       <div className="font-medium text-slate-800 text-sm">{s.label}</div>
                       <div className="text-xs text-slate-400 mt-0.5">{s.sub}</div>
@@ -177,9 +189,8 @@ export default function CheckoutPage() {
                   ].map((m) => (
                     <label
                       key={m.id}
-                      className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                        payment === m.id ? 'border-[var(--ps-primary)] bg-[var(--ps-primary-light)]' : 'border-[var(--ps-border)]'
-                      }`}
+                      className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${payment === m.id ? 'border-[var(--ps-primary)] bg-[var(--ps-primary-light)]' : 'border-[var(--ps-border)]'
+                        }`}
                     >
                       <input
                         type="radio"
@@ -235,15 +246,19 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-2xl border border-[var(--ps-border)] p-6 h-fit sticky top-24">
             <h2 className="font-semibold text-slate-800 mb-4">Order Summary</h2>
             <div className="space-y-3 mb-4">
-              {orderItems.map((it) => (
-                <div key={it.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[var(--ps-primary-light)] flex items-center justify-center flex-shrink-0">
-                    <Sprout className="w-4 h-4" style={{ color: 'var(--ps-primary)' }} />
+              {cart.map((it) => ( // ✅ CHANGED — orderItems -> cart
+                <div key={it._id} className="flex items-center gap-3"> {/* ✅ CHANGED — id -> _id */}
+                  <div className="w-10 h-10 rounded-lg bg-[var(--ps-primary-light)] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {it.image ? (
+                      <img src={it.image} alt={it.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Sprout className="w-4 h-4" style={{ color: 'var(--ps-primary)' }} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-slate-800 truncate">{it.name} × {it.qty}</div>
+                    <div className="text-sm text-slate-800 truncate">{it.name} × {it.quantity}</div> {/* ✅ CHANGED — qty -> quantity */}
                   </div>
-                  <div className="text-sm font-medium text-slate-800">₹{it.price * it.qty}</div>
+                  <div className="text-sm font-medium text-slate-800">₹{it.price * it.quantity}</div> {/* ✅ CHANGED */}
                 </div>
               ))}
             </div>
@@ -253,13 +268,9 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span className="text-slate-800">₹{subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between" style={{ color: 'var(--ps-primary)' }}>
-                <span>Discount (PLANT10)</span>
-                <span>-₹{discount}</span>
-              </div>
               <div className="flex justify-between text-slate-500">
                 <span>Shipping</span>
-                <span className="text-slate-800">Free</span>
+                <span className="text-slate-800">{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
               </div>
             </div>
 

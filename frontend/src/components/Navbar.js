@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, Sprout, Search, Heart, ShoppingCart, User, Truck } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -27,10 +28,21 @@ export default function Navbar() {
   const [navLinks, setNavLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(defaultSettings);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  const cartCount = 3;
+  const { cartCount } = useCart();
   const wishlistCount = 8;
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, [pathname]);
+
+  const handleAccountClick = () => {
+    router.push(isLoggedIn ? '/account' : '/login');
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -57,7 +69,6 @@ export default function Navbar() {
     fetchMenu();
   }, []);
 
-  // ✅ NEW — pulls logo / site name from the Settings page (admin)
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -89,7 +100,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
 
-            {/* Logo — uses admin-uploaded logo if set, else falls back to icon + name */}
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
               {settings.siteLogo ? (
                 <img
@@ -153,9 +164,12 @@ export default function Navbar() {
                 )}
               </Link>
 
-              <Link href="/account" className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex">
+              <button
+                onClick={handleAccountClick}
+                className="p-2.5 rounded-xl text-[#4b5563] hover:bg-[#f6f8f7] hover:text-[#2f9e44] transition-colors hidden sm:flex"
+              >
                 <User className="w-5 h-5" />
-              </Link>
+              </button>
 
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -183,13 +197,15 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <Link
-                href="/account"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-4 py-2.5 rounded-xl text-sm font-medium text-[#4b5563] hover:bg-[#f6f8f7]"
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleAccountClick();
+                }}
+                className="block w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-[#4b5563] hover:bg-[#f6f8f7]"
               >
-                My Account
-              </Link>
+                {isLoggedIn ? 'My Account' : 'Login / Register'}
+              </button>
             </div>
           )}
         </div>

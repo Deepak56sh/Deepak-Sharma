@@ -1,12 +1,12 @@
-// ============================================
-// FILE: src/app/checkout/thank-you/page.js
-// ============================================
 'use client';
+import { Suspense } from 'react'; // ✅ NEW
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation'; // ✅ NEW
 import { CheckCircle2 } from 'lucide-react';
 
-export default function ThankYouPage() {
-  const orderId = 'PLTS4872'; // TODO: pass the real order id from the checkout response
+function ThankYouContent() {
+  const searchParams = useSearchParams(); // ✅ NEW
+  const orderId = searchParams.get('orderId') || 'PLTS4872'; // ✅ CHANGED — hardcoded ki jagah URL se
 
   return (
     <div className="plant-store min-h-screen bg-[var(--ps-section)] flex items-center justify-center px-4 py-16">
@@ -34,5 +34,14 @@ export default function ThankYouPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ✅ NEW — useSearchParams ko Suspense boundary chahiye hoti hai Next.js me
+export default function ThankYouPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ThankYouContent />
+    </Suspense>
   );
 }

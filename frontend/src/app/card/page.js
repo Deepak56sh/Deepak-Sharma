@@ -1,31 +1,24 @@
-// ============================================
-// FILE: src/app/cart/page.js
-// ============================================
 'use client';
-import { useState } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Minus, Plus, X, Tag, ArrowRight, ShoppingBag, Sprout } from 'lucide-react';
-
-// Dummy cart data — replace with real cart state/API once the backend cart endpoint is ready.
-const initialItems = [
-  { id: 1, name: 'Monstera Deliciosa', size: '7 inch Pot', price: 899, mrp: 1299, qty: 1, image: '' },
-  { id: 2, name: 'Snake Plant', size: '5 inch Pot', price: 499, mrp: 699, qty: 1, image: '' },
-  { id: 3, name: 'Peace Lily', size: '7 inch Pot', price: 599, mrp: 999, qty: 1, image: '' },
-];
+import { useCart } from '@/context/CartContext'; // ✅ NEW
 
 export default function CartPage() {
-  const [items, setItems] = useState(initialItems);
+  // ✅ CHANGED — dummy initialItems hata ke context se le rahe hain
+  const { cart, updateQuantity, removeFromCart, cartTotal } = useCart();
   const [couponCode, setCouponCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
+  // ✅ CHANGED — ab context ke updateQuantity/removeFromCart use honge, local state nahi
   const updateQty = (id, delta) => {
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, qty: Math.max(1, it.qty + delta) } : it)));
+    const item = cart.find((it) => it._id === id);
+    if (item) updateQuantity(id, item.quantity + delta);
   };
 
-  const removeItem = (id) => setItems((prev) => prev.filter((it) => it.id !== id));
+  const removeItem = (id) => removeFromCart(id);
 
   const applyCoupon = () => {
-    // Placeholder logic — validate against real coupon API later.
     if (couponCode.trim().toUpperCase() === 'PLANT10') {
       setAppliedDiscount(300);
     } else {
@@ -33,8 +26,9 @@ export default function CartPage() {
     }
   };
 
-  const subtotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
-  const shipping = subtotal >= 999 ? 0 : 99;
+  // ✅ CHANGED — subtotal ab cartTotal (context se) use karega
+  const subtotal = cartTotal;
+  const shipping = subtotal >= 999 || subtotal === 0 ? 0 : 99;
   const total = subtotal - appliedDiscount + shipping;
 
   return (
@@ -45,10 +39,10 @@ export default function CartPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-slate-800 mb-6">
-          Cart <span className="text-slate-400 font-normal">({items.length} items)</span>
+          Cart <span className="text-slate-400 font-normal">({cart.length} items)</span> {/* ✅ CHANGED */}
         </h1>
 
-        {items.length === 0 ? (
+        {cart.length === 0 ? ( // ✅ CHANGED
           <div className="bg-white rounded-2xl border border-[var(--ps-border)] p-16 text-center">
             <ShoppingBag className="w-14 h-14 text-slate-200 mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-slate-800 mb-1">Your cart is empty</h2>
@@ -65,8 +59,8 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Items list */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-[var(--ps-border)] divide-y divide-[var(--ps-border)]">
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center gap-4 p-5">
+              {cart.map((item) => ( // ✅ CHANGED — items -> cart
+                <div key={item._id} className="flex items-center gap-4 p-5"> {/* ✅ CHANGED — id -> _id */}
                   <div className="w-20 h-20 rounded-xl bg-[var(--ps-primary-light)] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
@@ -77,25 +71,22 @@ export default function CartPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-slate-800">{item.name}</div>
-                    <div className="text-sm text-slate-400">{item.size}</div>
+                    {/* ✅ NOTE: size field product model me nahi tha, isliye hata diya. Agar chahiye to product me size field add karna hoga */}
                     <div className="flex items-center gap-2 mt-1">
                       <span className="font-semibold text-slate-800">₹{item.price}</span>
-                      {item.mrp > item.price && (
-                        <span className="text-xs text-slate-400 line-through">₹{item.mrp}</span>
-                      )}
                     </div>
                   </div>
 
                   <div className="flex items-center border border-[var(--ps-border)] rounded-lg">
                     <button
-                      onClick={() => updateQty(item.id, -1)}
+                      onClick={() => updateQty(item._id, -1)} // ✅ CHANGED
                       className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-8 text-center text-sm font-medium">{item.qty}</span>
+                    <span className="w-8 text-center text-sm font-medium">{item.quantity}</span> {/* ✅ CHANGED — qty -> quantity */}
                     <button
-                      onClick={() => updateQty(item.id, 1)}
+                      onClick={() => updateQty(item._id, 1)} // ✅ CHANGED
                       className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -103,11 +94,11 @@ export default function CartPage() {
                   </div>
 
                   <div className="w-20 text-right font-semibold text-slate-800 hidden sm:block">
-                    ₹{item.price * item.qty}
+                    ₹{item.price * item.quantity} {/* ✅ CHANGED */}
                   </div>
 
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(item._id)} // ✅ CHANGED
                     className="p-2 text-slate-300 hover:text-[var(--ps-sale)] transition-colors"
                   >
                     <X className="w-4 h-4" />
@@ -122,7 +113,7 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Order summary */}
+            {/* Order summary — same rehne do, sirf subtotal/total variables upar se aa rahe hain */}
             <div className="bg-white rounded-2xl border border-[var(--ps-border)] p-6 h-fit sticky top-24">
               <h2 className="font-semibold text-slate-800 mb-4">Order Summary</h2>
 
@@ -154,7 +145,7 @@ export default function CartPage() {
 
               <div className="space-y-2 text-sm border-t border-[var(--ps-border)] pt-4">
                 <div className="flex justify-between text-slate-500">
-                  <span>Subtotal ({items.length} items)</span>
+                  <span>Subtotal ({cart.length} items)</span> {/* ✅ CHANGED */}
                   <span className="text-slate-800">₹{subtotal.toLocaleString()}</span>
                 </div>
                 {appliedDiscount > 0 && (

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Star,
@@ -14,6 +14,7 @@ import {
   User,
 } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
+import { useCart } from '@/context/CartContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -241,6 +242,8 @@ function ReviewsList({ reviews, loading }) {
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params?.slug;
+  const router = useRouter();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -249,6 +252,7 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState('description');
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -290,6 +294,19 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (product?._id) fetchReviews(product._id);
   }, [product?._id]);
+
+  const handleAddToCart = () => {
+    if (!product || product.inStock === false) return;
+    addToCart(product, quantity);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    if (!product || product.inStock === false) return;
+    addToCart(product, quantity);
+    router.push('/checkout');
+  };
 
   if (loading) {
     return (
@@ -470,13 +487,15 @@ export default function ProductDetailPage() {
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
+                  onClick={handleAddToCart}
                   disabled={product.inStock === false}
                   className="flex-1 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Add to Cart
+                  {added ? 'Added! ✓' : 'Add to Cart'}
                 </button>
                 <button
+                  onClick={handleBuyNow}
                   disabled={product.inStock === false}
                   className="flex-1 py-3.5 bg-[#14261d] hover:bg-[#1c3327] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >

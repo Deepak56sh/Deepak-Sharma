@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
 import DynamicFavicon from '@/components/DynamicFavicon';
 import DynamicMeta from '@/components/DynamicMeta';
+import { CartProvider } from '@/context/CartContext';
 
 import '../styles/globals.css';
 
@@ -26,10 +27,12 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <DynamicMeta />
         <DynamicFavicon />
-        <Loader />
-        <Navbar />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <CartProvider>
+          <Loader />  {/* ✅ Loader ANDAR */}
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );
