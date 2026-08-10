@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
 import DynamicFavicon from '@/components/DynamicFavicon';
+import DynamicMeta from '@/components/DynamicMeta';
 
 import '../styles/globals.css';
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
+        <DynamicMeta />
         <DynamicFavicon />
         <Loader />
         <Navbar />
