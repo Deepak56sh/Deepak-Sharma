@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
 import DynamicFavicon from '@/components/DynamicFavicon';
 import DynamicMeta from '@/components/DynamicMeta';
-import { CartProvider } from '@/context/CartContext';
+import { CartProvider } from '../context/CartContext';
 
 import '../styles/globals.css';
 

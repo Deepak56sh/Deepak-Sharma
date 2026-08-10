@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, Sprout, Search, Heart, ShoppingCart, User, Truck } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { useCart } from '../context/CartContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
