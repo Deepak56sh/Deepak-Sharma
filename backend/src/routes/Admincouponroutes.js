@@ -6,7 +6,7 @@ const {
   updateCoupon,
   toggleCoupon,
   deleteCoupon,
-} = require('../controllers/adminCouponController');
+} = require('../controllers/Admincouponcontroller');
 
 const adminAuth = require('../middleware/adminAuth');
 
