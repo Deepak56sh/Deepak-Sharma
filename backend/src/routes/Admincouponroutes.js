@@ -8,7 +8,7 @@ const {
   deleteCoupon,
 } = require('../controllers/Admincouponcontroller');
 
-const adminAuth = require('../middleware/adminAuth');
+const adminAuth = require('../middleware/auth');
 
 router.get('/', adminAuth, getAllCoupons);
 router.post('/', adminAuth, createCoupon);
