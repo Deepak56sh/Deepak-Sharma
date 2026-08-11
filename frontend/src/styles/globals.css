@@ -86,3 +86,28 @@ body {
   background: #d3ddd7;
   border-radius: 8px;
 }
+
+/* ===== Rich text content styling — About page pe render hote waqt (design kabhi nahi bigdega) ===== */
+.ps-richtext {
+  color: #6b7280;
+  line-height: 1.75;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+.ps-richtext h1, .ps-richtext h2, .ps-richtext h3 {
+  color: #14261d;
+  font-weight: 700;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+.ps-richtext h1 { font-size: 1.5rem; }
+.ps-richtext h2 { font-size: 1.25rem; }
+.ps-richtext h3 { font-size: 1.1rem; }
+.ps-richtext p { margin-bottom: 1em; }
+.ps-richtext ul, .ps-richtext ol { margin: 0.75em 0 0.75em 1.25em; }
+.ps-richtext ul { list-style: disc; }
+.ps-richtext ol { list-style: decimal; }
+.ps-richtext li { margin-bottom: 0.35em; }
+.ps-richtext a { color: #2f9e44; text-decoration: underline; word-break: break-all; }
+.ps-richtext strong { font-weight: 700; color: #14261d; }

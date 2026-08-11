@@ -8,7 +8,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661
 const defaultAboutData = {
   title: 'About Us',
   subtitle: 'Our Story',
-  description: 'Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and the better.',
+  description1: '<p>Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and the better.</p>', // ✅ CHANGED
+  description2: '', // ✅ NEW
   points: [
     'Handpicked Healthy Plants',
     'Expert Plant Care Guidance',
@@ -85,9 +86,19 @@ export default function AboutPage() {
                   </h2>
                 </div>
 
-                <p className="text-[#6b7280] leading-relaxed text-base sm:text-lg">
-                  {data.description || defaultAboutData.description}
-                </p>
+                {/* ✅ CHANGED — rich HTML content render, design-safe wrapping */}
+                <div className="space-y-4">
+                  <div
+                    className="ps-richtext text-base sm:text-lg"
+                    dangerouslySetInnerHTML={{ __html: data.description1 || defaultAboutData.description1 }}
+                  />
+                  {data.description2 && (
+                    <div
+                      className="ps-richtext text-base sm:text-lg"
+                      dangerouslySetInnerHTML={{ __html: data.description2 }}
+                    />
+                  )}
+                </div>
 
                 <ul className="space-y-3 pt-2">
                   {(data.points || defaultAboutData.points).map((point, i) => (
@@ -120,20 +131,20 @@ export default function AboutPage() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
                 <img
-  src={data.teamImage || defaultAboutData.image}
-  alt="About Plantora"
-  className="relative rounded-3xl shadow-xl w-full h-[400px] sm:h-[480px] object-cover"
-  onError={(e) => {
-    e.target.src = defaultAboutData.image;
-  }}
-/>
+                  src={data.teamImage || defaultAboutData.image}
+                  alt="About Plantora"
+                  className="relative rounded-3xl shadow-xl w-full h-[400px] sm:h-[480px] object-cover"
+                  onError={(e) => {
+                    e.target.src = defaultAboutData.image;
+                  }}
+                />
               </div>
             </AnimatedSection>
           </div>
         </div>
       </section>
 
-      {/* ===== Awards Section (NEW) ===== */}
+      {/* ===== Awards Section ===== */}
       {awards.length > 0 && (
         <section className="py-16 lg:py-20 bg-[#f6f8f7]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -171,7 +182,7 @@ export default function AboutPage() {
         </section>
       )}
 
-      {/* ===== Team Members Section (NEW) ===== */}
+      {/* ===== Team Members Section ===== */}
       {teamMembers.length > 0 && (
         <section className="py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

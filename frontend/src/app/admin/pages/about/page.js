@@ -1,8 +1,34 @@
 'use client';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Loader2, Save, Upload, Trash2, Plus, Award, Users } from 'lucide-react';
+import 'react-quill-new/dist/quill.snow.css'; // ✅ NEW — same library jo services page me use ho rahi hai
+
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false }); // ✅ NEW
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+
+// ✅ NEW — same toolbar jo services page me hai
+const quillModules = {
+  toolbar: {
+    container: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ color: [] }, { background: [] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      ['link'],
+      ['clean']
+    ]
+  }
+};
+
+const quillFormats = [
+  'header', 'bold', 'italic', 'underline', 'strike',
+  'color', 'background', 'list', 'bullet', 'align',
+  'indent', 'link'
+];
 
 export default function AboutPageAdmin() {
   const [data, setData] = useState(null);
@@ -256,15 +282,36 @@ export default function AboutPageAdmin() {
             className="w-full p-3 bg-slate-50 border border-[var(--pa-border)] rounded-lg focus:outline-none focus:border-[var(--pa-primary)]" />
         </div>
 
+        {/* ✅ CHANGED — Description 1: textarea ki jagah ReactQuill editor */}
         <div>
-          <label className="block text-slate-600 text-sm mb-2">Description 1</label>
-          <textarea rows={3} value={data.description1 || ''} onChange={(e) => setData({ ...data, description1: e.target.value })}
-            className="w-full p-3 bg-slate-50 border border-[var(--pa-border)] rounded-lg focus:outline-none focus:border-[var(--pa-primary)] resize-none" />
+          <label className="block text-slate-600 text-sm mb-2">Description 1 (WordPress style editor)</label>
+          <div className="bg-white rounded-xl border border-[var(--pa-border)] overflow-hidden">
+            <ReactQuill
+              theme="snow"
+              value={data.description1 || ''}
+              onChange={(value) => setData({ ...data, description1: value })}
+              modules={quillModules}
+              formats={quillFormats}
+              placeholder="Pehla paragraph likho..."
+              className="min-h-[180px]"
+            />
+          </div>
         </div>
+
+        {/* ✅ CHANGED — Description 2: textarea ki jagah ReactQuill editor */}
         <div>
-          <label className="block text-slate-600 text-sm mb-2">Description 2</label>
-          <textarea rows={3} value={data.description2 || ''} onChange={(e) => setData({ ...data, description2: e.target.value })}
-            className="w-full p-3 bg-slate-50 border border-[var(--pa-border)] rounded-lg focus:outline-none focus:border-[var(--pa-primary)] resize-none" />
+          <label className="block text-slate-600 text-sm mb-2">Description 2 (WordPress style editor)</label>
+          <div className="bg-white rounded-xl border border-[var(--pa-border)] overflow-hidden">
+            <ReactQuill
+              theme="snow"
+              value={data.description2 || ''}
+              onChange={(value) => setData({ ...data, description2: value })}
+              modules={quillModules}
+              formats={quillFormats}
+              placeholder="Dusra paragraph likho..."
+              className="min-h-[180px]"
+            />
+          </div>
         </div>
 
         <div>
@@ -314,14 +361,13 @@ export default function AboutPageAdmin() {
         </div>
       </div>
 
-      {/* ===== Awards (NEW) ===== */}
+      {/* ===== Awards ===== */}
       <div className="bg-white rounded-xl border border-[var(--pa-border)] p-6 space-y-5">
         <div className="flex items-center gap-2">
           <Award className="w-5 h-5" style={{ color: 'var(--pa-primary)' }} />
           <h2 className="text-lg font-semibold text-slate-800">Awards</h2>
         </div>
 
-        {/* Add award form */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end p-4 bg-slate-50 rounded-lg">
           <div className="flex-1 w-full">
             <label className="block text-slate-600 text-xs mb-1.5">Award Title (what was it for)</label>
@@ -354,7 +400,6 @@ export default function AboutPageAdmin() {
           </button>
         </div>
 
-        {/* Awards list */}
         {(data.awards || []).length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {data.awards.map((award) => (
@@ -370,14 +415,13 @@ export default function AboutPageAdmin() {
         )}
       </div>
 
-      {/* ===== Team Members (NEW) ===== */}
+      {/* ===== Team Members ===== */}
       <div className="bg-white rounded-xl border border-[var(--pa-border)] p-6 space-y-5">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5" style={{ color: 'var(--pa-primary)' }} />
           <h2 className="text-lg font-semibold text-slate-800">Team Members</h2>
         </div>
 
-        {/* Add member form */}
         <div className="grid sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end p-4 bg-slate-50 rounded-lg">
           <div>
             <label className="block text-slate-600 text-xs mb-1.5">Name</label>
@@ -419,7 +463,6 @@ export default function AboutPageAdmin() {
           </button>
         </div>
 
-        {/* Members list */}
         {(data.teamMembers || []).length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {data.teamMembers.map((member) => (

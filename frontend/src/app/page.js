@@ -12,6 +12,17 @@ import CategoriesSlider from '@/components/CategoriesSlider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
+// ✅ NEW — rich HTML content ko plain text me convert karta hai, home page preview ke liye
+function stripHtml(html = '') {
+  if (!html) return '';
+  if (typeof window === 'undefined') {
+    return html.replace(/<[^>]*>/g, '').trim();
+  }
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return (div.textContent || div.innerText || '').trim();
+}
+
 const fallbackSlides = [
   {
     mediaType: 'image',
@@ -60,7 +71,7 @@ const bestSellers = [
 const defaultAboutData = {
   title: 'About Us',
   subtitle: 'Our Story',
-  description: 'Plantora was born out of a passion for plants and a mission to bring nature closer to every home.',
+  description1: '<p>Plantora was born out of a passion for plants and a mission to bring nature closer to every home.</p>', // ✅ CHANGED
   points: ['Handpicked Healthy Plants', 'Expert Plant Care Guidance', 'Sustainable & Eco-Friendly', 'Happy Customer Support'],
   stats: [
     { number: '10K+', label: 'Happy Customers' },
@@ -76,7 +87,7 @@ export default function HomePage() {
   const [badge, setBadge] = useState('Free Shipping on orders above ₹999');
   const [current, setCurrent] = useState(0);
   const [aboutData, setAboutData] = useState(defaultAboutData);
-  const [categories, setCategories] = useState([]); // ✅ categories state
+  const [categories, setCategories] = useState([]);
   const videoRefs = useRef([]);
 
   // Fetch Hero
@@ -94,7 +105,7 @@ export default function HomePage() {
     fetchHero();
   }, []);
 
-  // ✅ Fetch Categories
+  // Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -270,7 +281,7 @@ export default function HomePage() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
                 <img
-                  src={aboutData?.image || defaultAboutData.image}
+                  src={aboutData?.teamImage || aboutData?.image || defaultAboutData.image}
                   alt="About Plantora"
                   className="relative rounded-3xl shadow-xl w-full h-[340px] sm:h-[400px] object-cover"
                   onError={(e) => { e.target.src = defaultAboutData.image; }}
@@ -283,7 +294,15 @@ export default function HomePage() {
                   <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">{aboutData?.title || 'About Us'}</h2>
                   <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">{aboutData?.subtitle || 'Our Story'}</h3>
                 </div>
-                <p className="text-[#6b7280] leading-relaxed">{aboutData?.description || defaultAboutData.description}</p>
+
+                {/* ✅ CHANGED — rich HTML se plain text preview, 4 lines tak clamp, layout kabhi nahi bigdega */}
+                <p className="text-[#6b7280] leading-relaxed line-clamp-4">
+                  {stripHtml(aboutData?.description1 || defaultAboutData.description1)}
+                </p>
+                <Link href="/about" className="inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm hover:underline">
+                  Read More <ArrowRight className="w-4 h-4" />
+                </Link>
+
                 <ul className="space-y-3">
                   {(aboutData?.points || defaultAboutData.points).map((item, i) => (
                     <li key={i} className="flex items-center gap-3">
