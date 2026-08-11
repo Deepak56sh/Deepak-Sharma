@@ -13,33 +13,32 @@ const steps = [
   { id: 3, label: 'Payment' },
 ];
 
+// ✅ CHANGED — plant shipping ke liye realistic delivery windows (7 / 15 din)
+// Today/Tomorrow hata diya kyunki plants same-day/next-day deliverable nahi hote
 const deliverySlots = [
-  { id: 'today', label: 'Today', sub: '10 AM - 1 PM' },
-  { id: 'tomorrow', label: 'Tomorrow', sub: '10 AM - 3 PM' },
-  { id: 'custom', label: 'Sun, 2 Jun', sub: '10 AM - 1 PM' },
+  { id: 'standard', label: 'Standard Delivery', sub: '5-7 business days' },
+  { id: 'extended', label: 'Extended Delivery', sub: '10-15 business days' },
 ];
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartTotal, clearCart } = useCart();
-  const [checkingAuth, setCheckingAuth] = useState(true); // ✅ NEW
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [step, setStep] = useState(1);
-  const [slot, setSlot] = useState('tomorrow');
+  const [slot, setSlot] = useState('standard'); // ✅ CHANGED — default ab 'standard'
   const [payment, setPayment] = useState('cod');
-  const [placing, setPlacing] = useState(false); // ✅ NEW
-  const [orderError, setOrderError] = useState(''); // ✅ NEW
+  const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState('');
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', address: '', landmark: '', city: '', state: '', pincode: '',
   });
 
-  // ✅ NEW — checkout se pehle login zaroori
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       router.replace('/login?redirect=/checkout');
       return;
     }
-    // agar login hai to user ka naam/email/phone form me pre-fill kar do
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       setForm((prev) => ({
@@ -62,7 +61,6 @@ export default function CheckoutPage() {
   const goNext = () => setStep((s) => Math.min(3, s + 1));
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
-  // ✅ CHANGED — real backend order create
   const placeOrder = async (e) => {
     e.preventDefault();
     setOrderError('');
@@ -222,9 +220,9 @@ export default function CheckoutPage() {
             {step === 2 && (
               <div>
                 <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                  <Truck className="w-4 h-4" style={{ color: 'var(--ps-primary)' }} /> Delivery Slot
+                  <Truck className="w-4 h-4" style={{ color: 'var(--ps-primary)' }} /> Delivery Time
                 </h2>
-                <div className="grid sm:grid-cols-3 gap-3">
+                <div className="grid sm:grid-cols-2 gap-3">
                   {deliverySlots.map((s) => (
                     <button
                       type="button"
