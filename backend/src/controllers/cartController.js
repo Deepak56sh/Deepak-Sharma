@@ -3,12 +3,25 @@ const Plant = require('../models/Plant'); // tumhare product model ka naam — a
 
 const calcTotal = (items) => items.reduce((sum, it) => sum + it.price * it.quantity, 0);
 
+// ✅ NEW — response me har item ko `_id` field deta hai (= product id)
+// Frontend `item._id` isi se update/remove/key ke liye use karta hai
+const formatItems = (items) =>
+  items.map((it) => ({
+    _id: String(it.product),   // 👈 yahi missing piece tha
+    product: it.product,
+    name: it.name,
+    price: it.price,
+    image: it.image,
+    quantity: it.quantity,
+  }));
+
 // GET /api/cart
 const getCart = async (req, res) => {
   try {
     let cart = await Cart.findOne({ customer: req.customerId });
     if (!cart) cart = { items: [] };
-    res.json({ success: true, data: { items: cart.items, total: calcTotal(cart.items) } });
+    const items = formatItems(cart.items);
+    res.json({ success: true, data: { items, total: calcTotal(items) } });
   } catch (error) {
     console.error('Get cart error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch cart' });
@@ -40,7 +53,8 @@ const addToCart = async (req, res) => {
       });
     }
     await cart.save();
-    res.json({ success: true, data: { items: cart.items, total: calcTotal(cart.items) } });
+    const items = formatItems(cart.items);
+    res.json({ success: true, data: { items, total: calcTotal(items) } });
   } catch (error) {
     console.error('Add to cart error:', error);
     res.status(500).json({ success: false, message: 'Failed to add to cart' });
@@ -61,7 +75,8 @@ const updateCartItem = async (req, res) => {
       if (item) item.quantity = quantity;
     }
     await cart.save();
-    res.json({ success: true, data: { items: cart.items, total: calcTotal(cart.items) } });
+    const items = formatItems(cart.items);
+    res.json({ success: true, data: { items, total: calcTotal(items) } });
   } catch (error) {
     console.error('Update cart error:', error);
     res.status(500).json({ success: false, message: 'Failed to update cart' });
@@ -76,7 +91,8 @@ const removeCartItem = async (req, res) => {
 
     cart.items = cart.items.filter((it) => String(it.product) !== String(req.params.productId));
     await cart.save();
-    res.json({ success: true, data: { items: cart.items, total: calcTotal(cart.items) } });
+    const items = formatItems(cart.items);
+    res.json({ success: true, data: { items, total: calcTotal(items) } });
   } catch (error) {
     console.error('Remove cart item error:', error);
     res.status(500).json({ success: false, message: 'Failed to remove item' });
