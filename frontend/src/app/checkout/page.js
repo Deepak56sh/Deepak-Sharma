@@ -1,11 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // ✅ NEW
+import { useRouter } from 'next/navigation';
 import { Check, ArrowRight, Sprout, MapPin, Truck, CreditCard, ShieldCheck } from 'lucide-react';
-import { useCart } from '@/context/CartContext'; // ✅ NEW
+import { useCart } from '@/context/CartContext';
 
-// ❌ REMOVE — const orderItems = [...] hardcoded array hata do
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 const steps = [
   { id: 1, label: 'Information' },
@@ -20,18 +20,40 @@ const deliverySlots = [
 ];
 
 export default function CheckoutPage() {
-  const router = useRouter(); // ✅ NEW
-  const { cart, cartTotal, clearCart } = useCart(); // ✅ NEW — real cart data
+  const router = useRouter();
+  const { cart, cartTotal, clearCart } = useCart();
+  const [checkingAuth, setCheckingAuth] = useState(true); // ✅ NEW
   const [step, setStep] = useState(1);
   const [slot, setSlot] = useState('tomorrow');
-  const [payment, setPayment] = useState('card');
+  const [payment, setPayment] = useState('cod');
+  const [placing, setPlacing] = useState(false); // ✅ NEW
+  const [orderError, setOrderError] = useState(''); // ✅ NEW
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', address: '', landmark: '', city: '', state: '', pincode: '',
   });
 
-  // ✅ CHANGED — orderItems ki jagah cart, aur subtotal context ke cartTotal se
+  // ✅ NEW — checkout se pehle login zaroori
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.replace('/login?redirect=/checkout');
+      return;
+    }
+    // agar login hai to user ka naam/email/phone form me pre-fill kar do
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      setForm((prev) => ({
+        ...prev,
+        fullName: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }));
+    } catch {}
+    setCheckingAuth(false);
+  }, [router]);
+
   const subtotal = cartTotal;
-  const discount = 0; // TODO: real coupon logic checkout par bhi chahiye to CartContext me le jao
+  const discount = 0;
   const shipping = subtotal >= 999 || subtotal === 0 ? 0 : 99;
   const total = subtotal - discount + shipping;
 
@@ -40,17 +62,57 @@ export default function CheckoutPage() {
   const goNext = () => setStep((s) => Math.min(3, s + 1));
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
-  // ✅ CHANGED — order placed hone ke baad cart clear karo, thank-you par order id bhejo
-  const placeOrder = (e) => {
+  // ✅ CHANGED — real backend order create
+  const placeOrder = async (e) => {
     e.preventDefault();
-    // TODO: POST to /orders once the backend endpoint exists — real orderId wahan se aayega
-    const orderId = 'PLTS' + Math.floor(1000 + Math.random() * 9000);
-    clearCart(); // ✅ order place hote hi cart khali
-    router.push(`/checkout/thank-you?orderId=${orderId}`);
+    setOrderError('');
+    setPlacing(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          items: cart.map((it) => ({
+            product: it._id,
+            name: it.name,
+            price: it.price,
+            quantity: it.quantity,
+            image: it.image,
+          })),
+          shippingAddress: form,
+          deliverySlot: slot,
+          paymentMethod: payment,
+          subtotal,
+          discount,
+          shipping,
+          total,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await clearCart();
+        router.push(`/checkout/thank-you?orderId=${data.data.orderId}`);
+      } else {
+        setOrderError(data.message || 'Order place nahi ho paya, dobara try karo');
+      }
+    } catch (err) {
+      console.error(err);
+      setOrderError('Network error — order place nahi ho paya');
+    } finally {
+      setPlacing(false);
+    }
   };
 
-  // agar cart khali hai to checkout khulne hi na de
-  if (cart.length === 0) { // ✅ NEW guard
+  if (checkingAuth) {
+    return (
+      <div className="plant-store min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f9e44]"></div>
+      </div>
+    );
+  }
+
+  if (cart.length === 0) {
     return (
       <div className="plant-store min-h-screen bg-[var(--ps-section)] flex items-center justify-center px-4">
         <div className="text-center">
@@ -62,10 +124,10 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
   return (
     <div className="plant-store min-h-screen bg-[var(--ps-section)] py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        {/* Step indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((s, i) => (
             <div key={s.id} className="flex items-center">
@@ -86,9 +148,14 @@ export default function CheckoutPage() {
           ))}
         </div>
 
+        {orderError && (
+          <div className="max-w-3xl mx-auto mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
+            {orderError}
+          </div>
+        )}
+
         <form onSubmit={placeOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white rounded-2xl border border-[var(--ps-border)] p-6">
-            {/* Step 1: Information */}
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -152,7 +219,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Step 2: Delivery */}
             {step === 2 && (
               <div>
                 <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -175,7 +241,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Step 3: Payment */}
             {step === 3 && (
               <div>
                 <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -209,7 +274,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Nav buttons */}
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--ps-border)]">
               {step > 1 ? (
                 <button type="button" onClick={goBack} className="text-sm font-medium text-slate-500 hover:text-slate-800">
@@ -233,21 +297,21 @@ export default function CheckoutPage() {
               ) : (
                 <button
                   type="submit"
-                  className="flex items-center gap-2 text-white font-medium px-6 py-2.5 rounded-lg"
+                  disabled={placing}
+                  className="flex items-center gap-2 text-white font-medium px-6 py-2.5 rounded-lg disabled:opacity-60"
                   style={{ backgroundColor: 'var(--ps-primary)' }}
                 >
-                  Place Order <Check className="w-4 h-4" />
+                  {placing ? 'Placing Order...' : <>Place Order <Check className="w-4 h-4" /></>}
                 </button>
               )}
             </div>
           </div>
 
-          {/* Order summary */}
           <div className="bg-white rounded-2xl border border-[var(--ps-border)] p-6 h-fit sticky top-24">
             <h2 className="font-semibold text-slate-800 mb-4">Order Summary</h2>
             <div className="space-y-3 mb-4">
-              {cart.map((it) => ( // ✅ CHANGED — orderItems -> cart
-                <div key={it._id} className="flex items-center gap-3"> {/* ✅ CHANGED — id -> _id */}
+              {cart.map((it) => (
+                <div key={it._id} className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-[var(--ps-primary-light)] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {it.image ? (
                       <img src={it.image} alt={it.name} className="w-full h-full object-cover" />
@@ -256,9 +320,9 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-slate-800 truncate">{it.name} × {it.quantity}</div> {/* ✅ CHANGED — qty -> quantity */}
+                    <div className="text-sm text-slate-800 truncate">{it.name} × {it.quantity}</div>
                   </div>
-                  <div className="text-sm font-medium text-slate-800">₹{it.price * it.quantity}</div> {/* ✅ CHANGED */}
+                  <div className="text-sm font-medium text-slate-800">₹{it.price * it.quantity}</div>
                 </div>
               ))}
             </div>

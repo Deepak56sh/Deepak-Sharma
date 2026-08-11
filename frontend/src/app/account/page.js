@@ -53,30 +53,49 @@ export default function AccountPage() {
     fetchAccountData();
   }, []);
 
-  const fetchAccountData = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/account`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        cache: 'no-cache',
-      });
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      if (data.success && data.data) {
-        setUser(data.data.user || defaultUser);
-        setOrders(data.data.orders || defaultOrders);
-      }
-    } catch {
-      setUser(defaultUser);
-      setOrders(defaultOrders);
-    } finally {
-      setLoading(false);
+
+const fetchAccountData = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.replace('/login?redirect=/account'); // ✅ NEW — login zaroori
+      return;
     }
-  };
+
+    // ✅ CHANGED — real user localStorage se
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+    // ✅ CHANGED — real orders backend se
+    const res = await fetch(`${API_URL}/orders/my`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    const myOrders = data.success ? data.data : [];
+
+    setUser({
+      name: storedUser.name || 'Customer',
+      email: storedUser.email || '',
+      totalOrders: myOrders.length,
+      wishlistItems: 0,
+      coupons: 0,
+      rewardPoints: 0,
+    });
+    setOrders(
+      myOrders.map((o) => ({
+        id: `#${o.orderId}`,
+        items: o.items?.length || 0,
+        amount: o.total,
+        date: new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        status: o.status,
+      }))
+    );
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('token');

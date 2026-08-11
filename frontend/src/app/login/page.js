@@ -8,7 +8,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661
 
 function LoginContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+   const searchParams = useSearchParams(); // ✅ NEW
   const redirectTo = searchParams.get('redirect') || '/account';
 
   const [formData, setFormData] = useState({

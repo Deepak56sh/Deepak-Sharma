@@ -1,12 +1,43 @@
 'use client';
-import { Suspense } from 'react'; // ✅ NEW
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation'; // ✅ NEW
+import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+
 function ThankYouContent() {
-  const searchParams = useSearchParams(); // ✅ NEW
-  const orderId = searchParams.get('orderId') || 'PLTS4872'; // ✅ CHANGED — hardcoded ki jagah URL se
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (!orderId) { setLoading(false); return; }
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/orders/${orderId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success) setOrder(data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrder();
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="plant-store min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--ps-primary)]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="plant-store min-h-screen bg-[var(--ps-section)] flex items-center justify-center px-4 py-16">
@@ -16,13 +47,16 @@ function ThankYouContent() {
         </div>
         <h1 className="text-2xl font-bold text-slate-800 mb-2">Thank You!</h1>
         <p className="text-slate-500 text-sm mb-1">Your order has been placed successfully.</p>
-        <p className="text-slate-800 font-medium mb-6">Order ID: #{orderId}</p>
+        <p className="text-slate-800 font-medium mb-1">Order ID: #{orderId || order?.orderId}</p>
+        {order && (
+          <p className="text-slate-800 font-semibold mb-4">Total: ₹{order.total?.toLocaleString()}</p>
+        )}
         <p className="text-slate-400 text-sm mb-8">
           We have received your order and will send you a confirmation shortly.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href={`/account?tab=orders`}
+            href="/account"
             className="px-6 py-3 rounded-lg text-white font-medium"
             style={{ backgroundColor: 'var(--ps-primary)' }}
           >
@@ -37,7 +71,6 @@ function ThankYouContent() {
   );
 }
 
-// ✅ NEW — useSearchParams ko Suspense boundary chahiye hoti hai Next.js me
 export default function ThankYouPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
