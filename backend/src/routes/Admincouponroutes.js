@@ -6,14 +6,15 @@ const {
   updateCoupon,
   toggleCoupon,
   deleteCoupon,
-} = require('../controllers/Admincouponcontroller');
+} = require('../controllers/adminCouponController');
 
-const adminAuth = require('../middleware/auth');
 
-router.get('/', adminAuth, getAllCoupons);
-router.post('/', adminAuth, createCoupon);
-router.put('/:id', adminAuth, updateCoupon);
-router.patch('/:id/toggle', adminAuth, toggleCoupon);
-router.delete('/:id', adminAuth, deleteCoupon);
+const { protect } = require('../middleware/auth');
+
+router.get('/', protect, getAllCoupons);
+router.post('/', protect, createCoupon);
+router.put('/:id', protect, updateCoupon);
+router.patch('/:id/toggle', protect, toggleCoupon);
+router.delete('/:id', protect, deleteCoupon);
 
 module.exports = router;
