@@ -41,7 +41,7 @@ function ThankYouContent() {
 
   return (
     <div className="plant-store min-h-screen bg-[var(--ps-section)] flex items-center justify-center px-4 py-16">
-      <div className="bg-white rounded-2xl border border-[var(--ps-border)] p-10 max-w-md w-full text-center">
+      <div className="bg-white rounded-2xl border border-[var(--ps-border)] p-10 max-w-ld w-full text-center">
         <div className="w-16 h-16 rounded-full bg-[var(--ps-primary-light)] flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 className="w-9 h-9" style={{ color: 'var(--ps-primary)' }} />
         </div>
