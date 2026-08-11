@@ -335,6 +335,8 @@ app.use('/api/instagram', require('./src/routes/instagramRoutes'));
 app.use('/api/testimonials', require('./src/routes/testimonialRoutes')); 
 app.use('/api/cart', require('./src/routes/cartRoutes'));
 app.use('/api/orders', require('./src/routes/orderRoutes'));
+app.use('/api/coupons', require('./src/routes/couponRoutes'));
+app.use('/api/admin/coupons', require('./src/routes/adminCouponRoutes'));
 
 // 404 handler
 app.use('*', (req, res) => {

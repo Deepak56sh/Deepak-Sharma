@@ -1,16 +1,19 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Minus, Plus, X, Tag, ArrowRight, ShoppingBag, Sprout } from 'lucide-react';
+import { Minus, Plus, X, Tag, ArrowRight, ShoppingBag, Sprout, Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, cartTotal, fetchCart } = useCart();
   const [couponCode, setCouponCode] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, discount }
+  const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ Fetch cart on mount
   useEffect(() => {
     const loadCart = async () => {
       await fetchCart();
@@ -30,15 +33,69 @@ export default function CartPage() {
 
   const removeItem = (id) => removeFromCart(id);
 
-  const applyCoupon = () => {
-    if (couponCode.trim().toUpperCase() === 'PLANT10') {
-      setAppliedDiscount(300);
-    } else {
-      setAppliedDiscount(0);
+  const subtotal = cartTotal || 0;
+
+  // ✅ FIXED — ab real backend se coupon validate hota hai (PLANT10 hardcoded nahi hai)
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await fetch(`${API_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode.trim(), cartTotal: subtotal }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAppliedCoupon({ code: data.data.code, discount: data.data.discount });
+        setCouponError('');
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(data.message || 'Invalid coupon code');
+      }
+    } catch (err) {
+      console.error('Apply coupon error:', err);
+      setCouponError('Something went wrong. Please try again.');
+    } finally {
+      setApplyingCoupon(false);
     }
   };
 
-  const subtotal = cartTotal || 0;
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
+  // ✅ NEW — cart badalne pe (qty change / item remove) applied coupon ka discount
+  // dobara backend se validate hota hai, taaki min-order fail hone pe ya percentage
+  // discount ka amount badalne pe total sahi rahe
+  useEffect(() => {
+    if (!appliedCoupon) return;
+    const revalidate = async () => {
+      try {
+        const res = await fetch(`${API_URL}/coupons/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: appliedCoupon.code, cartTotal: subtotal }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAppliedCoupon({ code: data.data.code, discount: data.data.discount });
+        } else {
+          setAppliedCoupon(null);
+          setCouponError(data.message || 'Coupon is no longer valid for this cart');
+        }
+      } catch (err) {
+        console.error('Revalidate coupon error:', err);
+      }
+    };
+    revalidate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal]);
+
+  const appliedDiscount = appliedCoupon?.discount || 0;
   const shipping = subtotal >= 999 || subtotal === 0 ? 0 : 99;
   const total = subtotal - appliedDiscount + shipping;
 
@@ -138,27 +195,45 @@ export default function CartPage() {
 
               <div className="mb-4">
                 <label className="text-sm text-slate-500 mb-2 block">Have a coupon code?</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
-                    <input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="Enter code"
-                      className="w-full pl-9 pr-3 py-2 bg-[#f6f8f7] border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44] focus:ring-1 focus:ring-[#2f9e44]"
-                    />
+
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between bg-[#eaf7ee] border border-[#2f9e44]/30 rounded-lg px-3 py-2.5">
+                    <div className="flex items-center gap-2 text-sm text-[#2f9e44] font-medium">
+                      <Tag className="w-4 h-4" /> {appliedCoupon.code}
+                    </div>
+                    <button onClick={removeCoupon} className="text-slate-400 hover:text-red-500">
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={applyCoupon}
-                    className="px-4 py-2 text-sm font-medium rounded-lg border border-[#e8ece9] text-slate-600 hover:border-[#2f9e44] hover:text-[#2f9e44] transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {appliedDiscount > 0 && (
+                ) : (
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
+                      <input
+                        value={couponCode}
+                        onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); }}
+                        onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                        placeholder="Enter code"
+                        className="w-full pl-9 pr-3 py-2 bg-[#f6f8f7] border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44] focus:ring-1 focus:ring-[#2f9e44]"
+                      />
+                    </div>
+                    <button
+                      onClick={applyCoupon}
+                      disabled={applyingCoupon || !couponCode.trim()}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-[#e8ece9] text-slate-600 hover:border-[#2f9e44] hover:text-[#2f9e44] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      {applyingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
+                    </button>
+                  </div>
+                )}
+
+                {appliedCoupon && (
                   <p className="text-xs mt-1.5 text-[#2f9e44]">
                     Coupon applied — ₹{appliedDiscount} off!
                   </p>
+                )}
+                {couponError && (
+                  <p className="text-xs mt-1.5 text-red-500">{couponError}</p>
                 )}
               </div>
 
