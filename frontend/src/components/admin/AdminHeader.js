@@ -367,7 +367,7 @@ export default function AdminHeader({ toggleSidebar }) {
                     <button
                       onClick={() => {
                         setShowNotifications(false);
-                        router.push('/admin/contact-messages');
+                        router.push('/admin/pages/contact-messages');
                       }}
                       className="w-full py-2 text-center text-sm font-medium transition-colors"
                       style={{ color: 'var(--pa-primary)' }}
