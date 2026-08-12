@@ -1,0 +1,128 @@
+/*
+  Admin panel dark mode overrides.
+  Import this file ONCE in your admin layout (app/admin/layout.js):
+      import '@/styles/admin-dark.css';
+
+  How it works: instead of rewriting every component with Tailwind's `dark:` prefix,
+  this overrides the actual utility classes (bg-white, text-slate-800, etc.) whenever
+  the <html> element has the `.dark` class — which ThemeContext.js toggles for you.
+  This means Dashboard, Reports, Tools, Coupons, Contact Messages — everything we've
+  built — gets dark mode automatically, no per-file changes needed.
+*/
+
+/* ---------- CSS variables used across your admin components ---------- */
+.dark {
+  --pa-border: #2a2e35;
+  --pa-primary-light: rgba(47, 158, 68, 0.16);
+}
+
+/* ---------- Page background ---------- */
+.dark body {
+  background-color: #0f1115;
+  color: #e5e7eb;
+}
+
+/* ---------- Card / surface backgrounds ---------- */
+.dark .bg-white {
+  background-color: #171a1f !important;
+}
+.dark .bg-\[\#f6f8f7\],
+.dark .bg-slate-50 {
+  background-color: #12141a !important;
+}
+.dark .bg-slate-100 {
+  background-color: #1c1f26 !important;
+}
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: #1c1f26 !important;
+}
+.dark .hover\:bg-slate-200:hover {
+  background-color: #262a32 !important;
+}
+
+/* ---------- Text colors ---------- */
+.dark .text-slate-800,
+.dark .text-\[\#14261d\] {
+  color: #f1f5f9 !important;
+}
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+.dark .text-slate-600,
+.dark .text-\[\#4b5563\] {
+  color: #cbd5e1 !important;
+}
+.dark .text-slate-500,
+.dark .text-\[\#6b7280\] {
+  color: #94a3b8 !important;
+}
+.dark .text-slate-400,
+.dark .text-slate-300 {
+  color: #64748b !important;
+}
+.dark .text-slate-200 {
+  color: #334155 !important;
+}
+
+/* ---------- Borders / dividers ---------- */
+.dark .border-\[var\(--pa-border\)\],
+.dark .border-\[\#e8ece9\] {
+  border-color: #2a2e35 !important;
+}
+.dark .divide-\[\#e8ece9\] > * + * {
+  border-color: #2a2e35 !important;
+}
+
+/* ---------- Status chips (used in orders/coupons/messages tables) ---------- */
+.dark .bg-green-50, .dark .bg-green-100 { background-color: rgba(34,197,94,0.15) !important; }
+.dark .text-green-600, .dark .text-green-700 { color: #4ade80 !important; }
+
+.dark .bg-blue-50, .dark .bg-blue-100 { background-color: rgba(59,130,246,0.15) !important; }
+.dark .text-blue-500, .dark .text-blue-600, .dark .text-blue-700 { color: #60a5fa !important; }
+
+.dark .bg-amber-50, .dark .bg-yellow-50, .dark .bg-yellow-100 { background-color: rgba(234,179,8,0.15) !important; }
+.dark .text-amber-500, .dark .text-yellow-600, .dark .text-yellow-700 { color: #facc15 !important; }
+
+.dark .bg-rose-50, .dark .bg-red-50, .dark .bg-red-100 { background-color: rgba(244,63,94,0.15) !important; }
+.dark .text-rose-500, .dark .text-red-500, .dark .text-red-600, .dark .text-red-700 { color: #fb7185 !important; }
+
+.dark .bg-pink-50 { background-color: rgba(236,72,153,0.15) !important; }
+.dark .text-pink-600 { color: #f472b6 !important; }
+
+.dark .bg-purple-50 { background-color: rgba(168,85,247,0.15) !important; }
+.dark .text-purple-600 { color: #c084fc !important; }
+
+.dark .bg-gray-100 { background-color: #1c1f26 !important; }
+.dark .text-gray-500, .dark .text-gray-600, .dark .text-gray-700 { color: #9ca3af !important; }
+
+/* ---------- Inputs, selects, textareas ---------- */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #12141a !important;
+  color: #e5e7eb !important;
+  border-color: #2a2e35 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* ---------- Gradients used on banners (dashboard welcome, grow-business) ---------- */
+.dark .bg-gradient-to-r.from-\[var\(--pa-primary-light\)\].to-white {
+  background-image: linear-gradient(to right, rgba(47,158,68,0.12), #171a1f) !important;
+}
+
+/* ---------- Table striping ---------- */
+.dark table thead tr {
+  background-color: #12141a !important;
+}
+.dark table tbody tr {
+  border-color: #2a2e35 !important;
+}
+
+/* ---------- Scrollbar (optional, cosmetic) ---------- */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #2a2e35;
+}

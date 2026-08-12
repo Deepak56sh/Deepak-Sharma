@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+import { ThemeProvider } from '@/context/ThemeContext';
+import '@/styles/admin-dark.css'; // ✅ NEW — dark mode CSS overrides
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -92,50 +94,64 @@ export default function AdminLayout({ children }) {
 
   if (!isMounted) return null;
 
+  // ✅ CHANGED — loading / redirecting / login screens ab bhi ThemeProvider ke andar
+  // hain, taaki login page bhi dark mode respect kare (agar toggle kahin available ho)
+  // aur white-flash na aaye jab tak admin panel load ho raha ho.
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f6f8f7] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-14 h-14 border-4 border-[#2f9e44]/20 border-t-[#2f9e44] rounded-full animate-spin mx-auto mb-4" />
-          <div className="text-slate-600 text-lg">Loading Admin Panel...</div>
+      <ThemeProvider>
+        <div className="min-h-screen bg-[#f6f8f7] dark:bg-[#0f1115] flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-14 h-14 border-4 border-[#2f9e44]/20 border-t-[#2f9e44] rounded-full animate-spin mx-auto mb-4" />
+            <div className="text-slate-600 dark:text-slate-300 text-lg">Loading Admin Panel...</div>
+          </div>
         </div>
-      </div>
+      </ThemeProvider>
     );
   }
 
   if (!isAuthenticated && pathname !== '/admin/login') {
     return (
-      <div className="min-h-screen bg-[#f6f8f7] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-14 h-14 border-4 border-[#2f9e44]/20 border-t-[#2f9e44] rounded-full animate-spin mx-auto mb-4" />
-          <div className="text-slate-600 text-lg">Redirecting to login...</div>
+      <ThemeProvider>
+        <div className="min-h-screen bg-[#f6f8f7] dark:bg-[#0f1115] flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-14 h-14 border-4 border-[#2f9e44]/20 border-t-[#2f9e44] rounded-full animate-spin mx-auto mb-4" />
+            <div className="text-slate-600 dark:text-slate-300 text-lg">Redirecting to login...</div>
+          </div>
         </div>
-      </div>
+      </ThemeProvider>
     );
   }
 
   if (pathname === '/admin/login') {
     return (
-      <div className="plant-admin">
-        <style jsx global>{`
-          nav, footer {
-            display: none !important;
-          }
-        `}</style>
-        {children}
-      </div>
+      <ThemeProvider>
+        <div className="plant-admin">
+          <style jsx global>{`
+            nav, footer {
+              display: none !important;
+            }
+          `}</style>
+          {children}
+        </div>
+      </ThemeProvider>
     );
   }
 
+  // ✅ FIXED — ThemeProvider pehle sirf import ho raha tha, JSX me wrap nahi kiya gaya tha.
+  // Ab poora admin panel (sidebar + header + saare pages) ThemeProvider ke andar hai.
   return (
-    <div className="plant-admin min-h-screen">
-      <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} adminData={adminData} />
+    <ThemeProvider>
+      <div className="plant-admin min-h-screen">
+        <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onLogout={handleLogout} adminData={adminData} />
 
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
-        <AdminHeader toggleSidebar={() => setSidebarOpen(!sidebarOpen)} adminData={adminData} onLogout={handleLogout} />
+        <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
+          <AdminHeader toggleSidebar={() => setSidebarOpen(!sidebarOpen)} adminData={adminData} onLogout={handleLogout} />
 
-        <main className="p-6 min-h-[calc(100vh-4rem)]">{children}</main>
+          <main className="p-6 min-h-[calc(100vh-4rem)]">{children}</main>
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }
