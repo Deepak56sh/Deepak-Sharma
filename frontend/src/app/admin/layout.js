@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
-import { ThemeProvider } from '../../context/Themecontext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import '@/styles/admin-dark.css';
 
 export default function AdminLayout({ children }) {
@@ -94,10 +94,6 @@ export default function AdminLayout({ children }) {
 
   if (!isMounted) return null;
 
-  // ✅ CHANGED — loading / redirecting / login screens ab bhi ThemeProvider ke andar
-  // hain, taaki login page bhi dark mode respect kare (agar toggle kahin available ho)
-  // aur white-flash na aaye jab tak admin panel load ho raha ho.
-
   if (loading) {
     return (
       <ThemeProvider>
@@ -139,8 +135,6 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  // ✅ FIXED — ThemeProvider pehle sirf import ho raha tha, JSX me wrap nahi kiya gaya tha.
-  // Ab poora admin panel (sidebar + header + saare pages) ThemeProvider ke andar hai.
   return (
     <ThemeProvider>
       <div className="plant-admin min-h-screen">
