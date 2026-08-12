@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Search, Menu, LogOut, User, Settings, Mail, CheckCircle, Clock, Sun } from 'lucide-react';
+import { Bell, Search, Menu, LogOut, User, Settings, Mail, CheckCircle, Clock } from 'lucide-react';
 import ProfilePopup from './ProfilePopup';
 import SettingsPopup from './SettingsPopup';
+import ThemeToggle from './ThemeToggle';
 
 // API Base URL
 const API_BASE_URL = process.env.API_BASE_URL || 'https://my-site-backend-0661.onrender.com/api';
@@ -295,9 +296,7 @@ export default function AdminHeader({ toggleSidebar }) {
 
         {/* Right: theme, notifications, user */}
         <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500 hover:text-slate-800">
-            <Sun className="w-5 h-5" />
-          </button>
+          <ThemeToggle />
 
           <div className="relative">
             <button
