@@ -232,7 +232,7 @@ export default function AdminHeader({ toggleSidebar }) {
   const handleNotificationClick = (message) => {
     markMessageAsRead(message._id);
     setShowNotifications(false);
-    router.push('/admin/contact-messages');
+    router.push('/admin/pages/contact-messages');
   };
 
   const formatTime = (dateString) => {
