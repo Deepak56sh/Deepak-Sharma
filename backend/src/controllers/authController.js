@@ -184,43 +184,24 @@ const changePassword = async (req, res) => {
 
 const uploadProfileImage = async (req, res) => {
   try {
-    if (!req.files || !req.files.image) {
+    if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please upload an image' });
     }
 
-    const image = req.files.image;
+    // multer + CloudinaryStorage already uploaded the file to Cloudinary.
+    // req.file.path is the secure Cloudinary URL.
+    const imageUrl = req.file.path;
 
-    if (!image.mimetype.startsWith('image')) {
-      return res.status(400).json({ success: false, message: 'Please upload an image file' });
-    }
+    await Admin.findByIdAndUpdate(req.admin.id, { profilePicture: imageUrl }, { new: true });
 
-    if (image.size > 5 * 1024 * 1024) {
-      return res.status(400).json({ success: false, message: 'Image size must be less than 5MB' });
-    }
-
-    // express-fileupload gives either a tempFilePath (if useTempFiles:true in server config)
-    // or an in-memory buffer (image.data). Handle both so this works regardless of your config.
-    const uploadSource = image.tempFilePath
-      ? image.tempFilePath
-      : `data:${image.mimetype};base64,${image.data.toString('base64')}`;
-
-    const result = await cloudinary.uploader.upload(uploadSource, {
-      folder: 'admin-profiles',
-      public_id: `profile-${req.admin.id}-${Date.now()}`,
-      overwrite: true,
-      transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
-    });
-
-    await Admin.findByIdAndUpdate(req.admin.id, { profilePicture: result.secure_url }, { new: true });
-
-    console.log('✅ Profile image uploaded to Cloudinary:', result.secure_url);
+    console.log('✅ Profile image uploaded to Cloudinary:', imageUrl);
 
     res.json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        url: result.secure_url,
-        imageUrl: result.secure_url, // ProfilePopup.js isi key ko read karta hai
+        url: imageUrl,
+        imageUrl,
       },
     });
   } catch (error) {

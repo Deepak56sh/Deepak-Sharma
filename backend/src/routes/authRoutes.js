@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 const {
   registerAdmin,
@@ -21,6 +22,6 @@ router.get('/me', protect, getMe);
 router.post('/logout', protect, logoutAdmin);
 router.put('/profile', protect, updateProfile);
 router.put('/change-password', protect, changePassword);
-router.post('/upload-profile-image', protect, uploadProfileImage);
+router.post('/upload-profile-image', protect, upload.single('image'), uploadProfileImage);
 
 module.exports = router;
