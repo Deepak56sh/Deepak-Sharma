@@ -10,8 +10,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
-  const getBaseUrl = () => process.env.NEXT_PUBLIC_BACKEND_URL || 'https://my-site-backend-0661.onrender.com';
-
+  
   useEffect(() => {
     if (adminUser) {
       setFormData({
@@ -23,16 +22,15 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
     }
   }, [adminUser]);
 
+  // Cloudinary always returns a full https:// URL in profilePicture.
+  // Any value that ISN'T a full http(s) URL is stale/legacy local-path data
+  // from before Cloudinary was wired up — the backend no longer serves
+  // /uploads, so we must NOT try to build a request to it. Just fall back
+  // to no image (default User icon) instead of a broken fetch.
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-
-    const BASE_URL = getBaseUrl();
-    let cleanPath = imagePath;
-    if (cleanPath.startsWith('/api')) cleanPath = cleanPath.replace('/api', '');
-    if (!cleanPath.startsWith('/uploads/')) cleanPath = '/uploads/' + cleanPath.replace(/^\/+/, '');
-
-    return BASE_URL + cleanPath;
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+    return '';
   };
 
   const uploadImage = async (file) => {
@@ -93,6 +91,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
       const imageUrl = await uploadImage(file);
 
       setFormData((prev) => ({ ...prev, profilePicture: imageUrl }));
+      setPreviewImage(imageUrl);
       setMessage({ type: 'success', text: '✅ Profile image uploaded successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: `❌ Upload failed: ${error.message}` });
@@ -171,6 +170,7 @@ export default function ProfilePopup({ isOpen, onClose, adminUser, onUpdate }) {
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '';
+                      setPreviewImage('');
                     }}
                   />
                 ) : (
