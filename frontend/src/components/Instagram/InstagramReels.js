@@ -29,6 +29,7 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
   const [reels, setReels] = useState(fallbackReels);
   const [popupReel, setPopupReel] = useState(null);
   const hoverRefs = useRef({});
+  const popupVideoRef = useRef(null); // ✅ NEW: ref for the popup video so we can explicitly play() it with sound
 
   useEffect(() => {
     const fetchReels = async () => {
@@ -45,6 +46,27 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
     fetchReels();
   }, []);
 
+  // ✅ NEW: whenever the popup opens with a reel, explicitly unmute + play with sound.
+  // Relying only on the `autoPlay` attribute is unreliable for audio because the
+  // <video> element mounts a tick after the click (state update), which some
+  // browsers no longer treat as tightly tied to the user gesture. Calling
+  // .play() ourselves right after mount keeps it linked to the click.
+  useEffect(() => {
+    if (popupReel && popupVideoRef.current) {
+      const video = popupVideoRef.current;
+      video.muted = false;
+      video.volume = 1;
+      video.currentTime = 0;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay-with-sound was blocked by the browser — controls are
+          // still visible so the user can press play manually.
+        });
+      }
+    }
+  }, [popupReel]);
+
   const handleEnter = (id) => {
     const el = hoverRefs.current[id];
     if (el) {
@@ -59,6 +81,13 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
       el.pause();
       el.currentTime = 0;
     }
+  };
+
+  const closePopup = () => {
+    if (popupVideoRef.current) {
+      popupVideoRef.current.pause();
+    }
+    setPopupReel(null);
   };
 
   if (!reels.length) return null;
@@ -111,24 +140,26 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
       {popupReel && (
         <div
           className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setPopupReel(null)}
+          onClick={closePopup}
         >
           <div
             className="relative w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setPopupReel(null)}
+              onClick={closePopup}
               className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
             >
               <X className="w-5 h-5" />
             </button>
             <video
+              ref={popupVideoRef}
               src={popupReel.video}
               poster={popupReel.poster}
               autoPlay
               controls
               playsInline
+              muted={false}
               className="w-full h-full object-contain"
             />
           </div>
