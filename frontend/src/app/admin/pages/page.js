@@ -41,15 +41,15 @@ const staticPages = [
     updatedAt: '2026-08-01'
   },
   // 👇 Apne 3 extra pages yahan add karo, example:
-  // {
-  //   id: '4',
-  //   name: 'Shipping Policy',
-  //   slug: 'shipping',
-  //   path: '/shipping',
-  //   adminPath: '/admin/pages/shipping',
-  //   status: 'published',
-  //   updatedAt: '2026-08-02'
-  // },
+  {
+    id: '4',
+    name: 'contact-messages',
+    slug: 'contact-messages',
+    path: '/contact-messages',
+    adminPath: '/admin/pages/contact-messages',
+    status: 'published',
+    updatedAt: '2026-08-12'
+  },
 ];
 
 export default function PagesPage() {
