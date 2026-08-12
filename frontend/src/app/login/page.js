@@ -109,7 +109,7 @@ function LoginContent() {
                 onChange={handleChange}
                 placeholder="rohan@example.com"
                 required
-                className="w-full px-4 py-3 bg-[#f6f8f7] border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44]"
+                className="text-[#000] w-full px-4 py-3 bg-[#f6f8f7] border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44]"
               />
             </div>
 
@@ -123,7 +123,7 @@ function LoginContent() {
                   onChange={handleChange}
                   placeholder="••••••••"
                   required
-                  className="w-full px-4 py-3 bg-[#f6f8f7] border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44] pr-12"
+                  className=" text-[#000] w-full px-4 py-3 bg-[#f6f8f7] border border-[#e8ece9] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2f9e44]/30 focus:border-[#2f9e44] pr-12"
                 />
                 <button
                   type="button"
