@@ -170,11 +170,11 @@ exports.replyToMessage = async (req, res) => {
     }
 
     // Update message with admin reply
-    message.adminReply = {
-      message: replyMessage,
-      repliedAt: new Date(),
-      repliedBy: req.user ? req.user._id : 'admin'
-    };
+  message.adminReply = {
+  message: replyMessage,
+  repliedAt: new Date(),
+  repliedBy: req.admin ? req.admin._id : undefined
+};
     message.status = 'replied';
 
     await message.save();
