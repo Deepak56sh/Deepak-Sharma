@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { ThemeProvider } from '../../context/Themecontext';
 import '@/styles/admin-dark.css';
 
 export default function AdminLayout({ children }) {
