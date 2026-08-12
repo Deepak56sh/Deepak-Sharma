@@ -126,3 +126,8 @@
 .dark ::-webkit-scrollbar-thumb {
   background-color: #2a2e35;
 }
+
+
+.dark .plant-admin {
+  background: #0f1115;
+}

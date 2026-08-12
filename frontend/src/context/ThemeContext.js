@@ -1,19 +1,16 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const ThemeContext = createContext();
+const ThemeContext = createContext(undefined);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('light');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Check localStorage for saved theme
+    // Runs only on client — safe to touch localStorage/document here
     const savedTheme = localStorage.getItem('adminTheme') || 'light';
     setTheme(savedTheme);
-    
-    // Apply theme to document
+
     if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -25,7 +22,7 @@ export function ThemeProvider({ children }) {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('adminTheme', newTheme);
-    
+
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -39,11 +36,8 @@ export function ThemeProvider({ children }) {
     isDark: theme === 'dark',
   };
 
-  // Avoid hydration mismatch
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Provider ab HAMESHA wrap karega — chahe mounted ho ya na ho.
+  // Isse useTheme() ko kabhi bhi "undefined context" nahi milega.
   return (
     <ThemeContext.Provider value={value}>
       {children}
@@ -53,7 +47,7 @@ export function ThemeProvider({ children }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
