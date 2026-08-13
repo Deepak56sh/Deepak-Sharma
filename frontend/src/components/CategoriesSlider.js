@@ -79,8 +79,8 @@ export default function CategoriesSlider({ categories = [] }) {
           <div
             ref={sliderRef}
             onScroll={handleScroll}
-            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 max-w-full"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', maxWidth: 'min(100%, 780px)' }}
+            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {categories.map((cat) => (
               <CategoryCard key={cat._id} cat={cat} fixedWidth />

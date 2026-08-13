@@ -124,7 +124,7 @@ export default function Testimonials({ title = 'What Customers Say', subtitle = 
             ref={sliderRef}
             onScroll={handleScroll}
             className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', maxWidth: 'min(100%, 1000px)' }}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {testimonials.map((t) => (
               <div key={t._id} className="flex-shrink-0 w-[280px] sm:w-[300px] snap-start">
