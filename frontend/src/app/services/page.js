@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Search, Filter, Loader2, Wheat } from 'lucide-react';
+import { ArrowRight, Search, Loader2, Wheat } from 'lucide-react';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80';
 
@@ -13,14 +13,12 @@ export default function ServicesPage() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = ['all', 'Crop Farming', 'Organic Farming', 'Equipment', 'Consulting', 'Irrigation', 'Other'];
-
+  // ✅ Category filter removed — only search drives the fetch now.
   useEffect(() => {
     fetchServices();
-  }, [selectedCategory, searchQuery]);
+  }, [searchQuery]);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -28,7 +26,6 @@ export default function ServicesPage() {
 
     try {
       const params = new URLSearchParams();
-      if (selectedCategory !== 'all') params.append('category', selectedCategory);
       if (searchQuery) params.append('search', searchQuery);
       params.append('active', 'true');
       params.append('limit', '50');
@@ -62,6 +59,10 @@ export default function ServicesPage() {
       {/* Header / Hero */}
       <section className="bg-gradient-to-br from-[#3F6B44] to-[#2C4E30] text-white pt-28 pb-16 px-4 font-body">
         <div className="max-w-7xl mx-auto text-center">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-green-100/90 bg-white/10 px-3 py-1.5 rounded-full mb-4">
+            <Wheat className="w-3.5 h-3.5" />
+            What we offer
+          </span>
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-4 tracking-tight">
             Our Services
           </h1>
@@ -72,36 +73,17 @@ export default function ServicesPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-20 font-body">
-        {/* Search + Filters Card */}
+        {/* Search Card (category filter removed) */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E4DFC9] p-5 md:p-6 mb-10">
-          <div className="flex flex-col lg:flex-row gap-4 items-center">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8A8F7C]" />
-              <input
-                type="text"
-                placeholder="Search services..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#F7F4EC] border border-[#E4DFC9] rounded-xl text-[#23281D] placeholder-[#8A8F7C] focus:outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 w-full lg:w-auto scrollbar-hide">
-              <Filter className="w-5 h-5 text-[#8A8F7C] flex-shrink-0" />
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                    selectedCategory === cat
-                      ? 'bg-[#3F6B44] text-white shadow-md'
-                      : 'bg-[#F0EBD8] text-[#5B6152] hover:bg-[#E4DFC9]'
-                  }`}
-                >
-                  {cat === 'all' ? 'All' : cat}
-                </button>
-              ))}
-            </div>
+          <div className="relative w-full max-w-xl mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8A8F7C]" />
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-[#F7F4EC] border border-[#E4DFC9] rounded-xl text-[#23281D] placeholder-[#8A8F7C] focus:outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
+            />
           </div>
         </div>
 
@@ -181,19 +163,16 @@ export default function ServicesPage() {
             </div>
             <h3 className="text-xl font-semibold text-[#23281D] mb-2">No services found</h3>
             <p className="text-[#5B6152] mb-6">
-              {searchQuery || selectedCategory !== 'all'
-                ? 'Try adjusting your search or filters'
+              {searchQuery
+                ? 'Try adjusting your search'
                 : 'No services available right now'}
             </p>
-            {(searchQuery || selectedCategory !== 'all') && (
+            {searchQuery && (
               <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('all');
-                }}
+                onClick={() => setSearchQuery('')}
                 className="px-6 py-2.5 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium transition"
               >
-                Clear Filters
+                Clear Search
               </button>
             )}
           </div>

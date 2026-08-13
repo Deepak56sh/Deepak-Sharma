@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
   Plus, Trash2, Edit2, ChevronDown, ChevronUp,
-  Loader2, Image as ImageIcon, Eye, EyeOff, Save
+  Loader2, Image as ImageIcon, Eye, EyeOff, Save, Sparkles
 } from 'lucide-react';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -209,11 +209,45 @@ export default function AdminServicesPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F4EC] p-4 md:p-8">
+      {/*
+        ✅ FIX: Quill's color / background / align dropdowns render as
+        absolutely-positioned popups (.ql-picker-options). Any ancestor
+        with `overflow: hidden` clips them so they never actually show,
+        which is why only simple toggle buttons (bold/italic) "worked"
+        while color/background looked broken. This global override
+        guarantees the popups always render above everything and are
+        never clipped, no matter which wrapper div is around Quill.
+      */}
+      <style jsx global>{`
+        .ql-snow .ql-picker-options {
+          z-index: 60 !important;
+        }
+        .ql-toolbar.ql-snow {
+          border-top-left-radius: 0.75rem;
+          border-top-right-radius: 0.75rem;
+          border-color: #E4DFC9 !important;
+          background: #FCFAF3;
+        }
+        .ql-container.ql-snow {
+          border-bottom-left-radius: 0.75rem;
+          border-bottom-right-radius: 0.75rem;
+          border-color: #E4DFC9 !important;
+          font-family: inherit;
+          font-size: 0.95rem;
+        }
+        .ql-editor {
+          min-height: 200px;
+        }
+      `}</style>
+
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#23281D]">Services</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#23281D] flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-[#3F6B44]" />
+              Services
+            </h1>
             <p className="text-[#5B6152] text-sm mt-1">Manage all farming services</p>
           </div>
           <button
@@ -222,7 +256,7 @@ export default function AdminServicesPage() {
               setEditMode(null);
               resetForm();
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium transition"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all"
           >
             <Plus className="w-5 h-5" />
             {showCreate ? 'Cancel' : 'Add Service'}
@@ -232,7 +266,7 @@ export default function AdminServicesPage() {
         {/* ==================== CREATE FORM ==================== */}
         {showCreate && (
           <div className="bg-white rounded-2xl border border-[#E4DFC9] shadow-sm mb-6 overflow-hidden">
-            <div className="bg-[#3F6B44] text-white px-6 py-4 font-semibold">
+            <div className="bg-gradient-to-r from-[#3F6B44] to-[#2C4E30] text-white px-6 py-4 font-semibold">
               Create New Service
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-5">
@@ -243,7 +277,7 @@ export default function AdminServicesPage() {
                     required
                     value={form.title}
                     onChange={e => setForm({ ...form, title: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl focus:ring-2 focus:ring-[#3F6B44]/30 outline-none"
+                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] outline-none transition"
                   />
                 </div>
                 <div>
@@ -251,7 +285,7 @@ export default function AdminServicesPage() {
                   <select
                     value={form.category}
                     onChange={e => setForm({ ...form, category: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl outline-none"
+                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
                   >
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -263,7 +297,10 @@ export default function AdminServicesPage() {
                 <label className="block text-sm font-medium text-[#3E4436] mb-1.5">
                   Description * (WordPress style editor)
                 </label>
-                <div className="bg-white rounded-xl border border-[#E4DFC9] overflow-hidden">
+                {/* ✅ FIX: no overflow-hidden here — rounded corners are handled
+                    by the global .ql-toolbar / .ql-container styles above instead,
+                    so the color/background dropdown popups are never clipped. */}
+                <div className="bg-white rounded-xl">
                   <ReactQuill
                     theme="snow"
                     value={form.description}
@@ -271,7 +308,6 @@ export default function AdminServicesPage() {
                     modules={quillModules}
                     formats={quillFormats}
                     placeholder="Write detailed content about this service..."
-                    className="min-h-[220px]"
                   />
                 </div>
               </div>
@@ -283,7 +319,7 @@ export default function AdminServicesPage() {
                     value={form.price}
                     onChange={e => setForm({ ...form, price: e.target.value })}
                     placeholder="₹500 - ₹5000"
-                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl outline-none"
+                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
                   />
                 </div>
                 <div>
@@ -292,7 +328,7 @@ export default function AdminServicesPage() {
                     value={form.duration}
                     onChange={e => setForm({ ...form, duration: e.target.value })}
                     placeholder="2-4 weeks"
-                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl outline-none"
+                    className="w-full px-4 py-2.5 border border-[#E4DFC9] rounded-xl outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
                   />
                 </div>
               </div>
@@ -316,7 +352,7 @@ export default function AdminServicesPage() {
               </div>
 
               {/* Active toggle */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-[#F7F4EC] px-4 py-3 rounded-xl">
                 <input
                   type="checkbox"
                   id="isActive"
@@ -333,7 +369,7 @@ export default function AdminServicesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium transition disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-60"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Create Service
@@ -366,16 +402,16 @@ export default function AdminServicesPage() {
               const isEditing = editMode === service._id;
 
               return (
-                <div key={service._id} className="bg-white rounded-2xl border border-[#E4DFC9] shadow-sm overflow-hidden">
+                <div key={service._id} className="bg-white rounded-2xl border border-[#E4DFC9] shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                   {/* Header */}
                   <div
                     onClick={() => setOpenId(isOpen ? null : service._id)}
                     className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#F7F4EC] transition"
                   >
-                    <div className="flex items-center gap-4">
-                      <img src={service.image} alt={service.title} className="w-12 h-12 object-cover rounded-lg" />
-                      <div>
-                        <h3 className="font-semibold text-[#23281D]">{service.title}</h3>
+                    <div className="flex items-center gap-4 min-w-0">
+                      <img src={service.image} alt={service.title} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-[#23281D] truncate">{service.title}</h3>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs px-2 py-0.5 bg-[#3F6B44]/10 text-[#2C4E30] rounded-full">{service.category}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${service.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
@@ -385,14 +421,14 @@ export default function AdminServicesPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button onClick={(e) => { e.stopPropagation(); handleToggle(service._id); }} className="p-2 hover:bg-[#F0EBD8] rounded-lg">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button onClick={(e) => { e.stopPropagation(); handleToggle(service._id); }} className="p-2 hover:bg-[#F0EBD8] rounded-lg transition" title={service.isActive ? 'Hide from website' : 'Show on website'}>
                         {service.isActive ? <Eye className="w-4 h-4 text-green-600" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); startEdit(service); }} className="p-2 hover:bg-[#F0EBD8] rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); startEdit(service); }} className="p-2 hover:bg-[#F0EBD8] rounded-lg transition" title="Edit">
                         <Edit2 className="w-4 h-4 text-blue-600" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleDelete(service._id); }} className="p-2 hover:bg-[#F0EBD8] rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(service._id); }} className="p-2 hover:bg-[#F0EBD8] rounded-lg transition" title="Delete">
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </button>
                       {isOpen ? <ChevronUp className="w-5 h-5 text-[#8A8F7C]" /> : <ChevronDown className="w-5 h-5 text-[#8A8F7C]" />}
@@ -410,7 +446,7 @@ export default function AdminServicesPage() {
                               <input
                                 value={form.title}
                                 onChange={e => setForm({ ...form, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none"
+                                className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
                               />
                             </div>
                             <div>
@@ -418,7 +454,7 @@ export default function AdminServicesPage() {
                               <select
                                 value={form.category}
                                 onChange={e => setForm({ ...form, category: e.target.value })}
-                                className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none"
+                                className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition"
                               >
                                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                               </select>
@@ -427,14 +463,14 @@ export default function AdminServicesPage() {
 
                           <div>
                             <label className="block text-sm font-medium text-[#3E4436] mb-1">Description</label>
-                            <div className="bg-white rounded-lg border border-[#E4DFC9] overflow-hidden">
+                            {/* ✅ FIX: overflow-hidden removed here too */}
+                            <div className="bg-white rounded-lg">
                               <ReactQuill
                                 theme="snow"
                                 value={form.description}
                                 onChange={(value) => setForm({ ...form, description: value })}
                                 modules={quillModules}
                                 formats={quillFormats}
-                                className="min-h-[180px]"
                               />
                             </div>
                           </div>
@@ -442,18 +478,18 @@ export default function AdminServicesPage() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-sm font-medium text-[#3E4436] mb-1">Price</label>
-                              <input value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none" />
+                              <input value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition" />
                             </div>
                             <div>
                               <label className="block text-sm font-medium text-[#3E4436] mb-1">Duration</label>
-                              <input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none" />
+                              <input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} className="w-full px-3 py-2 border border-[#E4DFC9] rounded-lg outline-none focus:ring-2 focus:ring-[#3F6B44]/30 focus:border-[#3F6B44] transition" />
                             </div>
                           </div>
 
                           <div>
                             <label className="block text-sm font-medium text-[#3E4436] mb-1">Change Image</label>
                             <div className="flex items-center gap-3">
-                              <label className="px-3 py-2 bg-white border border-dashed border-[#D8D2B8] rounded-lg cursor-pointer text-sm">
+                              <label className="px-3 py-2 bg-white border border-dashed border-[#D8D2B8] rounded-lg cursor-pointer text-sm hover:bg-[#F7F4EC] transition">
                                 Choose new image
                                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                               </label>
@@ -461,7 +497,7 @@ export default function AdminServicesPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg border border-[#E4DFC9]">
                             <input
                               type="checkbox"
                               id={`isActive-${service._id}`}
@@ -478,12 +514,12 @@ export default function AdminServicesPage() {
                             <button
                               onClick={() => handleUpdate(service._id)}
                               disabled={saving}
-                              className="inline-flex items-center gap-2 px-5 py-2 bg-[#3F6B44] text-white rounded-lg text-sm font-medium disabled:opacity-60"
+                              className="inline-flex items-center gap-2 px-5 py-2 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-lg text-sm font-medium shadow-sm transition disabled:opacity-60"
                             >
                               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                               Save Changes
                             </button>
-                            <button onClick={() => { setEditMode(null); resetForm(); }} className="px-4 py-2 text-[#5B6152] hover:bg-[#F0EBD8] rounded-lg text-sm">
+                            <button onClick={() => { setEditMode(null); resetForm(); }} className="px-4 py-2 text-[#5B6152] hover:bg-[#F0EBD8] rounded-lg text-sm transition">
                               Cancel
                             </button>
                           </div>
