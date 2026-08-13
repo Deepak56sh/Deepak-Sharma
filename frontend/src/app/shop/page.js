@@ -208,6 +208,7 @@ export default function ShopPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+  const [categories, setCategories] = useState([]);
 
   // Filters state
   const [filters, setFilters] = useState({
@@ -219,9 +220,22 @@ export default function ShopPage() {
     potIncluded: null,
   });
 
-  useEffect(() => {
+   useEffect(() => {
     fetchPlants();
+    fetchCategories();
   }, []);
+
+   const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${API_URL}/categories`, { cache: 'no-cache' });
+      const data = await res.json();
+      if (data.success && data.data?.length) {
+        setCategories(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
   const fetchPlants = async () => {
     setLoading(true);
@@ -448,26 +462,22 @@ export default function ShopPage() {
               </div>
 
               {/* Plant Type */}
-              <FilterSection title="Plant Type">
+             <FilterSection title="Plant Type">
                 <div className="space-y-1">
-                  {[
-                    { label: 'Indoor Plants', value: 'Indoor Plants', count: 42 },
-                    { label: 'Outdoor Plants', value: 'Outdoor Plants', count: 18 },
-                    { label: 'Succulents', value: 'Succulents', count: 24 },
-                    { label: 'Flowering Plants', value: 'Flowering Plants', count: 15 },
-                    { label: 'Large Plants', value: 'Large Plants', count: 12 },
-                  ].map((item) => (
-                    <Checkbox
-                      key={item.value}
-                      label={item.label}
-                      count={item.count}
-                      checked={filters.plantType.includes(item.value)}
-                      onChange={() => toggleFilter('plantType', item.value)}
-                    />
-                  ))}
+                  {categories.map((cat) => {
+                    const count = plants.filter((p) => p.plantType === cat.name).length;
+                    return (
+                      <Checkbox
+                        key={cat._id}
+                        label={cat.name}
+                        count={count}
+                        checked={filters.plantType.includes(cat.name)}
+                        onChange={() => toggleFilter('plantType', cat.name)}
+                      />
+                    );
+                  })}
                 </div>
               </FilterSection>
-
               {/* Light Requirement */}
               <FilterSection title="Light Requirement">
                 <div className="space-y-1">
@@ -721,14 +731,14 @@ export default function ShopPage() {
 
             <div className="p-5">
               {/* Same filters as desktop */}
-              <FilterSection title="Plant Type">
+         <FilterSection title="Plant Type">
                 <div className="space-y-1">
-                  {['Indoor Plants', 'Outdoor Plants', 'Succulents', 'Flowering Plants', 'Large Plants'].map((item) => (
+                  {categories.map((cat) => (
                     <Checkbox
-                      key={item}
-                      label={item}
-                      checked={filters.plantType.includes(item)}
-                      onChange={() => toggleFilter('plantType', item)}
+                      key={cat._id}
+                      label={cat.name}
+                      checked={filters.plantType.includes(cat.name)}
+                      onChange={() => toggleFilter('plantType', cat.name)}
                     />
                   ))}
                 </div>
