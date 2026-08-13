@@ -12,9 +12,8 @@ const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 const CATEGORIES = ['Crop Farming', 'Organic Farming', 'Equipment', 'Consulting', 'Irrigation', 'Other'];
 
-// ✅ Unique touch: each category gets its own accent color, used as a top
-// border strip on cards and on the category chip — makes the grid scannable
-// at a glance instead of every card looking identical.
+// Each category gets its own accent color, used as a top border strip on
+// cards and on the category chip — makes the grid scannable at a glance.
 const CATEGORY_COLORS = {
   'Crop Farming':     { bar: '#3F6B44', chip: '#E7F0E6', text: '#2C4E30' },
   'Organic Farming':  { bar: '#7C9A4C', chip: '#EEF3E2', text: '#516B2E' },
@@ -68,13 +67,22 @@ export default function AdminServicesPage() {
   const [form, setForm] = useState(emptyForm);
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState('');
+  const [token, setToken] = useState(null);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
+  // Read localStorage only on the client, after mount, to avoid
+  // "localStorage is not defined" during server-side build/render.
   useEffect(() => {
-    fetchServices();
+    setToken(localStorage.getItem('adminToken'));
   }, []);
+
+  useEffect(() => {
+    if (token !== null) {
+      fetchServices();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -252,7 +260,7 @@ export default function AdminServicesPage() {
   return (
     <div className="min-h-screen bg-[#F7F4EC]">
       {/*
-        ✅ Quill dropdown fix kept: color/background/align popups must never
+        Quill dropdown fix: color/background/align popups must never
         be clipped by an overflow-hidden ancestor.
       */}
       <style jsx global>{`
@@ -290,7 +298,7 @@ export default function AdminServicesPage() {
             onClick={openCreate}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#23281D] hover:bg-[#161911] text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all"
           >
-            <Plus className="w-4.5 h-4.5" />
+            <Plus className="w-4 h-4" />
             New Service
           </button>
         </div>
