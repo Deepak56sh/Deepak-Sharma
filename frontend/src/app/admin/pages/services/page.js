@@ -262,6 +262,7 @@ export default function AdminServicesPage() {
       {/*
         Quill dropdown fix: color/background/align popups must never
         be clipped by an overflow-hidden ancestor.
+        Also includes slideIn animation for the panel
       */}
       <style jsx global>{`
         .ql-snow .ql-picker-options { z-index: 80 !important; }
@@ -279,6 +280,11 @@ export default function AdminServicesPage() {
           font-size: 0.95rem;
         }
         .ql-editor { min-height: 220px; }
+        
+        @keyframes slideIn {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
       `}</style>
 
       <div className="max-w-6xl mx-auto p-4 md:p-8">
@@ -431,15 +437,8 @@ export default function AdminServicesPage() {
             onClick={closePanel}
           />
 
-          {/* Panel */}
+          {/* Panel - using the slideIn animation defined in global styles */}
           <div className="relative w-full max-w-xl h-full bg-[#FCFAF3] shadow-2xl flex flex-col animate-[slideIn_0.25s_ease-out]">
-            <style jsx>{`
-              @keyframes slideIn {
-                from { transform: translateX(100%); }
-                to { transform: translateX(0); }
-              }
-            `}</style>
-
             {/* Panel header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E4DFC9] bg-white">
               <div>
