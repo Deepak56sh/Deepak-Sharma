@@ -89,6 +89,7 @@ export default function HomePage() {
   const [aboutData, setAboutData] = useState(defaultAboutData);
   const [categories, setCategories] = useState([]);
   const videoRefs = useRef([]);
+  const [bestSellerPlants, setBestSellerPlants] = useState(bestSellers);
 
   // Fetch Hero
   useEffect(() => {
@@ -132,6 +133,25 @@ export default function HomePage() {
       }
     };
     fetchAbout();
+  }, []);
+   // 👇 YAHAN ADD KARO — naya useEffect
+    useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/products?limit=50&active=true`, {
+          cache: 'no-cache',
+        });
+        const data = await res.json();
+        const allProducts = data.data || [];
+        const filtered = allProducts.filter((p) => p.isBestSeller === true);
+        if (filtered.length > 0) {
+          setBestSellerPlants(filtered);
+        }
+      } catch (err) {
+        console.error('Error fetching best sellers:', err);
+      }
+    };
+    fetchBestSellers();
   }, []);
 
   // Auto-slide
@@ -230,7 +250,7 @@ export default function HomePage() {
       {/* ===================== CATEGORIES SLIDER ===================== */}
       {categories.length > 0 && <CategoriesSlider categories={categories} />}
 
-      {/* ===================== BEST SELLERS ===================== */}
+  {/* ===================== BEST SELLERS ===================== */}
       <section className="py-12 lg:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
@@ -243,27 +263,45 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5">
-            {bestSellers.map((plant, i) => (
-              <Link key={i} href="/shop" className="group block">
-                <div className="bg-white border border-[#e8ece9] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#2f9e44]/25 transition-all duration-300">
-                  <div className="aspect-square overflow-hidden bg-[#f6f8f7]">
-                    <img src={plant.image} alt={plant.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                  <div className="p-3.5">
-                    <h3 className="font-semibold text-[#14261d] text-sm line-clamp-1 group-hover:text-[#2f9e44] transition-colors">{plant.name}</h3>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="w-3.5 h-3.5 fill-[#f5a623] text-[#f5a623]" />
-                      <span className="text-xs font-medium text-[#14261d]">{plant.rating}</span>
-                      <span className="text-xs text-[#9ca3af]">({plant.reviews})</span>
+            {bestSellerPlants.slice(0, 5).map((plant, i) => {
+              const originalPrice = plant.originalPrice || plant.original; // dono support
+              return (
+                <Link
+                  key={plant._id || i}
+                  href={`/shop/${plant.slug || plant._id || ''}`}
+                  className="group block"
+                >
+                  <div className="bg-white border border-[#e8ece9] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#2f9e44]/25 transition-all duration-300">
+                    <div className="aspect-square overflow-hidden bg-[#f6f8f7]">
+                      <img
+                        src={plant.image}
+                        alt={plant.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400&q=80';
+                        }}
+                      />
                     </div>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="font-bold text-[#14261d]">₹{plant.price}</span>
-                      <span className="text-sm text-[#9ca3af] line-through">₹{plant.original}</span>
+                    <div className="p-3.5">
+                      <h3 className="font-semibold text-[#14261d] text-sm line-clamp-1 group-hover:text-[#2f9e44] transition-colors">
+                        {plant.name}
+                      </h3>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-3.5 h-3.5 fill-[#f5a623] text-[#f5a623]" />
+                        <span className="text-xs font-medium text-[#14261d]">{plant.rating}</span>
+                        <span className="text-xs text-[#9ca3af]">({plant.reviews})</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="font-bold text-[#14261d]">₹{plant.price}</span>
+                        {originalPrice && (
+                          <span className="text-sm text-[#9ca3af] line-through">₹{originalPrice}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
           <div className="mt-6 text-center sm:hidden">
             <Link href="/shop" className="inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm">
