@@ -20,6 +20,59 @@ const PLATFORM_OPTIONS = [
 const emptyLink = { name: '', url: '', order: 0 };
 const emptySocial = { platform: 'instagram', url: '', icon: 'Instagram' };
 
+function LinkEditor({ title, links, onUpdate, onAdd, onRemove }) {
+  return (
+    <div className="bg-white rounded-2xl border border-[#e8ece9] p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-[#1f2937]">{title}</h3>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#eaf7ee] text-[#2f9e44] rounded-lg hover:bg-[#d4edda]"
+        >
+          <Plus className="w-3.5 h-3.5" /> Add
+        </button>
+      </div>
+
+      {links.length === 0 ? (
+        <p className="text-sm text-[#9ca3af] py-4 text-center">No links yet</p>
+      ) : (
+        <div className="space-y-3">
+          {links.map((link, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <input
+                value={link.name}
+                onChange={(e) => onUpdate(i, 'name', e.target.value)}
+                placeholder="Name"
+                className="flex-1 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
+              />
+              <input
+                value={link.url}
+                onChange={(e) => onUpdate(i, 'url', e.target.value)}
+                placeholder="/path or https://"
+                className="flex-[1.5] px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
+              />
+              <input
+                type="number"
+                value={link.order}
+                onChange={(e) => onUpdate(i, 'order', Number(e.target.value))}
+                className="w-16 px-2 py-2 border border-[#e8ece9] rounded-lg text-sm text-center focus:outline-none focus:border-[#2f9e44]"
+              />
+              <button
+                type="button"
+                onClick={() => onRemove(i)}
+                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminFooterPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -237,57 +290,6 @@ export default function AdminFooterPage() {
     return form.logoImage;
   };
 
-  const LinkEditor = ({ title, listKey }) => (
-    <div className="bg-white rounded-2xl border border-[#e8ece9] p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-[#1f2937]">{title}</h3>
-        <button
-          type="button"
-          onClick={() => addLink(listKey)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#eaf7ee] text-[#2f9e44] rounded-lg hover:bg-[#d4edda]"
-        >
-          <Plus className="w-3.5 h-3.5" /> Add
-        </button>
-      </div>
-
-      {form[listKey].length === 0 ? (
-        <p className="text-sm text-[#9ca3af] py-4 text-center">No links yet</p>
-      ) : (
-        <div className="space-y-3">
-          {form[listKey].map((link, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <input
-                value={link.name}
-                onChange={(e) => updateLink(listKey, i, 'name', e.target.value)}
-                placeholder="Name"
-                className="flex-1 px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
-              />
-              <input
-                value={link.url}
-                onChange={(e) => updateLink(listKey, i, 'url', e.target.value)}
-                placeholder="/path or https://"
-                className="flex-[1.5] px-3 py-2 border border-[#e8ece9] rounded-lg text-sm focus:outline-none focus:border-[#2f9e44]"
-              />
-              <input
-                type="number"
-                value={link.order}
-                onChange={(e) => updateLink(listKey, i, 'order', Number(e.target.value))}
-                className="w-16 px-2 py-2 border border-[#e8ece9] rounded-lg text-sm text-center focus:outline-none focus:border-[#2f9e44]"
-              />
-              <button
-                type="button"
-                onClick={() => removeLink(listKey, i)}
-                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="plant-admin flex justify-center items-center py-20">
@@ -412,9 +414,27 @@ export default function AdminFooterPage() {
 
         {/* Link Sections */}
         <div className="grid lg:grid-cols-2 gap-6">
-          <LinkEditor title="Quick Links" listKey="quickLinks" />
-          <LinkEditor title="Collections" listKey="serviceLinks" />
-          <LinkEditor title="Customer Care" listKey="customerCare" />
+          <LinkEditor
+            title="Quick Links"
+            links={form.quickLinks}
+            onUpdate={(i, field, value) => updateLink('quickLinks', i, field, value)}
+            onAdd={() => addLink('quickLinks')}
+            onRemove={(i) => removeLink('quickLinks', i)}
+          />
+          <LinkEditor
+            title="Collections"
+            links={form.serviceLinks}
+            onUpdate={(i, field, value) => updateLink('serviceLinks', i, field, value)}
+            onAdd={() => addLink('serviceLinks')}
+            onRemove={(i) => removeLink('serviceLinks', i)}
+          />
+          <LinkEditor
+            title="Customer Care"
+            links={form.customerCare}
+            onUpdate={(i, field, value) => updateLink('customerCare', i, field, value)}
+            onAdd={() => addLink('customerCare')}
+            onRemove={(i) => removeLink('customerCare', i)}
+          />
         </div>
 
         {/* Social Links */}
