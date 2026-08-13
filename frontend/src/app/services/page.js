@@ -131,9 +131,9 @@ export default function ServicesPage() {
                   <h3 className="font-display text-xl font-semibold text-[#23281D] mb-2 group-hover:text-[#3F6B44] transition-colors line-clamp-1">
                     {service.title}
                   </h3>
-                  <p className="text-[#5B6152] text-sm leading-relaxed mb-4 line-clamp-2 flex-1">
+                  {/* <p className="text-[#5B6152] text-sm leading-relaxed mb-4 line-clamp-2 flex-1">
                     {stripHtml(service.description)}
-                  </p>
+                  </p> */}
 
                   <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#E4DFC9]">
                     <div>

@@ -60,8 +60,8 @@ export default function AdminServicesPage() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
 
-  // Slide-over panel state: 'create' | 'edit' | null
-  const [panelMode, setPanelMode] = useState(null);
+  // Modal state: 'create' | 'edit' | null
+  const [modalMode, setModalMode] = useState(null);
   const [activeId, setActiveId] = useState(null);
 
   const [form, setForm] = useState(emptyForm);
@@ -108,7 +108,7 @@ export default function AdminServicesPage() {
   const openCreate = () => {
     resetForm();
     setActiveId(null);
-    setPanelMode('create');
+    setModalMode('create');
   };
 
   const openEdit = (service) => {
@@ -123,11 +123,11 @@ export default function AdminServicesPage() {
     setPreview(service.image);
     setImageFile(null);
     setActiveId(service._id);
-    setPanelMode('edit');
+    setModalMode('edit');
   };
 
-  const closePanel = () => {
-    setPanelMode(null);
+  const closeModal = () => {
+    setModalMode(null);
     setActiveId(null);
     resetForm();
   };
@@ -168,7 +168,7 @@ export default function AdminServicesPage() {
 
       const data = await res.json();
       if (data.success) {
-        closePanel();
+        closeModal();
         fetchServices();
       } else {
         alert(data.message || 'Failed to create');
@@ -201,7 +201,7 @@ export default function AdminServicesPage() {
 
       const data = await res.json();
       if (data.success) {
-        closePanel();
+        closeModal();
         fetchServices();
       } else {
         alert(data.message || 'Failed to update');
@@ -221,7 +221,7 @@ export default function AdminServicesPage() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (activeId === id) closePanel();
+      if (activeId === id) closeModal();
       fetchServices();
     } catch (err) {
       console.error(err);
@@ -255,14 +255,13 @@ export default function AdminServicesPage() {
     );
   }, [services, search]);
 
-  const isPanelOpen = panelMode !== null;
+  const isModalOpen = modalMode !== null;
 
   return (
     <div className="min-h-screen bg-[#F7F4EC]">
       {/*
         Quill dropdown fix: color/background/align popups must never
         be clipped by an overflow-hidden ancestor.
-        Also includes slideIn animation for the panel
       */}
       <style jsx global>{`
         .ql-snow .ql-picker-options { z-index: 80 !important; }
@@ -281,9 +280,9 @@ export default function AdminServicesPage() {
         }
         .ql-editor { min-height: 220px; }
         
-        @keyframes slideIn {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
       `}</style>
 
@@ -428,36 +427,36 @@ export default function AdminServicesPage() {
         )}
       </div>
 
-      {/* ===================== SLIDE-OVER PANEL (Create / Edit) ===================== */}
-      {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+      {/* ===================== MODAL (Create / Edit) ===================== */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-[#23281D]/50 backdrop-blur-[2px]"
-            onClick={closePanel}
+            className="absolute inset-0 bg-[#23281D]/60 backdrop-blur-sm"
+            onClick={closeModal}
           />
 
-          {/* Panel - using the slideIn animation defined in global styles */}
-          <div className="relative w-full max-w-xl h-full bg-[#FCFAF3] shadow-2xl flex flex-col animate-[slideIn_0.25s_ease-out]">
-            {/* Panel header */}
+          {/* Modal */}
+          <div className="relative w-full max-w-2xl max-h-[90vh] bg-[#FCFAF3] rounded-2xl shadow-2xl flex flex-col animate-[fadeIn_0.2s_ease-out] overflow-hidden">
+            {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E4DFC9] bg-white">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#3F6B44]">
-                  {panelMode === 'create' ? 'New Service' : 'Edit Service'}
+                  {modalMode === 'create' ? 'New Service' : 'Edit Service'}
                 </p>
                 <h2 className="text-lg font-bold text-[#23281D]">
-                  {panelMode === 'create' ? 'Create a Service' : form.title || 'Service Details'}
+                  {modalMode === 'create' ? 'Create a Service' : form.title || 'Service Details'}
                 </h2>
               </div>
               <button
-                onClick={closePanel}
+                onClick={closeModal}
                 className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#F0EBD8] transition"
               >
                 <X className="w-5 h-5 text-[#5B6152]" />
               </button>
             </div>
 
-            {/* Panel body (scrollable) */}
+            {/* Modal body (scrollable) */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -481,7 +480,7 @@ export default function AdminServicesPage() {
                 </div>
               </div>
 
-              {/* Rich Text Editor — no overflow-hidden wrapper, so color/bg popups show fully */}
+              {/* Rich Text Editor */}
               <div>
                 <label className="block text-sm font-medium text-[#3E4436] mb-1.5">
                   Description *
@@ -520,7 +519,7 @@ export default function AdminServicesPage() {
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-[#3E4436] mb-1.5">
-                  Cover Image {panelMode === 'create' && '*'}
+                  Cover Image {modalMode === 'create' && '*'}
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="relative w-20 h-20 flex-shrink-0 rounded-xl border-2 border-dashed border-[#D8D2B8] bg-white flex items-center justify-center overflow-hidden">
@@ -532,7 +531,7 @@ export default function AdminServicesPage() {
                   </div>
                   <label className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white border border-dashed border-[#D8D2B8] rounded-xl cursor-pointer hover:bg-[#F7F4EC] transition text-sm text-[#3E4436]">
                     <ImageIcon className="w-4 h-4 text-[#5B6152]" />
-                    {imageFile ? imageFile.name : panelMode === 'edit' ? 'Change image' : 'Choose image'}
+                    {imageFile ? imageFile.name : modalMode === 'edit' ? 'Change image' : 'Choose image'}
                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                   </label>
                 </div>
@@ -553,18 +552,18 @@ export default function AdminServicesPage() {
               </label>
             </div>
 
-            {/* Panel footer (sticky actions) */}
+            {/* Modal footer */}
             <div className="px-6 py-4 border-t border-[#E4DFC9] bg-white flex items-center gap-3">
               <button
                 type="button"
-                onClick={panelMode === 'create' ? handleCreate : handleUpdate}
+                onClick={modalMode === 'create' ? handleCreate : handleUpdate}
                 disabled={saving}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#3F6B44] hover:bg-[#2C4E30] text-white rounded-xl font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-60"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {panelMode === 'create' ? 'Create Service' : 'Save Changes'}
+                {modalMode === 'create' ? 'Create Service' : 'Save Changes'}
               </button>
-              {panelMode === 'edit' && (
+              {modalMode === 'edit' && (
                 <button
                   type="button"
                   onClick={() => handleDelete(activeId)}
@@ -576,7 +575,7 @@ export default function AdminServicesPage() {
               )}
               <button
                 type="button"
-                onClick={closePanel}
+                onClick={closeModal}
                 className="px-5 py-3 text-[#5B6152] hover:bg-[#F0EBD8] rounded-xl transition"
               >
                 Cancel
