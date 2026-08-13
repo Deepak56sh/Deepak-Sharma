@@ -1,12 +1,12 @@
 'use client';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowRight, Leaf } from 'lucide-react';
 
 export default function CategoriesSlider({ categories = [] }) {
   const sliderRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   const scroll = (dir) => {
     const el = sliderRef.current;
@@ -17,22 +17,11 @@ export default function CategoriesSlider({ categories = [] }) {
   const handleScroll = () => {
     const el = sliderRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 2);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
   };
 
-  // ✅ FIX: canScrollRight ko sahi se calculate karo jab component mount ho
-  // (pehle ye hamesha `true` hardcoded tha, chahe items screen me fit ho jaate the)
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categories.length]);
-
-  const showSlider = categories.length > 4;
-
-  if (!categories.length) return null;
+  const showSlider = categories.length > 5;
 
   return (
     <section className="py-12 lg:py-16 bg-[#f6f8f7]">
@@ -44,11 +33,10 @@ export default function CategoriesSlider({ categories = [] }) {
             <p className="text-[#6b7280] text-sm mt-1">Browse our plant collections</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Slider arrows — sirf 5 se zyada items ho toh dikhega */}
+            {/* Slider arrows — sirf 5 se zyada ho toh */}
             {showSlider && (
               <div className="flex gap-2">
                 <button
-                  type="button"
                   onClick={() => scroll('left')}
                   disabled={!canScrollLeft}
                   className="w-9 h-9 rounded-full border border-[#e8ece9] bg-white flex items-center justify-center text-[#6b7280] hover:border-[#2f9e44] hover:text-[#2f9e44] disabled:opacity-30 transition-all"
@@ -56,7 +44,6 @@ export default function CategoriesSlider({ categories = [] }) {
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
-                  type="button"
                   onClick={() => scroll('right')}
                   disabled={!canScrollRight}
                   className="w-9 h-9 rounded-full border border-[#e8ece9] bg-white flex items-center justify-center text-[#6b7280] hover:border-[#2f9e44] hover:text-[#2f9e44] disabled:opacity-30 transition-all"
@@ -83,11 +70,11 @@ export default function CategoriesSlider({ categories = [] }) {
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {categories.map((cat) => (
-              <CategoryCard key={cat._id} cat={cat} fixedWidth />
+              <CategoryCard key={cat._id} cat={cat} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {categories.map((cat) => (
               <CategoryCard key={cat._id} cat={cat} />
             ))}
@@ -105,26 +92,20 @@ export default function CategoriesSlider({ categories = [] }) {
   );
 }
 
-function CategoryCard({ cat, fixedWidth = false }) {
+function CategoryCard({ cat }) {
   return (
     <Link
       href={`/shop?category=${cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-')}`}
-      className={`group block ${fixedWidth ? 'flex-shrink-0 w-[160px]' : 'w-full'}`}
+      className="group flex-shrink-0 w-[160px] sm:w-auto"
     >
       <div className="bg-white rounded-2xl border border-[#e8ece9] overflow-hidden hover:shadow-lg hover:border-[#2f9e44]/30 transition-all duration-300">
-        {/* Image — ✅ FIX: inline aspect-ratio use kiya hai (Tailwind ke
-            `aspect-square` par depend nahi karna, kyunki build me kabhi kabhi
-            apply nahi hota aur image apni original tall size me full-width
-            stretch ho jaati hai — yahi bug screenshot me dikh raha tha) */}
-        <div
-          className="relative w-full overflow-hidden bg-[#f6f8f7]"
-          style={{ aspectRatio: '1 / 1' }}
-        >
+        {/* Image */}
+        <div className="aspect-square overflow-hidden bg-[#f6f8f7]">
           {cat.image ? (
             <img
               src={cat.image}
               alt={cat.name}
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -132,7 +113,7 @@ function CategoryCard({ cat, fixedWidth = false }) {
             />
           ) : null}
           <div
-            className="absolute inset-0 items-center justify-center bg-[#eaf7ee]"
+            className="w-full h-full items-center justify-center bg-[#eaf7ee]"
             style={{ display: cat.image ? 'none' : 'flex' }}
           >
             <Leaf className="w-8 h-8 text-[#2f9e44]" />
