@@ -75,7 +75,7 @@ export default function ServicesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-20 font-body">
         {/* Search Card (category filter removed) */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E4DFC9] p-5 md:p-6 mb-10">
-          <div className="relative w-full max-w-xl mx-auto">
+          <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8A8F7C]" />
             <input
               type="text"
