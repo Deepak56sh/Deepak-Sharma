@@ -30,7 +30,7 @@ export default function CategoriesSlider({ categories = [] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories.length]);
 
-  const showSlider = categories.length > 5;
+  const showSlider = categories.length > 4;
 
   if (!categories.length) return null;
 
@@ -87,7 +87,7 @@ export default function CategoriesSlider({ categories = [] }) {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {categories.map((cat) => (
               <CategoryCard key={cat._id} cat={cat} />
             ))}
