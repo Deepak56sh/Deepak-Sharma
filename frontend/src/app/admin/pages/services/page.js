@@ -36,6 +36,9 @@ const quillModules = {
       ['link', 'image'],
       ['clean']
     ]
+  },
+  clipboard: {
+    matchVisual: false,
   }
 };
 
@@ -264,25 +267,148 @@ export default function AdminServicesPage() {
         be clipped by an overflow-hidden ancestor.
       */}
       <style jsx global>{`
-        .ql-snow .ql-picker-options { z-index: 80 !important; }
+        /* Fix for Quill dropdowns in modal */
+        .ql-snow .ql-picker-options {
+          z-index: 99999 !important;
+          position: fixed !important;
+          max-height: 200px !important;
+          overflow-y: auto !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+          border-radius: 8px !important;
+          border: 1px solid #E4DFC9 !important;
+          background: white !important;
+        }
+        
+        .ql-snow .ql-tooltip {
+          z-index: 99999 !important;
+        }
+        
+        .ql-color-picker .ql-picker-options,
+        .ql-background-picker .ql-picker-options {
+          width: 200px !important;
+          padding: 8px !important;
+        }
+        
+        .ql-color-picker .ql-picker-options .ql-picker-item,
+        .ql-background-picker .ql-picker-options .ql-picker-item {
+          width: 24px !important;
+          height: 24px !important;
+          margin: 2px !important;
+          border-radius: 4px !important;
+          float: left !important;
+          border: 1px solid #E4DFC9 !important;
+        }
+        
+        .ql-color-picker .ql-picker-options .ql-picker-item:hover,
+        .ql-background-picker .ql-picker-options .ql-picker-item:hover {
+          transform: scale(1.15);
+          transition: transform 0.15s;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .ql-color-picker .ql-picker-label,
+        .ql-background-picker .ql-picker-label {
+          display: flex !important;
+          align-items: center !important;
+          padding: 0 4px !important;
+        }
+        
+        .ql-color-picker .ql-picker-label svg,
+        .ql-background-picker .ql-picker-label svg {
+          width: 18px !important;
+          height: 18px !important;
+        }
+        
         .ql-toolbar.ql-snow {
           border-top-left-radius: 0.75rem;
           border-top-right-radius: 0.75rem;
           border-color: #E4DFC9 !important;
           background: #FCFAF3;
+          position: relative;
+          z-index: 10;
         }
+        
         .ql-container.ql-snow {
           border-bottom-left-radius: 0.75rem;
           border-bottom-right-radius: 0.75rem;
           border-color: #E4DFC9 !important;
           font-family: inherit;
           font-size: 0.95rem;
+          min-height: 220px;
         }
-        .ql-editor { min-height: 220px; }
+        
+        .ql-editor { 
+          min-height: 220px;
+          font-size: 0.95rem;
+        }
+        
+        .ql-editor p {
+          margin-bottom: 0.5rem;
+        }
+        
+        .ql-editor strong {
+          font-weight: 700;
+        }
+        
+        .ql-editor em {
+          font-style: italic;
+        }
+        
+        .ql-editor ul, .ql-editor ol {
+          padding-left: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        .ql-editor img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 8px;
+          margin: 8px 0;
+        }
+        
+        .ql-editor blockquote {
+          border-left: 4px solid #3F6B44;
+          padding-left: 16px;
+          margin: 8px 0;
+          color: #5B6152;
+        }
+        
+        .ql-editor a {
+          color: #3F6B44;
+          text-decoration: underline;
+        }
+        
+        .ql-editor h1, .ql-editor h2, .ql-editor h3 {
+          font-weight: 700;
+          margin: 12px 0 8px 0;
+        }
+        
+        .ql-editor h1 { font-size: 2rem; }
+        .ql-editor h2 { font-size: 1.5rem; }
+        .ql-editor h3 { font-size: 1.25rem; }
         
         @keyframes fadeIn {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Scrollbar styling */
+        .modal-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .modal-scroll::-webkit-scrollbar-track {
+          background: #F7F4EC;
+          border-radius: 10px;
+        }
+        
+        .modal-scroll::-webkit-scrollbar-thumb {
+          background: #D8D2B8;
+          border-radius: 10px;
+        }
+        
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+          background: #B8B29A;
         }
       `}</style>
 
@@ -439,7 +565,7 @@ export default function AdminServicesPage() {
           {/* Modal */}
           <div className="relative w-full max-w-2xl max-h-[90vh] bg-[#FCFAF3] rounded-2xl shadow-2xl flex flex-col animate-[fadeIn_0.2s_ease-out] overflow-hidden">
             {/* Modal header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E4DFC9] bg-white">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E4DFC9] bg-white flex-shrink-0">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#3F6B44]">
                   {modalMode === 'create' ? 'New Service' : 'Edit Service'}
@@ -457,7 +583,7 @@ export default function AdminServicesPage() {
             </div>
 
             {/* Modal body (scrollable) */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5 modal-scroll">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[#3E4436] mb-1.5">Title *</label>
@@ -480,19 +606,21 @@ export default function AdminServicesPage() {
                 </div>
               </div>
 
-              {/* Rich Text Editor */}
-              <div>
+              {/* Rich Text Editor - with z-index fix */}
+              <div className="relative" style={{ zIndex: 50 }}>
                 <label className="block text-sm font-medium text-[#3E4436] mb-1.5">
                   Description *
                 </label>
-                <ReactQuill
-                  theme="snow"
-                  value={form.description}
-                  onChange={(value) => setForm({ ...form, description: value })}
-                  modules={quillModules}
-                  formats={quillFormats}
-                  placeholder="Write detailed content about this service..."
-                />
+                <div className="relative" style={{ zIndex: 50 }}>
+                  <ReactQuill
+                    theme="snow"
+                    value={form.description}
+                    onChange={(value) => setForm({ ...form, description: value })}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Write detailed content about this service..."
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -553,7 +681,7 @@ export default function AdminServicesPage() {
             </div>
 
             {/* Modal footer */}
-            <div className="px-6 py-4 border-t border-[#E4DFC9] bg-white flex items-center gap-3">
+            <div className="px-6 py-4 border-t border-[#E4DFC9] bg-white flex items-center gap-3 flex-shrink-0">
               <button
                 type="button"
                 onClick={modalMode === 'create' ? handleCreate : handleUpdate}
