@@ -25,7 +25,8 @@ export default function CategoriesSlider({ categories = [] }) {
 
     if (!el) return;
 
-    const scrollAmount = 300;
+    // Scroll by roughly one visible "page" so it feels right on any screen size
+    const scrollAmount = el.clientWidth * 0.8;
 
     el.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
@@ -45,13 +46,13 @@ export default function CategoriesSlider({ categories = [] }) {
   };
 
   return (
-    <section className="py-12 lg:py-16 bg-[#f6f8f7]">
+    <section className="py-10 sm:py-12 lg:py-16 bg-[#f6f8f7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d]">
               Shop by Category
             </h2>
 
@@ -70,7 +71,7 @@ export default function CategoriesSlider({ categories = [] }) {
                   onClick={() => scroll('left')}
                   disabled={!canScrollLeft}
                   aria-label="Previous categories"
-                  className="w-9 h-9 rounded-full border border-[#e8ece9] bg-white flex items-center justify-center text-[#6b7280] hover:border-[#2f9e44] hover:text-[#2f9e44] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[#e8ece9] bg-white flex items-center justify-center text-[#6b7280] hover:border-[#2f9e44] hover:text-[#2f9e44] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -80,7 +81,7 @@ export default function CategoriesSlider({ categories = [] }) {
                   onClick={() => scroll('right')}
                   disabled={!canScrollRight}
                   aria-label="Next categories"
-                  className="w-9 h-9 rounded-full border border-[#e8ece9] bg-white flex items-center justify-center text-[#6b7280] hover:border-[#2f9e44] hover:text-[#2f9e44] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[#e8ece9] bg-white flex items-center justify-center text-[#6b7280] hover:border-[#2f9e44] hover:text-[#2f9e44] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -103,7 +104,7 @@ export default function CategoriesSlider({ categories = [] }) {
         {/* ============================ */}
 
         {!showSlider && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {categories.map((cat) => (
               <CategoryCard
                 key={cat._id}
@@ -122,7 +123,7 @@ export default function CategoriesSlider({ categories = [] }) {
           <div
             ref={sliderRef}
             onScroll={handleScroll}
-            className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+            className="scrollbar-hide flex gap-3 sm:gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-1 px-1"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -149,6 +150,12 @@ export default function CategoriesSlider({ categories = [] }) {
           </Link>
         </div>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </section>
   );
 }
@@ -169,7 +176,7 @@ function CategoryCard({ cat, isSlider }) {
       className={`
         group
         ${isSlider
-          ? 'flex-shrink-0 w-[160px] sm:w-[200px] lg:w-[calc((100%-64px)/5)] snap-start'
+          ? 'flex-shrink-0 snap-start w-[110px] xs:w-[130px] sm:w-[160px] md:w-[180px] lg:w-[calc((100%-64px)/5)]'
           : 'w-full'
         }
       `}
@@ -202,18 +209,18 @@ function CategoryCard({ cat, isSlider }) {
               display: cat.image ? 'none' : 'flex',
             }}
           >
-            <Leaf className="w-8 h-8 text-[#2f9e44]" />
+            <Leaf className="w-7 h-7 sm:w-8 sm:h-8 text-[#2f9e44]" />
           </div>
         </div>
 
         {/* Name */}
-        <div className="p-3 text-center">
-          <p className="font-semibold text-[#14261d] text-sm group-hover:text-[#2f9e44] transition-colors truncate">
+        <div className="p-2.5 sm:p-3 text-center">
+          <p className="font-semibold text-[#14261d] text-xs sm:text-sm group-hover:text-[#2f9e44] transition-colors truncate">
             {cat.name}
           </p>
 
           {cat.description && (
-            <p className="text-xs text-[#9ca3af] mt-0.5 line-clamp-1">
+            <p className="text-[11px] sm:text-xs text-[#9ca3af] mt-0.5 line-clamp-1">
               {cat.description}
             </p>
           )}

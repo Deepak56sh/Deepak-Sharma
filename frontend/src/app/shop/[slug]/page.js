@@ -95,10 +95,10 @@ function ReviewForm({ productId, onSubmitted }) {
 
   if (submitted) {
     return (
-      <div className="mt-6 p-6 bg-green-50 rounded-2xl border border-green-200">
+      <div className="mt-6 p-4 sm:p-6 bg-green-50 rounded-2xl border border-green-200">
         <div className="text-center">
           <div className="text-4xl mb-3">✅</div>
-          <p className="text-green-700 font-semibold text-lg">Thank you for your review!</p>
+          <p className="text-green-700 font-semibold text-base sm:text-lg">Thank you for your review!</p>
           <p className="text-green-600 text-sm mt-1">Your review is pending approval from our team.</p>
         </div>
       </div>
@@ -106,14 +106,14 @@ function ReviewForm({ productId, onSubmitted }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 p-6 bg-[#f6f8f7] rounded-2xl">
-      <h3 className="font-semibold text-[#14261d] text-lg mb-4 flex items-center gap-2">
+    <form onSubmit={handleSubmit} className="mt-6 p-4 sm:p-6 bg-[#f6f8f7] rounded-2xl">
+      <h3 className="font-semibold text-[#14261d] text-base sm:text-lg mb-4 flex items-center gap-2">
         <span>✍️</span> Write a Review
       </h3>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>}
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-[#14261d] mb-1">Your Name *</label>
           <input
@@ -122,7 +122,7 @@ function ReviewForm({ productId, onSubmitted }) {
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition text-base"
           />
         </div>
         <div>
@@ -133,20 +133,20 @@ function ReviewForm({ productId, onSubmitted }) {
             required
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition text-base"
           />
         </div>
       </div>
 
       <div className="mt-4">
         <label className="block text-sm font-medium text-[#14261d] mb-2">Rating *</label>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               type="button"
               onClick={() => setForm({ ...form, rating: star })}
-              className="text-3xl hover:scale-110 transition-transform focus:outline-none"
+              className="text-2xl sm:text-3xl hover:scale-110 transition-transform focus:outline-none"
               aria-label={`Rate ${star} stars`}
             >
               {star <= form.rating ? '⭐' : '☆'}
@@ -164,14 +164,14 @@ function ReviewForm({ productId, onSubmitted }) {
           rows={4}
           value={form.text}
           onChange={(e) => setForm({ ...form, text: e.target.value })}
-          className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white resize-none focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition"
+          className="w-full px-4 py-2.5 rounded-xl border border-[#e8ece9] bg-white resize-none focus:outline-none focus:ring-2 focus:ring-[#2f9e44] focus:border-transparent transition text-base"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 px-8 py-2.5 bg-[#2f9e44] text-white rounded-xl font-medium hover:bg-[#1f7a34] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="mt-4 w-full sm:w-auto px-8 py-2.5 bg-[#2f9e44] text-white rounded-xl font-medium hover:bg-[#1f7a34] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {loading ? (
           <>
@@ -209,8 +209,8 @@ function ReviewsList({ reviews, loading }) {
     <div className="space-y-4">
       {reviews.map((r) => (
         <div key={r._id} className="p-4 bg-[#f6f8f7] rounded-2xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-full bg-white border border-[#e8ece9] flex items-center justify-center overflow-hidden flex-shrink-0">
                 {r.avatar ? (
                   <img src={r.avatar} alt={r.name} className="w-full h-full object-cover" />
@@ -218,9 +218,9 @@ function ReviewsList({ reviews, loading }) {
                   <User className="w-4 h-4 text-[#9ca3af]" />
                 )}
               </div>
-              <p className="font-semibold text-[#14261d] text-sm">{r.name}</p>
+              <p className="font-semibold text-[#14261d] text-sm truncate">{r.name}</p>
             </div>
-            <span className="text-xs text-[#9ca3af]">
+            <span className="text-xs text-[#9ca3af] whitespace-nowrap">
               {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
           </div>
@@ -229,7 +229,7 @@ function ReviewsList({ reviews, loading }) {
               <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-[#f5a623] text-[#f5a623]' : 'text-slate-200'}`} />
             ))}
           </div>
-          <p className="text-sm text-[#4b5563] mt-2 leading-relaxed">{r.text}</p>
+          <p className="text-sm text-[#4b5563] mt-2 leading-relaxed break-words">{r.text}</p>
         </div>
       ))}
     </div>
@@ -310,7 +310,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="plant-store min-h-screen flex items-center justify-center">
+      <div className="plant-store min-h-screen flex items-center justify-center px-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f9e44]"></div>
       </div>
     );
@@ -318,8 +318,8 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="plant-store min-h-screen flex items-center justify-center">
-        <p className="text-[#6b7280]">Product not found</p>
+      <div className="plant-store min-h-screen flex items-center justify-center px-4">
+        <p className="text-[#6b7280] text-center">Product not found</p>
       </div>
     );
   }
@@ -361,8 +361,8 @@ export default function ProductDetailPage() {
     <div className="plant-store bg-white min-h-screen">
       {/* Breadcrumb */}
       <div className="border-b border-[#e8ece9]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 text-sm text-[#6b7280]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6b7280] overflow-x-auto whitespace-nowrap">
             <Link href="/" className="hover:text-[#2f9e44]">Home</Link>
             <span>/</span>
             <Link href="/shop" className="hover:text-[#2f9e44]">Shop</Link>
@@ -372,12 +372,12 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16">
           {/* Left - Image slider (gallery from admin) */}
           <AnimatedSection>
             <div className="space-y-4">
-              <div className="aspect-square bg-[#f6f8f7] rounded-3xl overflow-hidden">
+              <div className="aspect-square bg-[#f6f8f7] rounded-2xl sm:rounded-3xl overflow-hidden">
                 <img
                   src={images[selectedImage]}
                   alt={product.name}
@@ -389,12 +389,12 @@ export default function ProductDetailPage() {
               </div>
 
               {images.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-1">
+                <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
                   {images.map((img, i) => (
                     <button
                       key={img + i}
                       onClick={() => setSelectedImage(i)}
-                      className={`w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
+                      className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
                         selectedImage === i ? 'border-[#2f9e44]' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
@@ -408,21 +408,21 @@ export default function ProductDetailPage() {
 
           {/* Right - Details */}
           <AnimatedSection>
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               <div>
                 {product.category && (
                   <p className="text-sm text-[#2f9e44] font-medium mb-1">{product.category}</p>
                 )}
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#14261d]">{product.name}</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] break-words">{product.name}</h1>
               </div>
 
               {/* Price */}
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold text-[#14261d]">₹{product.price}</span>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl font-bold text-[#14261d]">₹{product.price}</span>
                 {hasDiscount && (
                   <>
-                    <span className="text-lg text-[#9ca3af] line-through">₹{product.originalPrice}</span>
-                    <span className="px-2.5 py-1 bg-red-50 text-red-600 text-sm font-semibold rounded-full">
+                    <span className="text-base sm:text-lg text-[#9ca3af] line-through">₹{product.originalPrice}</span>
+                    <span className="px-2.5 py-1 bg-red-50 text-red-600 text-xs sm:text-sm font-semibold rounded-full">
                       {discount}% OFF
                     </span>
                   </>
@@ -430,7 +430,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Rating + Stock */}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 {(product.rating > 0 || product.reviews > 0) && (
                   <div className="flex items-center gap-1.5">
                     <Star className="w-4 h-4 fill-[#f5a623] text-[#f5a623]" />
@@ -470,14 +470,14 @@ export default function ProductDetailPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7]"
+                    className="w-10 h-10 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7] flex-shrink-0"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="w-12 text-center font-semibold text-lg">{quantity}</span>
+                  <span className="w-10 sm:w-12 text-center font-semibold text-lg">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7]"
+                    className="w-10 h-10 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7] flex-shrink-0"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -486,34 +486,36 @@ export default function ProductDetailPage() {
 
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={product.inStock === false}
-                  className="flex-1 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {added ? 'Added! ✓' : 'Add to Cart'}
-                </button>
+                <div className="flex gap-3 flex-1">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={product.inStock === false}
+                    className="flex-1 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  >
+                    <ShoppingCart className="w-5 h-5 flex-shrink-0" />
+                    <span className="truncate">{added ? 'Added! ✓' : 'Add to Cart'}</span>
+                  </button>
+                  <button className="w-12 h-12 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7] flex-shrink-0">
+                    <Heart className="w-5 h-5 text-[#6b7280]" />
+                  </button>
+                </div>
                 <button
                   onClick={handleBuyNow}
                   disabled={product.inStock === false}
-                  className="flex-1 py-3.5 bg-[#14261d] hover:bg-[#1c3327] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-3.5 bg-[#14261d] hover:bg-[#1c3327] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   Buy Now
-                </button>
-                <button className="w-12 h-12 rounded-xl border border-[#e8ece9] flex items-center justify-center hover:bg-[#f6f8f7]">
-                  <Heart className="w-5 h-5 text-[#6b7280]" />
                 </button>
               </div>
 
               {/* Delivery info */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-2 text-sm text-[#6b7280]">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 text-sm text-[#6b7280]">
                 <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-[#2f9e44]" />
+                  <Truck className="w-4 h-4 text-[#2f9e44] flex-shrink-0" />
                   Free delivery on orders above ₹999
                 </div>
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#2f9e44]" />
+                  <ShieldCheck className="w-4 h-4 text-[#2f9e44] flex-shrink-0" />
                   Secure Packaging
                 </div>
               </div>
@@ -522,13 +524,13 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-14">
-          <div className="flex gap-6 border-b border-[#e8ece9] mb-8">
+        <div className="mt-10 sm:mt-14">
+          <div className="flex gap-4 sm:gap-6 border-b border-[#e8ece9] mb-6 sm:mb-8 overflow-x-auto whitespace-nowrap">
             {['description', 'care', 'reviews'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-sm font-semibold capitalize transition-colors relative ${
+                className={`pb-3 text-sm font-semibold capitalize transition-colors relative flex-shrink-0 ${
                   activeTab === tab ? 'text-[#2f9e44]' : 'text-[#6b7280] hover:text-[#14261d]'
                 }`}
               >
@@ -540,18 +542,18 @@ export default function ProductDetailPage() {
 
           <div className="max-w-3xl">
             {activeTab === 'description' && (
-              <p className="text-[#6b7280] leading-relaxed">
+              <p className="text-[#6b7280] leading-relaxed text-sm sm:text-base">
                 {product.description || 'No description added for this plant yet.'}
               </p>
             )}
 
             {activeTab === 'care' && (
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {careEntries.length > 0 ? (
                   careEntries.map(([key, value]) => (
                     <div key={key} className="p-4 bg-[#f6f8f7] rounded-2xl">
                       <p className="text-xs uppercase tracking-wide text-[#9ca3af] mb-1">{key}</p>
-                      <p className="font-medium text-[#14261d]">{value}</p>
+                      <p className="font-medium text-[#14261d] break-words">{value}</p>
                     </div>
                   ))
                 ) : (
@@ -571,9 +573,9 @@ export default function ProductDetailPage() {
 
         {/* Related Plants */}
         {product.related && product.related.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-[#14261d] mb-6">Related Plants</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="mt-12 sm:mt-16">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#14261d] mb-5 sm:mb-6">Related Plants</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
               {product.related.map((item) => (
                 <Link
                   key={item._id}
@@ -592,7 +594,7 @@ export default function ProductDetailPage() {
                       {item.name}
                     </h3>
                     <div className="flex items-center justify-between mt-1.5">
-                      <span className="font-bold text-[#14261d]">₹{item.price}</span>
+                      <span className="font-bold text-[#14261d] text-sm sm:text-base">₹{item.price}</span>
                       {item.rating > 0 && (
                         <div className="flex items-center gap-1">
                           <Star className="w-3 h-3 fill-[#f5a623] text-[#f5a623]" />

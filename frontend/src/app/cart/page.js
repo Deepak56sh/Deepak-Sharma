@@ -101,33 +101,33 @@ export default function CartPage() {
 
   if (isLoading) {
     return (
-      <div className="plant-store min-h-screen flex items-center justify-center">
+      <div className="plant-store min-h-screen flex items-center justify-center px-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f9e44]"></div>
       </div>
     );
   }
 
   return (
-    <div className="plant-store min-h-screen bg-[#f6f8f7] py-8 px-4 sm:px-6">
+    <div className="plant-store min-h-screen bg-[#f6f8f7] py-6 sm:py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-2 text-sm text-slate-400 mb-6">
+        <div className="flex items-center gap-2 text-sm text-slate-400 mb-5 sm:mb-6">
           <Link href="/" className="hover:text-[#2f9e44]">Home</Link>
           <span>/</span>
           <span className="text-slate-700">Cart</span>
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-5 sm:mb-6">
           Cart <span className="text-slate-400 font-normal">({cart.length} items)</span>
         </h1>
 
         {cart.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#e8ece9] p-16 text-center">
-            <ShoppingBag className="w-14 h-14 text-slate-200 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-slate-800 mb-1">Your cart is empty</h2>
+          <div className="bg-white rounded-2xl border border-[#e8ece9] p-8 sm:p-16 text-center">
+            <ShoppingBag className="w-12 h-12 sm:w-14 sm:h-14 text-slate-200 mx-auto mb-4" />
+            <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-1">Your cart is empty</h2>
             <p className="text-slate-400 text-sm mb-6">Looks like you haven&apos;t added any plants yet.</p>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 text-white font-medium px-6 py-3 rounded-lg bg-[#2f9e44] hover:bg-[#1f7a34] transition-colors"
+              className="inline-flex items-center gap-2 text-white font-medium px-6 py-3 rounded-lg bg-[#2f9e44] hover:bg-[#1f7a34] transition-colors text-sm sm:text-base"
             >
               Continue Shopping <ArrowRight className="w-4 h-4" />
             </Link>
@@ -137,23 +137,26 @@ export default function CartPage() {
             {/* Items list */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-[#e8ece9] divide-y divide-[#e8ece9]">
               {cart.map((item) => (
-                <div key={item._id} className="flex items-center gap-4 p-5">
-                  <div className="w-20 h-20 rounded-xl bg-[#eaf7ee] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div
+                  key={item._id}
+                  className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-4 sm:p-5"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#eaf7ee] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
-                      <Sprout className="w-8 h-8 text-[#2f9e44]" />
+                      <Sprout className="w-7 h-7 sm:w-8 sm:h-8 text-[#2f9e44]" />
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-slate-800">{item.name}</div>
+                  <div className="flex-1 min-w-[120px]">
+                    <div className="font-medium text-slate-800 text-sm sm:text-base break-words">{item.name}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="font-semibold text-slate-800">₹{item.price}</span>
+                      <span className="font-semibold text-slate-800 text-sm sm:text-base">₹{item.price}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center border border-[#e8ece9] rounded-lg">
+                  <div className="flex items-center border border-[#e8ece9] rounded-lg flex-shrink-0">
                     <button
                       onClick={() => updateQty(item._id, -1)}
                       className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
@@ -169,20 +172,25 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  <div className="w-20 text-right font-semibold text-slate-800 hidden sm:block">
+                  <div className="w-16 sm:w-20 text-right font-semibold text-slate-800 text-sm sm:text-base flex-shrink-0 hidden sm:block">
                     ₹{(item.price * item.quantity).toLocaleString()}
                   </div>
 
                   <button
                     onClick={() => removeItem(item._id)}
-                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                    className="p-2 text-slate-300 hover:text-red-500 transition-colors flex-shrink-0 ml-auto sm:ml-0"
                   >
                     <X className="w-4 h-4" />
                   </button>
+
+                  {/* Line total shown on its own row on mobile */}
+                  <div className="w-full sm:hidden flex justify-end text-sm font-semibold text-slate-800 -mt-1">
+                    Total: ₹{(item.price * item.quantity).toLocaleString()}
+                  </div>
                 </div>
               ))}
 
-              <div className="p-5">
+              <div className="p-4 sm:p-5">
                 <Link href="/shop" className="text-sm font-medium text-[#2f9e44] hover:underline">
                   ← Continue Shopping
                 </Link>
@@ -190,7 +198,7 @@ export default function CartPage() {
             </div>
 
             {/* Order summary */}
-            <div className="bg-white rounded-2xl border border-[#e8ece9] p-6 h-fit sticky top-24">
+            <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 sm:p-6 h-fit lg:sticky lg:top-24">
               <h2 className="font-semibold text-slate-800 mb-4">Order Summary</h2>
 
               <div className="mb-4">
@@ -198,15 +206,15 @@ export default function CartPage() {
 
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between bg-[#eaf7ee] border border-[#2f9e44]/30 rounded-lg px-3 py-2.5">
-                    <div className="flex items-center gap-2 text-sm text-[#2f9e44] font-medium">
-                      <Tag className="w-4 h-4" /> {appliedCoupon.code}
+                    <div className="flex items-center gap-2 text-sm text-[#2f9e44] font-medium min-w-0">
+                      <Tag className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{appliedCoupon.code}</span>
                     </div>
-                    <button onClick={removeCoupon} className="text-slate-400 hover:text-red-500">
+                    <button onClick={removeCoupon} className="text-slate-400 hover:text-red-500 flex-shrink-0">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex flex-col xs:flex-row gap-2">
                     <div className="relative flex-1">
                       <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
                       <input
@@ -220,7 +228,7 @@ export default function CartPage() {
                     <button
                       onClick={applyCoupon}
                       disabled={applyingCoupon || !couponCode.trim()}
-                      className="px-4 py-2 text-sm font-medium rounded-lg border border-[#e8ece9] text-slate-600 hover:border-[#2f9e44] hover:text-[#2f9e44] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-[#e8ece9] text-slate-600 hover:border-[#2f9e44] hover:text-[#2f9e44] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 flex-shrink-0"
                     >
                       {applyingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
                     </button>
@@ -261,7 +269,7 @@ export default function CartPage() {
 
               <Link
                 href="/checkout"
-                className="w-full mt-5 flex items-center justify-center gap-2 text-white font-medium py-3 rounded-lg bg-[#2f9e44] hover:bg-[#1f7a34] transition-colors"
+                className="w-full mt-5 flex items-center justify-center gap-2 text-white font-medium py-3 rounded-lg bg-[#2f9e44] hover:bg-[#1f7a34] transition-colors text-sm sm:text-base"
               >
                 Proceed to Checkout <ArrowRight className="w-4 h-4" />
               </Link>
