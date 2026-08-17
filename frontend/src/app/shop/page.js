@@ -388,7 +388,7 @@ export default function ShopPage() {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3">
                 Indoor Plants Collection
               </h1>
-              <p className="text-white/70 text-lg max-w-md">
+              <p className="text-white/70 text-lg">
                 Find the perfect plant for your space
               </p>
             </div>
