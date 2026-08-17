@@ -8,8 +8,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661
 const defaultAboutData = {
   title: 'About Us',
   subtitle: 'Our Story',
-  description1: '<p>Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and the better.</p>', // ✅ CHANGED
-  description2: '', // ✅ NEW
+  description1: '<p>Plantora was born out of a passion for plants and a mission to bring nature closer to every home. We believe plants make people happier, healthier and the better.</p>',
+  description2: '',
   points: [
     'Handpicked Healthy Plants',
     'Expert Plant Care Guidance',
@@ -58,8 +58,8 @@ export default function AboutPage() {
 
   if (loading) {
     return (
-      <div className="plant-store min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f9e44]"></div>
+      <div className="plant-store min-h-screen flex items-center justify-center px-4">
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#2f9e44]"></div>
       </div>
     );
   }
@@ -69,32 +69,32 @@ export default function AboutPage() {
   const teamMembers = data.teamMembers || [];
 
   return (
-    <div className="plant-store bg-white">
+    <div className="plant-store bg-white w-full overflow-x-hidden">
       {/* ===== Hero / Story Section ===== */}
-      <section className="py-16 lg:py-24">
+      <section className="py-10 sm:py-14 md:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
             {/* Left Content */}
             <AnimatedSection>
-              <div className="space-y-6">
+              <div className="space-y-5 sm:space-y-6 w-full min-w-0">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-[#14261d] mb-2">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#14261d] mb-2 break-words">
                     {data.title || 'About Us'}
                   </h1>
-                  <h2 className="text-xl font-semibold text-[#2f9e44]">
+                  <h2 className="text-lg sm:text-xl font-semibold text-[#2f9e44] break-words">
                     {data.subtitle || 'Our Story'}
                   </h2>
                 </div>
 
-                {/* ✅ CHANGED — rich HTML content render, design-safe wrapping */}
-                <div className="space-y-4">
+                {/* Rich HTML content — always wraps, never overflows on any screen */}
+                <div className="space-y-4 min-w-0">
                   <div
-                    className="ps-richtext text-base sm:text-lg"
+                    className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
                     dangerouslySetInnerHTML={{ __html: data.description1 || defaultAboutData.description1 }}
                   />
                   {data.description2 && (
                     <div
-                      className="ps-richtext text-base sm:text-lg"
+                      className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
                       dangerouslySetInnerHTML={{ __html: data.description2 }}
                     />
                   )}
@@ -102,24 +102,24 @@ export default function AboutPage() {
 
                 <ul className="space-y-3 pt-2">
                   {(data.points || defaultAboutData.points).map((point, i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#eaf7ee] flex items-center justify-center flex-shrink-0">
+                    <li key={i} className="flex items-start sm:items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-[#eaf7ee] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
                         <CheckCircle className="w-4 h-4 text-[#2f9e44]" />
                       </div>
-                      <span className="text-[#14261d] font-medium">{point}</span>
+                      <span className="text-[#14261d] font-medium break-words min-w-0">{point}</span>
                     </li>
                   ))}
                 </ul>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-4 sm:pt-6">
                   {(data.stats || defaultAboutData.stats).map((stat, i) => (
                     <div
                       key={i}
-                      className="text-center p-4 bg-[#f6f8f7] rounded-2xl border border-[#e8ece9]"
+                      className="text-center p-3 sm:p-4 bg-[#f6f8f7] rounded-2xl border border-[#e8ece9] min-w-0"
                     >
-                      <div className="text-2xl font-bold text-[#2f9e44]">{stat.number}</div>
-                      <div className="text-xs text-[#6b7280] mt-1 leading-tight">{stat.label}</div>
+                      <div className="text-xl sm:text-2xl font-bold text-[#2f9e44] break-words">{stat.number}</div>
+                      <div className="text-xs text-[#6b7280] mt-1 leading-tight break-words">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -128,12 +128,12 @@ export default function AboutPage() {
 
             {/* Right Image */}
             <AnimatedSection>
-              <div className="relative">
+              <div className="relative w-full">
                 <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
                 <img
                   src={data.teamImage || defaultAboutData.image}
                   alt="About Plantora"
-                  className="relative rounded-3xl shadow-xl w-full h-[400px] sm:h-[480px] object-cover"
+                  className="relative rounded-3xl shadow-xl w-full h-[260px] xs:h-[300px] sm:h-[380px] md:h-[440px] lg:h-[480px] object-cover"
                   onError={(e) => {
                     e.target.src = defaultAboutData.image;
                   }}
@@ -146,32 +146,34 @@ export default function AboutPage() {
 
       {/* ===== Awards Section ===== */}
       {awards.length > 0 && (
-        <section className="py-16 lg:py-20 bg-[#f6f8f7]">
+        <section className="py-10 sm:py-14 md:py-16 lg:py-20 bg-[#f6f8f7]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <AnimatedSection>
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#eaf7ee] mb-4">
-                  <AwardIcon className="w-7 h-7 text-[#2f9e44]" />
+              <div className="text-center mb-10 sm:mb-12">
+                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#eaf7ee] mb-4">
+                  <AwardIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#2f9e44]" />
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d] mb-2">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] mb-2 break-words">
                   Awards & Recognition
                 </h2>
-                <p className="text-[#6b7280] max-w-xl mx-auto">
+                <p className="text-sm sm:text-base text-[#6b7280] max-w-xl mx-auto break-words px-2">
                   Honored for our commitment to quality and sustainable practices
                 </p>
               </div>
             </AnimatedSection>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {awards.map((award, i) => (
                 <AnimatedSection key={award._id || i}>
-                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex items-center gap-4 hover:shadow-md transition-shadow flex-col text-center">
-                    <img
-                      src={award.image}
-                      alt={award.title}
-                      className="w-full h-full rounded-xl object-cover flex-shrink-0"
-                    />
-                    <p className="text-[#14261d] font-medium leading-snug">
+                  <div className="bg-white rounded-2xl border border-[#e8ece9] p-5 flex flex-col items-center text-center gap-4 hover:shadow-md transition-shadow h-full">
+                    <div className="w-full aspect-square rounded-xl overflow-hidden bg-[#f6f8f7]">
+                      <img
+                        src={award.image}
+                        alt={award.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-[#14261d] font-medium leading-snug break-words">
                       {award.title}
                     </p>
                   </div>
@@ -184,32 +186,32 @@ export default function AboutPage() {
 
       {/* ===== Team Members Section ===== */}
       {teamMembers.length > 0 && (
-        <section className="py-16 lg:py-20">
+        <section className="py-10 sm:py-14 md:py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <AnimatedSection>
-              <div className="text-center mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d] mb-2">
+              <div className="text-center mb-10 sm:mb-12">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] mb-2 break-words">
                   Meet Our Team
                 </h2>
-                <p className="text-[#6b7280] max-w-xl mx-auto">
+                <p className="text-sm sm:text-base text-[#6b7280] max-w-xl mx-auto break-words px-2">
                   The people behind every plant we grow and every order we deliver
                 </p>
               </div>
             </AnimatedSection>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {teamMembers.map((member, i) => (
                 <AnimatedSection key={member._id || i}>
-                  <div className="text-center group">
-                    <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 bg-[#f6f8f7]">
+                  <div className="text-center group min-w-0">
+                    <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-3 sm:mb-4 bg-[#f6f8f7]">
                       <img
                         src={member.image}
                         alt={member.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
-                    <h3 className="text-[#14261d] font-semibold">{member.name}</h3>
-                    <p className="text-sm text-[#2f9e44]">{member.position}</p>
+                    <h3 className="text-[#14261d] font-semibold text-sm sm:text-base break-words">{member.name}</h3>
+                    <p className="text-xs sm:text-sm text-[#2f9e44] break-words">{member.position}</p>
                   </div>
                 </AnimatedSection>
               ))}

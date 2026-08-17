@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Play, X } from 'lucide-react';
+import { Play, X, Instagram } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
@@ -25,11 +25,20 @@ const fallbackReels = [
   },
 ];
 
-export default function InstagramReels({ title = 'Follow Us on Instagram', subtitle = 'Hover to play · Click to watch full' }) {
+// ✅ NEW: apna Instagram account/profile URL yahan daal dijiye (ya prop se pass kar dijiye).
+// Yeh alag hai reel.link se — reel.link ek specific post/reel ka link hota hai,
+// jabki yeh button seedha aapke MAIN Instagram account pe le jayega.
+const DEFAULT_INSTAGRAM_PROFILE_URL = 'https://instagram.com/plantora';
+
+export default function InstagramReels({
+  title = 'Follow Us on Instagram',
+  subtitle = 'Hover to play · Click to watch full',
+  profileUrl = DEFAULT_INSTAGRAM_PROFILE_URL,
+}) {
   const [reels, setReels] = useState(fallbackReels);
   const [popupReel, setPopupReel] = useState(null);
   const hoverRefs = useRef({});
-  const popupVideoRef = useRef(null); // ✅ NEW: ref for the popup video so we can explicitly play() it with sound
+  const popupVideoRef = useRef(null); // ref for the popup video so we can explicitly play() it with sound
 
   useEffect(() => {
     const fetchReels = async () => {
@@ -46,7 +55,7 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
     fetchReels();
   }, []);
 
-  // ✅ NEW: whenever the popup opens with a reel, explicitly unmute + play with sound.
+  // whenever the popup opens with a reel, explicitly unmute + play with sound.
   // Relying only on the `autoPlay` attribute is unreliable for audio because the
   // <video> element mounts a tick after the click (state update), which some
   // browsers no longer treat as tightly tied to the user gesture. Calling
@@ -83,6 +92,17 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
     }
   };
 
+  // ✅ FIX: agar admin ne is reel ke liye Instagram link add kiya hai, to click
+  // karne par seedha wahi Instagram post/profile naye tab me khulega.
+  // Link na ho to purana behaviour (in-page video popup) chalta rahega.
+  const handleCardClick = (reel) => {
+    if (reel.link) {
+      window.open(reel.link, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    setPopupReel(reel);
+  };
+
   const closePopup = () => {
     if (popupVideoRef.current) {
       popupVideoRef.current.pause();
@@ -93,22 +113,39 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
   if (!reels.length) return null;
 
   return (
-    <section className="py-14 lg:py-16 bg-white">
+    <section className="py-10 sm:py-14 lg:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">{title}</h2>
-          <p className="text-[#6b7280] text-sm mt-1">{subtitle}</p>
+        <div className="flex flex-col items-center text-center mb-6 sm:mb-8 gap-3">
+          {/* Instagram account icon — click karte hi seedha real Instagram account khulega naye tab me */}
+          {profileUrl && (
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit our Instagram account"
+              title="Visit our Instagram account"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white shadow-md hover:scale-105 active:scale-95 transition-transform"
+              style={{ background: 'linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4)' }}
+            >
+              <Instagram className="w-5 h-5 sm:w-6 sm:h-6" />
+            </a>
+          )}
+          <div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] break-words">{title}</h2>
+            <p className="text-[#6b7280] text-xs sm:text-sm mt-1 break-words">{subtitle}</p>
+          </div>
         </div>
 
-        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
           {reels.map((reel) => (
             <button
               key={reel._id}
               type="button"
-              onClick={() => setPopupReel(reel)}
+              onClick={() => handleCardClick(reel)}
               onMouseEnter={() => handleEnter(reel._id)}
               onMouseLeave={() => handleLeave(reel._id)}
-              className="relative flex-shrink-0 w-[160px] sm:w-[180px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#14261d] snap-start group cursor-pointer border border-[#e8ece9] hover:border-[#2f9e44]/40 transition-all"
+              title={reel.link ? 'Open on Instagram' : reel.title}
+              className="relative flex-shrink-0 w-[140px] xs:w-[160px] sm:w-[180px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#14261d] snap-start group cursor-pointer border border-[#e8ece9] hover:border-[#2f9e44]/40 transition-all"
             >
               <video
                 ref={(el) => {
@@ -122,13 +159,25 @@ export default function InstagramReels({ title = 'Follow Us on Instagram', subti
                 className="absolute inset-0 w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity" />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+
+              {/* Play icon jab video ka in-page popup khulega (link nahi hai) */}
+              {!reel.link && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white ml-0.5" />
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Instagram badge jab link diya gaya ho — user ko clear signal ki click pe Instagram khulega */}
+              {reel.link && (
+                <div className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+                  <Instagram className="w-3.5 h-3.5 text-white" />
+                </div>
+              )}
+
               {reel.title && (
-                <p className="absolute bottom-3 left-3 right-3 text-white text-xs font-medium line-clamp-2 text-left">
+                <p className="absolute bottom-3 left-3 right-3 text-white text-xs font-medium line-clamp-2 text-left break-words">
                   {reel.title}
                 </p>
               )}

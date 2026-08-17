@@ -76,9 +76,22 @@ export default function Testimonials({
     fetchTestimonials();
   }, []);
 
+  // Jab testimonials list change ho (grid <-> slider), refs aur scroll button
+  // state ko reset karo taaki stale/left-over scroll position na dikhe.
+  useEffect(() => {
+    cardRefs.current = [];
+    if (sliderRef.current) sliderRef.current.scrollLeft = 0;
+    setActiveIndex(0);
+    setCanScrollLeft(false);
+    setCanScrollRight(testimonials.length > 4);
+  }, [testimonials]);
+
   if (!testimonials.length) return null;
 
-  // Slider sirf tab enable hoga jab 4 se zyada items hon
+  // Slider sirf tab enable hoga jab 4 se zyada items hon.
+  // 4 ya usse kam items hamesha normal (non-scrolling) grid me dikhenge —
+  // yehi wo jagah hai jaha "default scroll" dikhne ka sabse zyada chance tha,
+  // isliye is threshold ko is component ka single source of truth banaya gaya hai.
   const isSlider = testimonials.length > 4;
 
   const scrollByPage = (direction) => {
@@ -125,24 +138,27 @@ export default function Testimonials({
   };
 
   return (
-    <section className="py-12 sm:py-14 lg:py-16 bg-[#f6f8f7]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    // overflow-x-hidden yahan safety-net hai: agar kabhi child widths ka calc
+    // (gap + %) rounding ki wajah se 1-2px overflow kare, to woh is section
+    // ke andar hi rukega — poore PAGE ko horizontally scroll nahi karayega.
+    <section className="py-12 sm:py-14 lg:py-16 bg-[#f6f8f7] overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
 
         {/* Heading */}
         <div className="flex flex-wrap items-end justify-between gap-4 mb-8 sm:mb-10">
-          <div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d]">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] break-words">
               {title}
             </h2>
 
-            <p className="text-[#6b7280] text-sm mt-1">
+            <p className="text-[#6b7280] text-sm mt-1 break-words">
               {subtitle}
             </p>
           </div>
 
-          {/* Slider Buttons */}
+          {/* Slider Buttons — sirf tab dikhte hain jab slider mode active ho */}
           {isSlider && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => scrollByPage('left')}
@@ -167,10 +183,10 @@ export default function Testimonials({
         </div>
 
         {/* ========================= */}
-        {/* 4 OR LESS = NORMAL GRID */}
+        {/* 4 OR LESS = NORMAL GRID (koi scroll nahi) */}
         {/* ========================= */}
         {!isSlider ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {testimonials.map((t) => (
               <AnimatedSection key={t._id}>
                 <TestimonialCard testimonial={t} />
@@ -184,8 +200,12 @@ export default function Testimonials({
           <div
             ref={sliderRef}
             onScroll={handleScroll}
-            className="scrollbar-hide flex gap-5 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="scrollbar-hide flex gap-4 sm:gap-5 overflow-x-auto snap-x snap-mandatory pb-2"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
           >
             {testimonials.map((t, i) => (
               <div
@@ -225,6 +245,10 @@ export default function Testimonials({
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
+        .scrollbar-hide {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
       `}</style>
     </section>
   );
@@ -240,10 +264,10 @@ function TestimonialCard({ testimonial: t }) {
     <div className="h-full min-h-[240px] sm:min-h-[260px] bg-white rounded-2xl border border-[#e8ece9] p-4 sm:p-5 flex flex-col hover:shadow-md transition-shadow">
 
       {/* Quote */}
-      <Quote className="w-7 h-7 sm:w-8 sm:h-8 text-[#2f9e44]/30 mb-3" />
+      <Quote className="w-7 h-7 sm:w-8 sm:h-8 text-[#2f9e44]/30 mb-3 flex-shrink-0" />
 
       {/* Text */}
-      <p className="text-sm text-[#4b5563] leading-relaxed flex-1 break-words">
+      <p className="text-sm text-[#4b5563] leading-relaxed flex-1 break-words [overflow-wrap:anywhere]">
         &ldquo;{t.text}&rdquo;
       </p>
 
@@ -252,7 +276,7 @@ function TestimonialCard({ testimonial: t }) {
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className={`w-3.5 h-3.5 ${
+            className={`w-3.5 h-3.5 flex-shrink-0 ${
               i < (t.rating || 5)
                 ? 'fill-[#f5a623] text-[#f5a623]'
                 : 'text-slate-200'
@@ -262,7 +286,7 @@ function TestimonialCard({ testimonial: t }) {
       </div>
 
       {/* User */}
-      <div className="flex items-center gap-3 pt-3 border-t border-[#e8ece9]">
+      <div className="flex items-center gap-3 pt-3 border-t border-[#e8ece9] min-w-0">
         <img
           src={t.avatar}
           alt={t.name}

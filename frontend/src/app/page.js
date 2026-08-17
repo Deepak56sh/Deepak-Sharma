@@ -12,7 +12,7 @@ import CategoriesSlider from '@/components/CategoriesSlider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
-// ✅ NEW — rich HTML content ko plain text me convert karta hai, home page preview ke liye
+// Rich HTML content ko plain text me convert karta hai, home page preview ke liye
 function stripHtml(html = '') {
   if (!html) return '';
   if (typeof window === 'undefined') {
@@ -71,7 +71,7 @@ const bestSellers = [
 const defaultAboutData = {
   title: 'About Us',
   subtitle: 'Our Story',
-  description1: '<p>Plantora was born out of a passion for plants and a mission to bring nature closer to every home.</p>', // ✅ CHANGED
+  description1: '<p>Plantora was born out of a passion for plants and a mission to bring nature closer to every home.</p>',
   points: ['Handpicked Healthy Plants', 'Expert Plant Care Guidance', 'Sustainable & Eco-Friendly', 'Happy Customer Support'],
   stats: [
     { number: '10K+', label: 'Happy Customers' },
@@ -134,8 +134,9 @@ export default function HomePage() {
     };
     fetchAbout();
   }, []);
-   // 👇 YAHAN ADD KARO — naya useEffect
-    useEffect(() => {
+
+  // Fetch Best Sellers
+  useEffect(() => {
     const fetchBestSellers = async () => {
       try {
         const res = await fetch(`${API_URL}/products?limit=50&active=true`, {
@@ -166,10 +167,10 @@ export default function HomePage() {
   const slide = slides[current] || fallbackSlides[0];
 
   return (
-    <div className="plant-store bg-white">
+    <div className="plant-store bg-white w-full overflow-x-hidden">
 
       {/* ===================== HERO ===================== */}
-      <section className="relative w-full h-[520px] sm:h-[600px] lg:h-[680px] overflow-hidden bg-[#14261d]">
+      <section className="relative w-full h-[460px] xs:h-[500px] sm:h-[560px] md:h-[620px] lg:h-[680px] overflow-hidden bg-[#14261d]">
         <div className="absolute inset-0">
           {slide.mediaType === 'video' ? (
             <video
@@ -188,35 +189,35 @@ export default function HomePage() {
         </div>
 
         <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-          <div className="max-w-xl space-y-5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm text-white font-medium">
-              <Leaf className="w-4 h-4 text-[#7ee2a8]" />
-              {badge}
+          <div className="max-w-xl w-full space-y-4 sm:space-y-5 min-w-0">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-xs sm:text-sm text-white font-medium max-w-full break-words">
+              <Leaf className="w-4 h-4 text-[#7ee2a8] flex-shrink-0" />
+              <span className="break-words">{badge}</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-white leading-[1.1]">
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-[56px] font-bold text-white leading-[1.15] sm:leading-[1.1] break-words">
               {slide.title}<br />
               <span className="text-[#7ee2a8]">{slide.subtitle}</span>
             </h1>
-            <p className="text-base sm:text-lg text-white/80 max-w-md leading-relaxed">{slide.description}</p>
+            <p className="text-sm sm:text-base md:text-lg text-white/80 max-w-md leading-relaxed break-words">{slide.description}</p>
             <div className="flex flex-wrap gap-3 pt-1">
-              <Link href={slide.primaryBtnLink || '/shop'} className="inline-flex items-center gap-2 px-6 py-3 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all shadow-md">
+              <Link href={slide.primaryBtnLink || '/shop'} className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold text-sm sm:text-base rounded-xl transition-all shadow-md">
                 {slide.primaryBtn || 'Shop Plants'} <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href={slide.secondaryBtnLink || '/shop'} className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/20 font-semibold rounded-xl transition-all">
+              <Link href={slide.secondaryBtnLink || '/shop'} className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-white/10 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/20 font-semibold text-sm sm:text-base rounded-xl transition-all">
                 {slide.secondaryBtn || 'Explore'}
               </Link>
             </div>
           </div>
         </div>
 
-        <button onClick={prev} className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all">
-          <ChevronLeft className="w-5 h-5 text-white" />
+        <button onClick={prev} className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all">
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
         </button>
-        <button onClick={next} className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all">
-          <ChevronRight className="w-5 h-5 text-white" />
+        <button onClick={next} className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center transition-all">
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
         </button>
 
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
           {slides.map((_, i) => (
             <button key={i} onClick={() => setCurrent(i)} className={`h-2 rounded-full transition-all duration-300 ${i === current ? 'w-8 bg-[#2f9e44]' : 'w-2 bg-white/40'}`} />
           ))}
@@ -226,7 +227,7 @@ export default function HomePage() {
       {/* ===================== FEATURES ===================== */}
       <section className="border-y border-[#e8ece9] bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 py-7">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5 py-6 sm:py-7">
             {[
               { icon: Leaf, title: 'Indoor Plants', desc: 'Fresh & Healthy' },
               { icon: ShieldCheck, title: 'Air Purifying', desc: 'Better Air' },
@@ -235,12 +236,12 @@ export default function HomePage() {
               { icon: Truck, title: 'Fast Delivery', desc: 'Pan India' },
               { icon: ShoppingBag, title: 'Secure Packaging', desc: 'Plant Safety' },
             ].map((item, i) => (
-              <div key={i} className="flex flex-col items-center text-center gap-1.5">
-                <div className="w-11 h-11 rounded-full bg-[#eaf7ee] flex items-center justify-center">
+              <div key={i} className="flex flex-col items-center text-center gap-1.5 min-w-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#eaf7ee] flex items-center justify-center flex-shrink-0">
                   <item.icon className="w-5 h-5 text-[#2f9e44]" />
                 </div>
-                <p className="text-sm font-semibold text-[#14261d]">{item.title}</p>
-                <p className="text-xs text-[#6b7280]">{item.desc}</p>
+                <p className="text-xs sm:text-sm font-semibold text-[#14261d] break-words">{item.title}</p>
+                <p className="text-[11px] sm:text-xs text-[#6b7280] break-words">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -250,28 +251,28 @@ export default function HomePage() {
       {/* ===================== CATEGORIES SLIDER ===================== */}
       {categories.length > 0 && <CategoriesSlider categories={categories} />}
 
-  {/* ===================== BEST SELLERS ===================== */}
-      <section className="py-12 lg:py-16 bg-white">
+      {/* ===================== BEST SELLERS ===================== */}
+      <section className="py-10 sm:py-12 lg:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">Best Sellers</h2>
-              <p className="text-[#6b7280] text-sm mt-1">Handpicked plants loved by our customers</p>
+          <div className="flex items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3 flex-wrap">
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] break-words">Best Sellers</h2>
+              <p className="text-[#6b7280] text-xs sm:text-sm mt-1 break-words">Handpicked plants loved by our customers</p>
             </div>
-            <Link href="/shop" className="hidden sm:inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm hover:underline">
+            <Link href="/shop" className="hidden sm:inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm hover:underline flex-shrink-0">
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
             {bestSellerPlants.slice(0, 5).map((plant, i) => {
-              const originalPrice = plant.originalPrice || plant.original; // dono support
+              const originalPrice = plant.originalPrice || plant.original;
               return (
                 <Link
                   key={plant._id || i}
                   href={`/shop/${plant.slug || plant._id || ''}`}
-                  className="group block"
+                  className="group block min-w-0"
                 >
-                  <div className="bg-white border border-[#e8ece9] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#2f9e44]/25 transition-all duration-300">
+                  <div className="bg-white border border-[#e8ece9] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#2f9e44]/25 transition-all duration-300 h-full flex flex-col">
                     <div className="aspect-square overflow-hidden bg-[#f6f8f7]">
                       <img
                         src={plant.image}
@@ -282,19 +283,19 @@ export default function HomePage() {
                         }}
                       />
                     </div>
-                    <div className="p-3.5">
-                      <h3 className="font-semibold text-[#14261d] text-sm line-clamp-1 group-hover:text-[#2f9e44] transition-colors">
+                    <div className="p-2.5 sm:p-3.5 min-w-0">
+                      <h3 className="font-semibold text-[#14261d] text-xs sm:text-sm line-clamp-1 group-hover:text-[#2f9e44] transition-colors break-words">
                         {plant.name}
                       </h3>
                       <div className="flex items-center gap-1 mt-1">
-                        <Star className="w-3.5 h-3.5 fill-[#f5a623] text-[#f5a623]" />
+                        <Star className="w-3.5 h-3.5 fill-[#f5a623] text-[#f5a623] flex-shrink-0" />
                         <span className="text-xs font-medium text-[#14261d]">{plant.rating}</span>
                         <span className="text-xs text-[#9ca3af]">({plant.reviews})</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="font-bold text-[#14261d]">₹{plant.price}</span>
+                      <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1.5">
+                        <span className="font-bold text-[#14261d] text-sm sm:text-base">₹{plant.price}</span>
                         {originalPrice && (
-                          <span className="text-sm text-[#9ca3af] line-through">₹{originalPrice}</span>
+                          <span className="text-xs sm:text-sm text-[#9ca3af] line-through">₹{originalPrice}</span>
                         )}
                       </div>
                     </div>
@@ -312,29 +313,36 @@ export default function HomePage() {
       </section>
 
       {/* ===================== ABOUT ===================== */}
-      <section className="py-14 lg:py-20 bg-[#f6f8f7]">
+      <section className="py-10 sm:py-14 lg:py-20 bg-[#f6f8f7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-center">
             <AnimatedSection>
-              <div className="relative">
+              <div className="relative w-full">
                 <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
-                <img
-                  src={aboutData?.teamImage || aboutData?.image || defaultAboutData.image}
-                  alt="About Plantora"
-                  className="relative rounded-3xl shadow-xl w-full h-[340px] sm:h-[400px] object-cover"
-                  onError={(e) => { e.target.src = defaultAboutData.image; }}
-                />
+                {/*
+                  Auto-fit image box: chahe image chhoti ho, badi ho, portrait ho ya
+                  landscape ho — object-contain se poori image container ke andar
+                  hamesha completely visible rahegi, kabhi crop ya distort nahi hogi.
+                */}
+                <div className="relative rounded-3xl shadow-xl w-full h-[260px] xs:h-[300px] sm:h-[360px] md:h-[400px] bg-white overflow-hidden flex items-center justify-center p-2">
+                  <img
+                    src={aboutData?.teamImage || aboutData?.image || defaultAboutData.image}
+                    alt="About Plantora"
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl"
+                    onError={(e) => { e.target.src = defaultAboutData.image; }}
+                  />
+                </div>
               </div>
             </AnimatedSection>
             <AnimatedSection>
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5 min-w-0">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[#14261d]">{aboutData?.title || 'About Us'}</h2>
-                  <h3 className="text-lg font-semibold text-[#2f9e44] mt-1">{aboutData?.subtitle || 'Our Story'}</h3>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#14261d] break-words">{aboutData?.title || 'About Us'}</h2>
+                  <h3 className="text-base sm:text-lg font-semibold text-[#2f9e44] mt-1 break-words">{aboutData?.subtitle || 'Our Story'}</h3>
                 </div>
 
-                {/* ✅ CHANGED — rich HTML se plain text preview, 4 lines tak clamp, layout kabhi nahi bigdega */}
-                <p className="text-[#6b7280] leading-relaxed line-clamp-4">
+                {/* Rich HTML se plain text preview, 4 lines tak clamp, layout kabhi nahi bigdega */}
+                <p className="text-[#6b7280] text-sm sm:text-base leading-relaxed line-clamp-4 break-words">
                   {stripHtml(aboutData?.description1 || defaultAboutData.description1)}
                 </p>
                 <Link href="/about" className="inline-flex items-center gap-1.5 text-[#2f9e44] font-semibold text-sm hover:underline">
@@ -343,19 +351,19 @@ export default function HomePage() {
 
                 <ul className="space-y-3">
                   {(aboutData?.points || defaultAboutData.points).map((item, i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0">
+                    <li key={i} className="flex items-start sm:items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#2f9e44] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
                         <CheckCircle className="w-3 h-3 text-white" />
                       </div>
-                      <span className="text-[#14261d] font-medium text-sm sm:text-base">{item}</span>
+                      <span className="text-[#14261d] font-medium text-sm sm:text-base break-words min-w-0">{item}</span>
                     </li>
                   ))}
                 </ul>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
                   {(aboutData?.stats || defaultAboutData.stats).map((stat, i) => (
-                    <div key={i} className="text-center p-3 bg-white rounded-xl border border-[#e8ece9]">
-                      <div className="text-xl font-bold text-[#2f9e44]">{stat.number}</div>
-                      <div className="text-[11px] text-[#6b7280] mt-0.5 leading-tight">{stat.label}</div>
+                    <div key={i} className="text-center p-2.5 sm:p-3 bg-white rounded-xl border border-[#e8ece9] min-w-0">
+                      <div className="text-lg sm:text-xl font-bold text-[#2f9e44] break-words">{stat.number}</div>
+                      <div className="text-[10px] sm:text-[11px] text-[#6b7280] mt-0.5 leading-tight break-words">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -369,12 +377,12 @@ export default function HomePage() {
       <Testimonials />
 
       {/* ===================== CTA ===================== */}
-      <section className="py-14 lg:py-16" style={{ backgroundColor: '#14261d' }}>
+      <section className="py-12 sm:py-14 lg:py-16" style={{ backgroundColor: '#14261d' }}>
         <div className="max-w-4xl mx-auto px-4 text-center">
           <AnimatedSection>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">Ready to bring nature home?</h2>
-            <p className="text-white/70 text-base sm:text-lg mb-8 max-w-2xl mx-auto">Explore our collection of premium indoor plants and transform your space today.</p>
-            <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold rounded-xl transition-all">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 break-words">Ready to bring nature home?</h2>
+            <p className="text-white/70 text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto break-words">Explore our collection of premium indoor plants and transform your space today.</p>
+            <Link href="/shop" className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-[#2f9e44] hover:bg-[#1f7a34] text-white font-semibold text-sm sm:text-base rounded-xl transition-all">
               Shop Now <ArrowRight className="w-5 h-5" />
             </Link>
           </AnimatedSection>
