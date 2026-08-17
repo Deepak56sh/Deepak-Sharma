@@ -67,14 +67,36 @@ export default function AboutPage() {
   const data = aboutData || defaultAboutData;
   const awards = data.awards || [];
   const teamMembers = data.teamMembers || [];
+  const points = data.points || defaultAboutData.points;
 
   return (
     <div className="plant-store bg-white w-full overflow-x-hidden">
-      {/* ===== Hero / Story Section ===== */}
+      {/* ===== Hero / Story Section =====
+          Design note: image hamesha TOP par hai, fixed/contained height ke
+          saath, aur text niche EK SINGLE FULL-WIDTH COLUMN me flow karta hai.
+          Isse text chahe kitna bhi lamba ho (rich-text editor se aaye, ya
+          bahut saare points/paragraphs hon), woh sirf page ki height badhaega
+          — image ke saath side-by-side squeeze hoke design kabhi nahi bigdega. */}
       <section className="py-10 sm:py-14 md:py-20 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
-            {/* Left Content */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8 sm:space-y-10">
+
+            {/* Image — top, fixed-ish height, full width of the content column */}
+            <AnimatedSection>
+              <div className="relative w-full">
+                <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
+                <img
+                  src={data.teamImage || defaultAboutData.image}
+                  alt="About Plantora"
+                  className="relative rounded-3xl shadow-xl w-full h-[220px] xs:h-[260px] sm:h-[340px] md:h-[400px] object-cover"
+                  onError={(e) => {
+                    e.target.src = defaultAboutData.image;
+                  }}
+                />
+              </div>
+            </AnimatedSection>
+
+            {/* Text — below image, full width, grows freely without breaking layout */}
             <AnimatedSection>
               <div className="space-y-5 sm:space-y-6 w-full min-w-0">
                 <div>
@@ -86,7 +108,7 @@ export default function AboutPage() {
                   </h2>
                 </div>
 
-                {/* Rich HTML content — always wraps, never overflows on any screen */}
+                {/* Rich HTML content — always wraps, never overflows, page just grows taller */}
                 <div className="space-y-4 min-w-0">
                   <div
                     className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
@@ -100,8 +122,9 @@ export default function AboutPage() {
                   )}
                 </div>
 
-                <ul className="space-y-3 pt-2">
-                  {(data.points || defaultAboutData.points).map((point, i) => (
+                {/* Points — 2 columns on wider screens now that we have the full width to use */}
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 pt-2">
+                  {points.map((point, i) => (
                     <li key={i} className="flex items-start sm:items-center gap-3">
                       <div className="w-6 h-6 rounded-full bg-[#eaf7ee] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
                         <CheckCircle className="w-4 h-4 text-[#2f9e44]" />
@@ -123,21 +146,6 @@ export default function AboutPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </AnimatedSection>
-
-            {/* Right Image */}
-            <AnimatedSection>
-              <div className="relative w-full">
-                <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
-                <img
-                  src={data.teamImage || defaultAboutData.image}
-                  alt="About Plantora"
-                  className="relative rounded-3xl shadow-xl w-full h-[260px] xs:h-[300px] sm:h-[380px] md:h-[440px] lg:h-[480px] object-cover"
-                  onError={(e) => {
-                    e.target.src = defaultAboutData.image;
-                  }}
-                />
               </div>
             </AnimatedSection>
           </div>

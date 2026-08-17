@@ -15,6 +15,12 @@ exports.getAbout = async (req, res) => {
         description1: 'We are a dedicated team of farmers and agronomists committed to sustainable, high-quality farming practices.',
         description2: 'With years of hands-on experience, we transform raw land into thriving, productive farms for our community.',
         teamImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80',
+        points: [
+          'Handpicked Healthy Plants',
+          'Expert Plant Care Guidance',
+          'Sustainable & Eco-Friendly',
+          'Happy Customer Support'
+        ],
         stats: [
           { number: '500+', label: 'Acres Cultivated' },
           { number: '50+', label: 'Happy Clients' },
@@ -52,6 +58,7 @@ exports.updateAbout = async (req, res) => {
       description1,
       description2,
       teamImage,
+      points, // ✅ FIX: ab points bhi request body se padha jaayega
       stats,
       values
     } = req.body;
@@ -67,8 +74,15 @@ exports.updateAbout = async (req, res) => {
       about.description1 = description1 || about.description1;
       about.description2 = description2 || about.description2;
       about.teamImage = teamImage || about.teamImage;
-      about.stats = stats || about.stats;
-      about.values = values || about.values;
+
+      // ✅ FIX: Array.isArray check zaroori hai — warna agar admin ne saari
+      // points delete karke empty array bhej diya, to "points || about.points"
+      // ka falsy check empty array ko bhi (galat tareeke se) purani values se
+      // replace kar deta (kyunki [] JS mein truthy hai, isliye yeh theek chal
+      // jaata, lekin explicit check zyada safe/predictable hai).
+      if (Array.isArray(points)) about.points = points;
+      if (Array.isArray(stats)) about.stats = stats;
+      if (Array.isArray(values)) about.values = values;
 
       await about.save();
     }

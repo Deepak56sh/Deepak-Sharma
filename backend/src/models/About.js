@@ -28,6 +28,11 @@ const aboutSchema = new mongoose.Schema({
     type: String,
     default: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80'
   },
+  // ✅ FIX: yeh field missing thi — isi wajah se admin se points kabhi save/return
+  // nahi ho rahe the aur frontend hamesha hardcoded default list dikhata tha.
+  points: [{
+    type: String
+  }],
   stats: [{
     number: { type: String, required: true },
     label: { type: String, required: true }
@@ -37,12 +42,12 @@ const aboutSchema = new mongoose.Schema({
     description: { type: String, required: true },
     emoji: { type: String, required: true }
   }],
-  // ✅ NEW: Awards section
+  // Awards section
   awards: [{
     image: { type: String, required: true },
     title: { type: String, required: true } // e.g. "Best Organic Farming Award 2024"
   }],
-  // ✅ NEW: Team Members section
+  // Team Members section
   teamMembers: [{
     name: { type: String, required: true },
     position: { type: String, required: true }, // e.g. "Farm Manager"

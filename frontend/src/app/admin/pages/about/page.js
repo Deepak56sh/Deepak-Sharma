@@ -1,14 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Loader2, Save, Upload, Trash2, Plus, Award, Users } from 'lucide-react';
-import 'react-quill-new/dist/quill.snow.css'; // ✅ NEW — same library jo services page me use ho rahi hai
+import { Loader2, Save, Upload, Trash2, Plus, Award, Users, ListChecks } from 'lucide-react';
+import 'react-quill-new/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false }); // ✅ NEW
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
-// ✅ NEW — same toolbar jo services page me hai
 const quillModules = {
   toolbar: {
     container: [
@@ -47,6 +46,9 @@ export default function AboutPageAdmin() {
   const [memberImageFile, setMemberImageFile] = useState(null);
   const [memberPreview, setMemberPreview] = useState('');
   const [addingMember, setAddingMember] = useState(false);
+
+  // ✅ NEW — Points ("Handpicked Healthy Plants" wali list) editor state
+  const [newPoint, setNewPoint] = useState('');
 
   const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null);
 
@@ -118,6 +120,33 @@ export default function AboutPageAdmin() {
     const values = [...(data.values || [])];
     values[i] = { ...values[i], [field]: value };
     setData({ ...data, values });
+  };
+
+  // ===== Points ===== (✅ NEW section — add / edit / delete / reorder)
+  const addPoint = () => {
+    if (!newPoint.trim()) return;
+    setData({ ...data, points: [...(data.points || []), newPoint.trim()] });
+    setNewPoint('');
+  };
+
+  const updatePoint = (i, value) => {
+    const points = [...(data.points || [])];
+    points[i] = value;
+    setData({ ...data, points });
+  };
+
+  const deletePoint = (i) => {
+    const points = [...(data.points || [])];
+    points.splice(i, 1);
+    setData({ ...data, points });
+  };
+
+  const movePoint = (i, direction) => {
+    const points = [...(data.points || [])];
+    const target = i + direction;
+    if (target < 0 || target >= points.length) return;
+    [points[i], points[target]] = [points[target], points[i]];
+    setData({ ...data, points });
   };
 
   // ===== Awards =====
@@ -282,7 +311,6 @@ export default function AboutPageAdmin() {
             className="w-full p-3 bg-slate-50 border border-[var(--pa-border)] rounded-lg focus:outline-none focus:border-[var(--pa-primary)]" />
         </div>
 
-        {/* ✅ CHANGED — Description 1: textarea ki jagah ReactQuill editor */}
         <div>
           <label className="block text-slate-600 text-sm mb-2">Description 1 (WordPress style editor)</label>
           <div className="bg-white rounded-xl border border-[var(--pa-border)] overflow-hidden">
@@ -298,7 +326,6 @@ export default function AboutPageAdmin() {
           </div>
         </div>
 
-        {/* ✅ CHANGED — Description 2: textarea ki jagah ReactQuill editor */}
         <div>
           <label className="block text-slate-600 text-sm mb-2">Description 2 (WordPress style editor)</label>
           <div className="bg-white rounded-xl border border-[var(--pa-border)] overflow-hidden">
@@ -359,6 +386,85 @@ export default function AboutPageAdmin() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* ===== Points (✅ NEW section) ===== */}
+      <div className="bg-white rounded-xl border border-[var(--pa-border)] p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <ListChecks className="w-5 h-5" style={{ color: 'var(--pa-primary)' }} />
+          <h2 className="text-lg font-semibold text-slate-800">Checklist Points</h2>
+        </div>
+        <p className="text-slate-500 text-xs -mt-2">
+          Yeh wo bullet points hain jo image ke saath tick-mark list me dikhte hain (e.g. "Handpicked Healthy Plants").
+        </p>
+
+        <div className="space-y-2">
+          {(data.points || []).map((point, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-slate-400 text-xs w-5 text-center flex-shrink-0">{i + 1}</span>
+              <input
+                value={point}
+                onChange={(e) => updatePoint(i, e.target.value)}
+                className="flex-1 p-2.5 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => movePoint(i, -1)}
+                disabled={i === 0}
+                className="p-2 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Move up"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                onClick={() => movePoint(i, 1)}
+                disabled={i === (data.points || []).length - 1}
+                className="p-2 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Move down"
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                onClick={() => deletePoint(i)}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                title="Delete point"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          {(!data.points || data.points.length === 0) && (
+            <p className="text-slate-400 text-sm italic">No points yet — add one below.</p>
+          )}
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <input
+            value={newPoint}
+            onChange={(e) => setNewPoint(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addPoint();
+              }
+            }}
+            placeholder="e.g. Handpicked Healthy Plants"
+            className="flex-1 p-2.5 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm"
+          />
+          <button
+            type="button"
+            onClick={addPoint}
+            className="flex items-center gap-1.5 text-white text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap"
+            style={{ backgroundColor: 'var(--pa-primary)' }}
+          >
+            <Plus className="w-4 h-4" /> Add Point
+          </button>
+        </div>
+        <p className="text-slate-400 text-xs">
+          Points sirf yahan add/edit karne ke baad top ka <strong>"Save Changes"</strong> button dabane par save hote hain.
+        </p>
       </div>
 
       {/* ===== Awards ===== */}
