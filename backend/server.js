@@ -29,15 +29,10 @@ app.use(express.urlencoded({
   limit: '50mb'
 }));
 
-// ✅ FIX: CORS — single source of truth, allow multiple origins + credentials
-// Purana manual header wala middleware hata diya gaya hai — wo OPTIONS request
-// ko yahin reply kar deta tha, isliye niche wala cors() package kabhi chalta hi nahi tha
-// aur credentials header bhi missing tha (isi wajah se upload/preflight fail ho raha tha).
 const allowedOrigins = ['http://localhost:3000', 'https://deepakch.vercel.app'];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (Postman, curl, mobile apps, etc.)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -45,7 +40,7 @@ app.use(cors({
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // ✅ added PATCH
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Content-Disposition']
 }));
 
