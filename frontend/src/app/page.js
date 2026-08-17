@@ -328,7 +328,7 @@ export default function HomePage() {
                   <img
                     src={aboutData?.teamImage || aboutData?.image || defaultAboutData.image}
                     alt="About Plantora"
-                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl"
+                    className="max-w-full w-full max-h-full w-auto h-auto object-cover rounded-2xl"
                     onError={(e) => { e.target.src = defaultAboutData.image; }}
                   />
                 </div>
