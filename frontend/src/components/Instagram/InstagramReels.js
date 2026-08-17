@@ -92,14 +92,10 @@ export default function InstagramReels({
     }
   };
 
-  // ✅ FIX: agar admin ne is reel ke liye Instagram link add kiya hai, to click
-  // karne par seedha wahi Instagram post/profile naye tab me khulega.
-  // Link na ho to purana behaviour (in-page video popup) chalta rahega.
+  // Click hamesha video popup kholega — hover-preview + click-popup wahi
+  // purana behaviour hai. Instagram link (agar admin ne diya ho) ab popup
+  // ke andar ek separate button ke roop me milta hai, click ko replace nahi karta.
   const handleCardClick = (reel) => {
-    if (reel.link) {
-      window.open(reel.link, '_blank', 'noopener,noreferrer');
-      return;
-    }
     setPopupReel(reel);
   };
 
@@ -144,7 +140,7 @@ export default function InstagramReels({
               onClick={() => handleCardClick(reel)}
               onMouseEnter={() => handleEnter(reel._id)}
               onMouseLeave={() => handleLeave(reel._id)}
-              title={reel.link ? 'Open on Instagram' : reel.title}
+              title={reel.title}
               className="relative flex-shrink-0 w-[140px] xs:w-[160px] sm:w-[180px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#14261d] snap-start group cursor-pointer border border-[#e8ece9] hover:border-[#2f9e44]/40 transition-all"
             >
               <video
@@ -160,19 +156,17 @@ export default function InstagramReels({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity" />
 
-              {/* Play icon jab video ka in-page popup khulega (link nahi hai) */}
-              {!reel.link && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white ml-0.5" />
-                  </div>
+              {/* Play icon — click karne se hamesha video popup khulega */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white ml-0.5" />
                 </div>
-              )}
+              </div>
 
-              {/* Instagram badge jab link diya gaya ho — user ko clear signal ki click pe Instagram khulega */}
+              {/* Chhota Instagram badge — sirf yeh dikhane ke liye ki is reel ka Instagram link bhi hai (popup ke andar khulega) */}
               {reel.link && (
-                <div className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-                  <Instagram className="w-3.5 h-3.5 text-white" />
+                <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+                  <Instagram className="w-3 h-3 text-white" />
                 </div>
               )}
 
@@ -211,6 +205,21 @@ export default function InstagramReels({
               muted={false}
               className="w-full h-full object-contain"
             />
+
+            {/* Optional — sirf tab dikhta hai jab is reel ka Instagram link admin ne diya ho */}
+            {popupReel.link && (
+              <a
+                href={popupReel.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs sm:text-sm font-semibold shadow-md hover:scale-105 active:scale-95 transition-transform"
+                style={{ background: 'linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4)' }}
+              >
+                <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                View on Instagram
+              </a>
+            )}
           </div>
         </div>
       )}
