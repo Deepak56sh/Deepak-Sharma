@@ -383,7 +383,7 @@ export default function ShopPage() {
       {/* Hero Banner */}
       <section className="bg-[#14261d] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="text-center">
             <div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3">
                 Indoor Plants Collection
@@ -391,13 +391,6 @@ export default function ShopPage() {
               <p className="text-white/70 text-lg max-w-md">
                 Find the perfect plant for your space
               </p>
-            </div>
-            <div className="hidden lg:block">
-              <img
-                src="https://images.unsplash.com/photo-1463320726281-696a485928c7?w=700&q=80"
-                alt="Indoor plants"
-                className="rounded-2xl h-48 w-full object-cover"
-              />
             </div>
           </div>
         </div>
