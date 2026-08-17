@@ -72,23 +72,28 @@ export default function AboutPage() {
   return (
     <div className="plant-store bg-white w-full overflow-x-hidden">
       {/* ===== Hero / Story Section =====
-          Design note: image hamesha TOP par hai, fixed/contained height ke
-          saath, aur text niche EK SINGLE FULL-WIDTH COLUMN me flow karta hai.
-          Isse text chahe kitna bhi lamba ho (rich-text editor se aaye, ya
-          bahut saare points/paragraphs hon), woh sirf page ki height badhaega
-          — image ke saath side-by-side squeeze hoke design kabhi nahi bigdega. */}
+          Desktop (lg+): image FLOATS RIGHT, jaisa pehle tha — text (title,
+          subtitle, description) uske left/around flow karta hai.
+          Agar text image se lamba ho jaaye, to CSS float ka natural behaviour
+          hi use hota hai: text jahan tak image hai wahan tak uske left me
+          rehta hai, aur image khatam hote hi baaki text apne aap FULL WIDTH
+          me niche wrap ho jaata hai — layout kabhi tootega nahi.
+          Mobile/tablet: image simple block ki tarah upar, text niche stack. */}
       <section className="py-10 sm:py-14 md:py-20 lg:py-24">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-8 sm:space-y-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {/* Image — top, fixed-ish height, full width of the content column */}
+          {/* Float container: lg:overflow-hidden is the classic "clearfix" —
+              it makes this box's height include the floated image, so
+              whatever comes after (points/stats) always starts cleanly below
+              instead of overlapping the float. */}
+          <div className="lg:[overflow:hidden]">
             <AnimatedSection>
-              <div className="relative w-full">
+              <div className="relative w-full sm:w-[80%] sm:mx-auto lg:w-[42%] lg:mx-0 lg:float-right lg:ml-10 mb-6 lg:mb-3">
                 <div className="absolute -inset-4 bg-[#2f9e44]/10 rounded-3xl blur-2xl"></div>
                 <img
                   src={data.teamImage || defaultAboutData.image}
                   alt="About Plantora"
-                  className="relative rounded-3xl shadow-xl w-full h-[220px] xs:h-[260px] sm:h-[340px] md:h-[400px] object-cover"
+                  className="relative rounded-3xl shadow-xl w-full h-[240px] xs:h-[280px] sm:h-[340px] lg:h-[420px] object-cover"
                   onError={(e) => {
                     e.target.src = defaultAboutData.image;
                   }}
@@ -96,59 +101,61 @@ export default function AboutPage() {
               </div>
             </AnimatedSection>
 
-            {/* Text — below image, full width, grows freely without breaking layout */}
             <AnimatedSection>
-              <div className="space-y-5 sm:space-y-6 w-full min-w-0">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#14261d] mb-2 break-words">
-                    {data.title || 'About Us'}
-                  </h1>
-                  <h2 className="text-lg sm:text-xl font-semibold text-[#2f9e44] break-words">
-                    {data.subtitle || 'Our Story'}
-                  </h2>
-                </div>
+              <div className="w-full min-w-0">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#14261d] mb-2 break-words">
+                  {data.title || 'About Us'}
+                </h1>
+                <h2 className="text-lg sm:text-xl font-semibold text-[#2f9e44] mb-4 break-words">
+                  {data.subtitle || 'Our Story'}
+                </h2>
 
-                {/* Rich HTML content — always wraps, never overflows, page just grows taller */}
-                <div className="space-y-4 min-w-0">
+                {/* Rich HTML content — wraps around the floated image, and
+                    once it runs past the image's height it naturally
+                    continues full-width. Never overflows on any screen. */}
+                <div
+                  className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
+                  dangerouslySetInnerHTML={{ __html: data.description1 || defaultAboutData.description1 }}
+                />
+                {data.description2 && (
                   <div
-                    className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
-                    dangerouslySetInnerHTML={{ __html: data.description1 || defaultAboutData.description1 }}
+                    className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal mt-4 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
+                    dangerouslySetInnerHTML={{ __html: data.description2 }}
                   />
-                  {data.description2 && (
-                    <div
-                      className="ps-richtext text-base sm:text-lg leading-relaxed text-[#3f4a44] break-words [overflow-wrap:anywhere] whitespace-normal [&_p]:mb-3 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_a]:break-all"
-                      dangerouslySetInnerHTML={{ __html: data.description2 }}
-                    />
-                  )}
-                </div>
-
-                {/* Points — 2 columns on wider screens now that we have the full width to use */}
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 pt-2">
-                  {points.map((point, i) => (
-                    <li key={i} className="flex items-start sm:items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#eaf7ee] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
-                        <CheckCircle className="w-4 h-4 text-[#2f9e44]" />
-                      </div>
-                      <span className="text-[#14261d] font-medium break-words min-w-0">{point}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-4 sm:pt-6">
-                  {(data.stats || defaultAboutData.stats).map((stat, i) => (
-                    <div
-                      key={i}
-                      className="text-center p-3 sm:p-4 bg-[#f6f8f7] rounded-2xl border border-[#e8ece9] min-w-0"
-                    >
-                      <div className="text-xl sm:text-2xl font-bold text-[#2f9e44] break-words">{stat.number}</div>
-                      <div className="text-xs text-[#6b7280] mt-1 leading-tight break-words">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
+                )}
               </div>
             </AnimatedSection>
           </div>
+
+          {/* Points + Stats sit OUTSIDE the float container, so they always
+              render full-width below the image, no matter how tall the
+              description text or the image is. */}
+          <AnimatedSection>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 pt-8 sm:pt-10">
+              {points.map((point, i) => (
+                <li key={i} className="flex items-start sm:items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#eaf7ee] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                    <CheckCircle className="w-4 h-4 text-[#2f9e44]" />
+                  </div>
+                  <span className="text-[#14261d] font-medium break-words min-w-0">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </AnimatedSection>
+
+          <AnimatedSection>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 sm:pt-8">
+              {(data.stats || defaultAboutData.stats).map((stat, i) => (
+                <div
+                  key={i}
+                  className="text-center p-3 sm:p-4 bg-[#f6f8f7] rounded-2xl border border-[#e8ece9] min-w-0"
+                >
+                  <div className="text-xl sm:text-2xl font-bold text-[#2f9e44] break-words">{stat.number}</div>
+                  <div className="text-xs text-[#6b7280] mt-1 leading-tight break-words">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 
