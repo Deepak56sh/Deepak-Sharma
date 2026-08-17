@@ -14,7 +14,7 @@ import '../styles/globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'NexGen - Digital Innovation',
+  title: 'Shree Khodiyar Enterprise',
   description: 'Transform your vision into reality with cutting-edge technology',
   icons: {
     icon: '/faviicon.png',
