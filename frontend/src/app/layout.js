@@ -1,6 +1,3 @@
-// ============================================
-// FILE: src/app/layout.js
-// ============================================
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -8,6 +5,7 @@ import Loader from '@/components/Loader';
 import DynamicFavicon from '@/components/DynamicFavicon';
 import DynamicMeta from '@/components/DynamicMeta';
 import { CartProvider } from '../context/CartContext';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import '../styles/globals.css';
 
@@ -27,12 +25,15 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <DynamicMeta />
         <DynamicFavicon />
+
         <CartProvider>
-          <Loader />  {/* ✅ Loader ANDAR */}
+          <Loader />
           <Navbar />
           <main className="min-h-screen">{children}</main>
           <Footer />
         </CartProvider>
+
+        <SpeedInsights />
       </body>
     </html>
   );
