@@ -8,7 +8,7 @@ const {
   updatePage,
   togglePageStatus,
   deletePage,
-} = require('../controllers/pageController');
+} = require('../controllers/Pagecontroller');
 
 // TODO: agar aapke project mein admin-auth middleware hai (jaise `protect, isAdmin`)
 // to admin wale routes pe use zaroor lagayein, example:

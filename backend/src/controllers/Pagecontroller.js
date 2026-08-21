@@ -1,4 +1,4 @@
-const Page = require('../models/Page');
+const Page = require('../models/page');
 
 // IMPORTANT: Ye woh URLs hain jo aapke Next.js app mein pehle se static routes hain
 // (jaise src/app/admin, src/app/login, src/app/cart, etc.)
