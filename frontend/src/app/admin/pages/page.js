@@ -79,7 +79,7 @@ export default function PagesPage() {
           name: p.title,
           slug: p.slug,
           path: `/${p.slug}`,
-          adminPath: `/admin/page/edit/${p._id}`,
+          adminPath: `/admin/pages/edit/${p._id}`,
           status: p.status === 'active' ? 'published' : 'draft',
           updatedAt: new Date(p.updatedAt).toISOString().slice(0, 10),
           isDynamic: true,

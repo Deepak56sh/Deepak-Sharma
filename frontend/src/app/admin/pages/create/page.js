@@ -113,7 +113,7 @@ export default function CreatePage() {
       });
       const json = await res.json();
       if (json.success) {
-        router.push('/admin/page');
+        router.push('/admin/pages');
       } else {
         setError(json.message || 'Save nahi ho paya');
       }
@@ -129,7 +129,7 @@ export default function CreatePage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push('/admin/page')} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+          <button onClick={() => router.push('/admin/pages')} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
