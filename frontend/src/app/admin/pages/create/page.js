@@ -113,7 +113,7 @@ export default function CreatePage() {
       });
       const json = await res.json();
       if (json.success) {
-        router.push('/admin/page');
+        router.push('/admin/pages');
       } else {
         setError(json.message || 'Save nahi ho paya');
       }

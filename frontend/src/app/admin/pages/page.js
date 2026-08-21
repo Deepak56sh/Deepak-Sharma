@@ -70,7 +70,7 @@ export default function AdminPagesList() {
       >
         <h1 style={{ fontSize: '24px', fontWeight: 700 }}>Custom Pages</h1>
         <button
-          onClick={() => router.push('/admin/page/create')}
+          onClick={() => router.push('/admin/pages/create')}
           style={{
             background: '#16a34a',
             color: '#fff',
