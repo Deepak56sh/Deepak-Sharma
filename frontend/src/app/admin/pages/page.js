@@ -1,173 +1,163 @@
 'use client';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  Layers,
-  Pencil,
-  Eye,
-  FileText,
-  Search,
-  ExternalLink
-} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-// ✅ Yahan apne pages list karo
-// Jo bhi page folder me banaye ho, unka entry yahan add karo
-const staticPages = [
-  {
-    id: '1',
-    name: 'About Us',
-    slug: 'about',
-    path: '/about',
-    adminPath: '/admin/pages/about',   // admin edit page (agar banaya ho)
-    status: 'published',
-    updatedAt: '2026-08-01'
-  },
-  {
-    id: '2',
-    name: 'Contact Us',
-    slug: 'contact',
-    path: '/contact',
-    adminPath: '/admin/pages/contact',
-    status: 'published',
-    updatedAt: '2026-08-01'
-  },
-  {
-    id: '3',
-    name: 'services',
-    slug: 'services',
-    path: '/services',
-    adminPath: '/admin/pages/services',
-    status: 'published',
-    updatedAt: '2026-08-01'
-  },
-  // 👇 Apne 3 extra pages yahan add karo, example:
-  {
-    id: '4',
-    name: 'contact-messages',
-    slug: 'contact-messages',
-    path: '/contact-messages',
-    adminPath: '/admin/pages/contact-messages',
-    status: 'published',
-    updatedAt: '2026-08-12'
-  },
-];
+// Apne actual backend URL se replace/confirm kar lena (Render pe deployed hai)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
 
-export default function PagesPage() {
-  const [search, setSearch] = useState('');
-  const [pages] = useState(staticPages);
+export default function AdminPagesList() {
+  const [pages, setPages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const filtered = pages.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.slug.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    fetchPages();
+  }, []);
+
+  const fetchPages = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/pages`);
+      const json = await res.json();
+      if (json.success) setPages(json.data);
+    } catch (err) {
+      console.error('Pages fetch karne mein error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleStatus = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/pages/${id}/status`, { method: 'PATCH' });
+      const json = await res.json();
+      if (json.success) {
+        setPages((prev) => prev.map((p) => (p._id === id ? json.data : p)));
+      }
+    } catch (err) {
+      console.error('Status change karne mein error:', err);
+    }
+  };
+
+  const deletePage = async (id, title) => {
+    const confirmed = window.confirm(`"${title}" ko permanently delete karna hai?`);
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/pages/${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        setPages((prev) => prev.filter((p) => p._id !== id));
+      } else {
+        alert(json.message || 'Delete nahi ho paya');
+      }
+    } catch (err) {
+      console.error('Delete karne mein error:', err);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-1">Pages</h1>
-          <p className="text-slate-500 text-sm">
-            Manage static pages like About, Contact, Care Guide and more.
-          </p>
-        </div>
+    <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+        }}
+      >
+        <h1 style={{ fontSize: '24px', fontWeight: 700 }}>Custom Pages</h1>
+        <button
+          onClick={() => router.push('/admin/page/create')}
+          style={{
+            background: '#16a34a',
+            color: '#fff',
+            padding: '10px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          + Create New Page
+        </button>
       </div>
 
-      {/* Table card */}
-      <div className="bg-white rounded-xl border border-[var(--pa-border)]">
-        {/* Search */}
-        <div className="p-4 border-b border-[var(--pa-border)]">
-          <div className="relative max-w-xs">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search pages..."
-              className="pl-9 pr-3 py-2 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm w-full focus:outline-none focus:border-[var(--pa-primary)]"
-            />
-          </div>
-        </div>
-
-        {/* List */}
-        <table className="w-full text-sm">
+      {loading ? (
+        <p>Loading...</p>
+      ) : pages.length === 0 ? (
+        <p style={{ color: '#666' }}>Abhi koi page nahi bana. "Create New Page" pe click karo.</p>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="text-left text-slate-400 border-b border-[var(--pa-border)]">
-              <th className="px-4 py-3 font-medium">Page</th>
-              <th className="px-4 py-3 font-medium">Slug</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Updated</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
+            <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
+              <th style={{ padding: '10px' }}>Title</th>
+              <th style={{ padding: '10px' }}>URL</th>
+              <th style={{ padding: '10px' }}>Status</th>
+              <th style={{ padding: '10px' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((page) => (
-              <tr
-                key={page.id}
-                className="border-b border-[var(--pa-border)] last:border-0 hover:bg-slate-50/50"
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[var(--pa-primary-light)] flex items-center justify-center flex-shrink-0">
-                      <FileText
-                        className="w-4 h-4"
-                        style={{ color: 'var(--pa-primary)' }}
-                      />
-                    </div>
-                    <span className="font-medium text-slate-800">{page.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-slate-500 font-mono text-xs">
+            {pages.map((page) => (
+              <tr key={page._id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <td style={{ padding: '10px', fontWeight: 500 }}>{page.title}</td>
+                <td style={{ padding: '10px', color: '#555' }}>
                   /{page.slug}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      page.status === 'published'
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-amber-50 text-amber-700'
-                    }`}
-                  >
-                    {page.status === 'published' ? 'Published' : 'Draft'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-500">{page.updatedAt}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
-                    {/* Live page view */}
-                    <Link
-                      href={page.path}
+                  {page.status === 'active' && (
+                    <a
+                      href={`/${page.slug}`}
                       target="_blank"
-                      className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800"
-                      title="View live page"
+                      rel="noreferrer"
+                      style={{ marginLeft: '8px', fontSize: '12px', color: '#2563eb' }}
                     >
-                      <ExternalLink className="w-4 h-4" />
-                    </Link>
-
-                    {/* Admin edit (agar sub-page banaya ho) */}
-                    <Link
-                      href={page.adminPath}
-                      className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800"
-                      title="Edit"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Link>
-                  </div>
+                      Live dekho ↗
+                    </a>
+                  )}
+                </td>
+                <td style={{ padding: '10px' }}>
+                  <button
+                    onClick={() => toggleStatus(page._id)}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      border: 'none',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      background: page.status === 'active' ? '#dcfce7' : '#fef3c7',
+                      color: page.status === 'active' ? '#15803d' : '#92400e',
+                    }}
+                  >
+                    {page.status === 'active' ? 'Active' : 'Draft'}
+                  </button>
+                </td>
+                <td style={{ padding: '10px' }}>
+                  <Link
+                    href={`/admin/page/edit/${page._id}`}
+                    style={{ marginRight: '12px', color: '#2563eb', fontSize: '14px' }}
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => deletePage(page._id, page.title)}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                    }}
+                  >
+                    Remove
+                  </button>
                 </td>
               </tr>
             ))}
-
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
-                  <Layers className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                  <p>No pages found.</p>
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
-      </div>
+      )}
     </div>
   );
 }
