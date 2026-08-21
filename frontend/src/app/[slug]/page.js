@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import PageSections from '@/components/PageSections';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
 
 async function getPage(slug) {
   try {
