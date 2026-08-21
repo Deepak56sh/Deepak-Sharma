@@ -2,18 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import ImageUploader from '@/components/Imageuploader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
 
-// Ready-made templates -> WordPress jaisa "select karke shuru karo" experience
 const TEMPLATES = [
   {
     id: 'hero-text',
     name: 'Hero + Text',
     description: 'Bada banner heading ke saath, niche paragraph',
     sections: [
-      { type: 'hero', data: { heading: 'Your Heading Here', subheading: 'Short description here' } },
-      { type: 'text', data: { heading: '', body: 'Write your content here...' } },
+      { type: 'hero', data: { heading: '', subheading: '', backgroundImage: '' } },
+      { type: 'text', data: { heading: '', body: '' } },
     ],
   },
   {
@@ -21,7 +22,7 @@ const TEMPLATES = [
     name: 'Gallery Showcase',
     description: 'Hero + image gallery grid',
     sections: [
-      { type: 'hero', data: { heading: 'Gallery', subheading: '' } },
+      { type: 'hero', data: { heading: '', subheading: '', backgroundImage: '' } },
       { type: 'gallery', data: { images: [] } },
     ],
   },
@@ -30,24 +31,19 @@ const TEMPLATES = [
     name: 'Landing + Call To Action',
     description: 'Hero + text + neeche action button',
     sections: [
-      { type: 'hero', data: { heading: 'Welcome', subheading: '' } },
+      { type: 'hero', data: { heading: '', subheading: '', backgroundImage: '' } },
       { type: 'text', data: { heading: '', body: '' } },
-      { type: 'cta', data: { heading: 'Ready to get started?', buttonText: 'Contact Us', buttonLink: '/contact' } },
+      { type: 'cta', data: { heading: '', buttonText: '', buttonLink: '' } },
     ],
   },
-  {
-    id: 'blank',
-    name: 'Blank Page',
-    description: 'Khud se section add karo',
-    sections: [],
-  },
+  { id: 'blank', name: 'Blank Page', description: 'Khud se section add karo', sections: [] },
 ];
 
 const SECTION_TYPES = ['hero', 'text', 'image', 'gallery', 'cta'];
 
 export default function CreatePage() {
   const router = useRouter();
-  const [step, setStep] = useState('template'); // 'template' | 'editor'
+  const [step, setStep] = useState('template');
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -57,13 +53,13 @@ export default function CreatePage() {
 
   const pickTemplate = (tpl) => {
     setSelectedTemplate(tpl.id);
-    setSections(JSON.parse(JSON.stringify(tpl.sections))); // deep copy
+    setSections(JSON.parse(JSON.stringify(tpl.sections)));
     setStep('editor');
   };
 
   const addSection = (type) => {
     const defaults = {
-      hero: { heading: '', subheading: '' },
+      hero: { heading: '', subheading: '', backgroundImage: '' },
       text: { heading: '', body: '' },
       image: { imageUrl: '', caption: '' },
       gallery: { images: [] },
@@ -73,14 +69,10 @@ export default function CreatePage() {
   };
 
   const updateSectionField = (index, field, value) => {
-    setSections((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, data: { ...s.data, [field]: value } } : s))
-    );
+    setSections((prev) => prev.map((s, i) => (i === index ? { ...s, data: { ...s.data, [field]: value } } : s)));
   };
 
-  const removeSection = (index) => {
-    setSections((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeSection = (index) => setSections((prev) => prev.filter((_, i) => i !== index));
 
   const moveSection = (index, direction) => {
     setSections((prev) => {
@@ -90,6 +82,20 @@ export default function CreatePage() {
       [newArr[index], newArr[target]] = [newArr[target], newArr[index]];
       return newArr;
     });
+  };
+
+  const addGalleryImage = (index, url) => {
+    setSections((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, data: { ...s.data, images: [...(s.data.images || []), url] } } : s))
+    );
+  };
+
+  const removeGalleryImage = (index, imgIndex) => {
+    setSections((prev) =>
+      prev.map((s, i) =>
+        i === index ? { ...s, data: { ...s.data, images: s.data.images.filter((_, gi) => gi !== imgIndex) } } : s
+      )
+    );
   };
 
   const savePage = async (status) => {
@@ -103,17 +109,11 @@ export default function CreatePage() {
       const res = await fetch(`${API_URL}/api/pages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          slug,
-          template: selectedTemplate,
-          sections,
-          status,
-        }),
+        body: JSON.stringify({ title, slug, template: selectedTemplate, sections, status }),
       });
       const json = await res.json();
       if (json.success) {
-        router.push('/admin/pages');
+        router.push('/admin/page');
       } else {
         setError(json.message || 'Save nahi ho paya');
       }
@@ -127,32 +127,26 @@ export default function CreatePage() {
   // ---------------- STEP 1: Template selection ----------------
   if (step === 'template') {
     return (
-      <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '20px' }}>
-          Template chuno
-        </h1>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '16px',
-          }}
-        >
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.push('/admin/page')} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Template chuno</h1>
+            <p className="text-slate-500 text-sm">Ek starting point select karo, baad mein customize kar sakte ho.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {TEMPLATES.map((tpl) => (
             <button
               key={tpl.id}
               onClick={() => pickTemplate(tpl)}
-              style={{
-                textAlign: 'left',
-                padding: '18px',
-                border: '2px solid #e5e7eb',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                background: '#fff',
-              }}
+              className="text-left p-5 bg-white rounded-xl border border-[var(--pa-border)] hover:border-[var(--pa-primary)] transition"
             >
-              <div style={{ fontWeight: 700, marginBottom: '4px' }}>{tpl.name}</div>
-              <div style={{ fontSize: '13px', color: '#666' }}>{tpl.description}</div>
+              <div className="font-semibold text-slate-800 mb-1">{tpl.name}</div>
+              <div className="text-xs text-slate-500">{tpl.description}</div>
             </button>
           ))}
         </div>
@@ -162,166 +156,200 @@ export default function CreatePage() {
 
   // ---------------- STEP 2: Editor ----------------
   return (
-    <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
-      <button
-        onClick={() => setStep('template')}
-        style={{ marginBottom: '16px', background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer' }}
-      >
-        ← Template badlo
-      </button>
-
-      <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '16px' }}>Page details</h1>
+    <div className="space-y-6 max-w-3xl">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setStep('template')} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <h1 className="text-2xl font-bold text-slate-800">Page details</h1>
+      </div>
 
       {error && (
-        <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px', borderRadius: '8px', marginBottom: '16px' }}>
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">{error}</div>
       )}
 
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
-          Page Title *
-        </label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. About Us"
-          style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
-          URL / Slug (khali chhodo to title se auto-generate hoga)
-        </label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ color: '#888' }}>yoursite.com/</span>
+      <div className="bg-white rounded-xl border border-[var(--pa-border)] p-5 space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Page Title *</label>
           <input
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            placeholder="about-us"
-            style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Plant Care Guide"
+            className="w-full px-3 py-2.5 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--pa-primary)]"
           />
         </div>
-      </div>
 
-      <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px' }}>Sections</h2>
-
-      {sections.map((section, index) => (
-        <div
-          key={index}
-          style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', marginBottom: '12px' }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{section.type} section</span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => moveSection(index, -1)} style={btnGhost}>↑</button>
-              <button onClick={() => moveSection(index, 1)} style={btnGhost}>↓</button>
-              <button onClick={() => removeSection(index)} style={{ ...btnGhost, color: '#dc2626' }}>Remove</button>
-            </div>
-          </div>
-
-          {(section.type === 'hero' || section.type === 'cta') && (
-            <>
-              <input
-                placeholder="Heading"
-                value={section.data.heading || ''}
-                onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
-                style={inputStyle}
-              />
-              {section.type === 'hero' && (
-                <input
-                  placeholder="Subheading"
-                  value={section.data.subheading || ''}
-                  onChange={(e) => updateSectionField(index, 'subheading', e.target.value)}
-                  style={inputStyle}
-                />
-              )}
-              {section.type === 'cta' && (
-                <>
-                  <input
-                    placeholder="Button Text"
-                    value={section.data.buttonText || ''}
-                    onChange={(e) => updateSectionField(index, 'buttonText', e.target.value)}
-                    style={inputStyle}
-                  />
-                  <input
-                    placeholder="Button Link (e.g. /contact)"
-                    value={section.data.buttonLink || ''}
-                    onChange={(e) => updateSectionField(index, 'buttonLink', e.target.value)}
-                    style={inputStyle}
-                  />
-                </>
-              )}
-            </>
-          )}
-
-          {section.type === 'text' && (
-            <>
-              <input
-                placeholder="Heading (optional)"
-                value={section.data.heading || ''}
-                onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
-                style={inputStyle}
-              />
-              <textarea
-                placeholder="Paragraph text"
-                value={section.data.body || ''}
-                onChange={(e) => updateSectionField(index, 'body', e.target.value)}
-                rows={4}
-                style={inputStyle}
-              />
-            </>
-          )}
-
-          {section.type === 'image' && (
-            <>
-              <input
-                placeholder="Image URL"
-                value={section.data.imageUrl || ''}
-                onChange={(e) => updateSectionField(index, 'imageUrl', e.target.value)}
-                style={inputStyle}
-              />
-              <input
-                placeholder="Caption (optional)"
-                value={section.data.caption || ''}
-                onChange={(e) => updateSectionField(index, 'caption', e.target.value)}
-                style={inputStyle}
-              />
-            </>
-          )}
-
-          {section.type === 'gallery' && (
-            <textarea
-              placeholder="Image URLs, ek line mein ek"
-              value={(section.data.images || []).join('\n')}
-              onChange={(e) =>
-                updateSectionField(
-                  index,
-                  'images',
-                  e.target.value.split('\n').map((s) => s.trim()).filter(Boolean)
-                )
-              }
-              rows={3}
-              style={inputStyle}
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+            URL / Slug — khali chhodo to title se auto-generate hoga
+          </label>
+          <div className="flex items-center gap-1">
+            <span className="text-slate-400 text-sm">yoursite.com/</span>
+            <input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="plant-care-guide"
+              className="flex-1 px-3 py-2.5 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--pa-primary)]"
             />
-          )}
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">
+            Sirf lowercase letters, numbers aur hyphen (-) chalega. Publish karne ke baad ye hi page ka live URL banega.
+          </p>
         </div>
-      ))}
-
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
-        {SECTION_TYPES.map((type) => (
-          <button key={type} onClick={() => addSection(type)} style={btnGhost}>
-            + {type}
-          </button>
-        ))}
       </div>
 
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button disabled={saving} onClick={() => savePage('draft')} style={btnSecondary}>
+      <div>
+        <h2 className="text-lg font-bold text-slate-800 mb-3">Sections</h2>
+
+        <div className="space-y-4">
+          {sections.map((section, index) => (
+            <div key={index} className="bg-white rounded-xl border border-[var(--pa-border)] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold text-slate-800 capitalize">{section.type} section</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => moveSection(index, -1)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => moveSection(index, 1)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => removeSection(index)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {section.type === 'hero' && (
+                  <>
+                    <input
+                      placeholder="Heading"
+                      value={section.data.heading || ''}
+                      onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <input
+                      placeholder="Subheading"
+                      value={section.data.subheading || ''}
+                      onChange={(e) => updateSectionField(index, 'subheading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <ImageUploader
+                      label="Background Image"
+                      value={section.data.backgroundImage}
+                      onChange={(url) => updateSectionField(index, 'backgroundImage', url)}
+                    />
+                  </>
+                )}
+
+                {section.type === 'cta' && (
+                  <>
+                    <input
+                      placeholder="Heading"
+                      value={section.data.heading || ''}
+                      onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <input
+                      placeholder="Button Text"
+                      value={section.data.buttonText || ''}
+                      onChange={(e) => updateSectionField(index, 'buttonText', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <input
+                      placeholder="Button Link (e.g. /contact)"
+                      value={section.data.buttonLink || ''}
+                      onChange={(e) => updateSectionField(index, 'buttonLink', e.target.value)}
+                      className={fieldClass}
+                    />
+                  </>
+                )}
+
+                {section.type === 'text' && (
+                  <>
+                    <input
+                      placeholder="Heading (optional)"
+                      value={section.data.heading || ''}
+                      onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <textarea
+                      placeholder="Paragraph text"
+                      value={section.data.body || ''}
+                      onChange={(e) => updateSectionField(index, 'body', e.target.value)}
+                      rows={4}
+                      className={fieldClass}
+                    />
+                  </>
+                )}
+
+                {section.type === 'image' && (
+                  <>
+                    <ImageUploader
+                      label="Image"
+                      value={section.data.imageUrl}
+                      onChange={(url) => updateSectionField(index, 'imageUrl', url)}
+                    />
+                    <input
+                      placeholder="Caption (optional)"
+                      value={section.data.caption || ''}
+                      onChange={(e) => updateSectionField(index, 'caption', e.target.value)}
+                      className={fieldClass}
+                    />
+                  </>
+                )}
+
+                {section.type === 'gallery' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-2">Gallery Images</label>
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      {(section.data.images || []).map((img, gi) => (
+                        <div key={gi} className="relative">
+                          <img src={img} alt="" className="w-24 h-24 object-cover rounded-lg border border-[var(--pa-border)]" />
+                          <button
+                            onClick={() => removeGalleryImage(index, gi)}
+                            className="absolute -top-2 -right-2 bg-white border border-[var(--pa-border)] rounded-full p-1 shadow hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-500" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <ImageUploader label="Add image to gallery" value="" onChange={(url) => addGalleryImage(index, url)} />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-4">
+          {SECTION_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => addSection(type)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-[var(--pa-border)] rounded-lg hover:bg-slate-50 text-slate-600"
+            >
+              <Plus className="w-3.5 h-3.5" /> {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-3 pb-8">
+        <button
+          disabled={saving}
+          onClick={() => savePage('draft')}
+          className="px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-semibold text-sm"
+        >
           Save as Draft
         </button>
-        <button disabled={saving} onClick={() => savePage('active')} style={btnPrimary}>
+        <button
+          disabled={saving}
+          onClick={() => savePage('active')}
+          className="px-5 py-2.5 rounded-lg text-white font-semibold text-sm"
+          style={{ background: 'var(--pa-primary)' }}
+        >
           Publish (Active)
         </button>
       </div>
@@ -329,39 +357,5 @@ export default function CreatePage() {
   );
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '10px',
-  border: '1px solid #ddd',
-  borderRadius: '8px',
-  marginBottom: '8px',
-};
-
-const btnGhost = {
-  padding: '6px 12px',
-  fontSize: '13px',
-  border: '1px solid #ddd',
-  borderRadius: '6px',
-  background: '#fff',
-  cursor: 'pointer',
-};
-
-const btnPrimary = {
-  padding: '12px 22px',
-  background: '#16a34a',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '8px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const btnSecondary = {
-  padding: '12px 22px',
-  background: '#f3f4f6',
-  color: '#333',
-  border: 'none',
-  borderRadius: '8px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
+const fieldClass =
+  'w-full px-3 py-2.5 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--pa-primary)]';

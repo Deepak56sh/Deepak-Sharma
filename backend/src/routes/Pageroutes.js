@@ -10,12 +10,8 @@ const {
   deletePage,
 } = require('../controllers/Pagecontroller');
 
-// TODO: agar aapke project mein admin-auth middleware hai (jaise `protect, isAdmin`)
-// to admin wale routes pe use zaroor lagayein, example:
-// const { protect, isAdmin } = require('../middleware/authMiddleware');
-// router.post('/', protect, isAdmin, createPage);
+const upload = require('../middleware/upload');
 
-// ---- PUBLIC (live site render karne ke liye) ----
 router.get('/public/:slug', getPublicPageBySlug);
 
 // ---- ADMIN ----
@@ -25,5 +21,16 @@ router.post('/', createPage);
 router.put('/:id', updatePage);
 router.patch('/:id/status', togglePageStatus);
 router.delete('/:id', deletePage);
+
+router.post('/upload', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Koi file nahi mili' });
+  }
+  res.status(200).json({
+    success: true,
+    url: req.file.path, 
+    publicId: req.file.filename,
+  });
+});
 
 module.exports = router;

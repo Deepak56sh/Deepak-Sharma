@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
+import ImageUploader from '@/components/Imageuploader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://my-site-backend-0661.onrender.com';
 const SECTION_TYPES = ['hero', 'text', 'image', 'gallery', 'cta'];
+
+const fieldClass =
+  'w-full px-3 py-2.5 bg-slate-50 border border-[var(--pa-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--pa-primary)]';
 
 export default function EditPage() {
   const router = useRouter();
@@ -41,7 +46,7 @@ export default function EditPage() {
 
   const addSection = (type) => {
     const defaults = {
-      hero: { heading: '', subheading: '' },
+      hero: { heading: '', subheading: '', backgroundImage: '' },
       text: { heading: '', body: '' },
       image: { imageUrl: '', caption: '' },
       gallery: { images: [] },
@@ -51,9 +56,7 @@ export default function EditPage() {
   };
 
   const updateSectionField = (index, field, value) => {
-    setSections((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, data: { ...s.data, [field]: value } } : s))
-    );
+    setSections((prev) => prev.map((s, i) => (i === index ? { ...s, data: { ...s.data, [field]: value } } : s)));
   };
 
   const removeSection = (index) => setSections((prev) => prev.filter((_, i) => i !== index));
@@ -66,6 +69,20 @@ export default function EditPage() {
       [newArr[index], newArr[target]] = [newArr[target], newArr[index]];
       return newArr;
     });
+  };
+
+  const addGalleryImage = (index, url) => {
+    setSections((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, data: { ...s.data, images: [...(s.data.images || []), url] } } : s))
+    );
+  };
+
+  const removeGalleryImage = (index, imgIndex) => {
+    setSections((prev) =>
+      prev.map((s, i) =>
+        i === index ? { ...s, data: { ...s.data, images: s.data.images.filter((_, gi) => gi !== imgIndex) } } : s
+      )
+    );
   };
 
   const saveChanges = async (newStatus) => {
@@ -90,150 +107,195 @@ export default function EditPage() {
     }
   };
 
-  if (loading) return <div style={{ padding: '24px' }}>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '16px' }}>Page edit karo</h1>
-
-      {error && (
-        <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px', borderRadius: '8px', marginBottom: '16px' }}>
-          {error}
-        </div>
-      )}
-
-      <div style={{ marginBottom: '12px' }}>
-        <label style={labelStyle}>Page Title *</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+    <div className="space-y-6 max-w-3xl">
+      <div className="flex items-center gap-3">
+        <button onClick={() => router.push('/admin/page')} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <h1 className="text-2xl font-bold text-slate-800">Page edit karo</h1>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <label style={labelStyle}>URL / Slug</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ color: '#888' }}>yoursite.com/</span>
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+      {error && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">{error}</div>}
+
+      <div className="bg-white rounded-xl border border-[var(--pa-border)] p-5 space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Page Title *</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} />
         </div>
-      </div>
 
-      <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px' }}>Sections</h2>
-
-      {sections.map((section, index) => (
-        <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{section.type} section</span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => moveSection(index, -1)} style={btnGhost}>↑</button>
-              <button onClick={() => moveSection(index, 1)} style={btnGhost}>↓</button>
-              <button onClick={() => removeSection(index)} style={{ ...btnGhost, color: '#dc2626' }}>Remove</button>
-            </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5">URL / Slug</label>
+          <div className="flex items-center gap-1">
+            <span className="text-slate-400 text-sm">yoursite.com/</span>
+            <input value={slug} onChange={(e) => setSlug(e.target.value)} className={`${fieldClass} flex-1`} />
           </div>
-
-          {(section.type === 'hero' || section.type === 'cta') && (
-            <>
-              <input
-                placeholder="Heading"
-                value={section.data.heading || ''}
-                onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
-                style={inputStyle}
-              />
-              {section.type === 'hero' && (
-                <input
-                  placeholder="Subheading"
-                  value={section.data.subheading || ''}
-                  onChange={(e) => updateSectionField(index, 'subheading', e.target.value)}
-                  style={inputStyle}
-                />
-              )}
-              {section.type === 'cta' && (
-                <>
-                  <input
-                    placeholder="Button Text"
-                    value={section.data.buttonText || ''}
-                    onChange={(e) => updateSectionField(index, 'buttonText', e.target.value)}
-                    style={inputStyle}
-                  />
-                  <input
-                    placeholder="Button Link"
-                    value={section.data.buttonLink || ''}
-                    onChange={(e) => updateSectionField(index, 'buttonLink', e.target.value)}
-                    style={inputStyle}
-                  />
-                </>
-              )}
-            </>
-          )}
-
-          {section.type === 'text' && (
-            <>
-              <input
-                placeholder="Heading (optional)"
-                value={section.data.heading || ''}
-                onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
-                style={inputStyle}
-              />
-              <textarea
-                placeholder="Paragraph text"
-                value={section.data.body || ''}
-                onChange={(e) => updateSectionField(index, 'body', e.target.value)}
-                rows={4}
-                style={inputStyle}
-              />
-            </>
-          )}
-
-          {section.type === 'image' && (
-            <>
-              <input
-                placeholder="Image URL"
-                value={section.data.imageUrl || ''}
-                onChange={(e) => updateSectionField(index, 'imageUrl', e.target.value)}
-                style={inputStyle}
-              />
-              <input
-                placeholder="Caption (optional)"
-                value={section.data.caption || ''}
-                onChange={(e) => updateSectionField(index, 'caption', e.target.value)}
-                style={inputStyle}
-              />
-            </>
-          )}
-
-          {section.type === 'gallery' && (
-            <textarea
-              placeholder="Image URLs, ek line mein ek"
-              value={(section.data.images || []).join('\n')}
-              onChange={(e) =>
-                updateSectionField(index, 'images', e.target.value.split('\n').map((s) => s.trim()).filter(Boolean))
-              }
-              rows={3}
-              style={inputStyle}
-            />
-          )}
         </div>
-      ))}
-
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
-        {SECTION_TYPES.map((type) => (
-          <button key={type} onClick={() => addSection(type)} style={btnGhost}>
-            + {type}
-          </button>
-        ))}
       </div>
 
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button disabled={saving} onClick={() => saveChanges('draft')} style={btnSecondary}>
+      <div>
+        <h2 className="text-lg font-bold text-slate-800 mb-3">Sections</h2>
+
+        <div className="space-y-4">
+          {sections.map((section, index) => (
+            <div key={index} className="bg-white rounded-xl border border-[var(--pa-border)] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold text-slate-800 capitalize">{section.type} section</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => moveSection(index, -1)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => moveSection(index, 1)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => removeSection(index)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {section.type === 'hero' && (
+                  <>
+                    <input
+                      placeholder="Heading"
+                      value={section.data.heading || ''}
+                      onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <input
+                      placeholder="Subheading"
+                      value={section.data.subheading || ''}
+                      onChange={(e) => updateSectionField(index, 'subheading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <ImageUploader
+                      label="Background Image"
+                      value={section.data.backgroundImage}
+                      onChange={(url) => updateSectionField(index, 'backgroundImage', url)}
+                    />
+                  </>
+                )}
+
+                {section.type === 'cta' && (
+                  <>
+                    <input
+                      placeholder="Heading"
+                      value={section.data.heading || ''}
+                      onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <input
+                      placeholder="Button Text"
+                      value={section.data.buttonText || ''}
+                      onChange={(e) => updateSectionField(index, 'buttonText', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <input
+                      placeholder="Button Link"
+                      value={section.data.buttonLink || ''}
+                      onChange={(e) => updateSectionField(index, 'buttonLink', e.target.value)}
+                      className={fieldClass}
+                    />
+                  </>
+                )}
+
+                {section.type === 'text' && (
+                  <>
+                    <input
+                      placeholder="Heading (optional)"
+                      value={section.data.heading || ''}
+                      onChange={(e) => updateSectionField(index, 'heading', e.target.value)}
+                      className={fieldClass}
+                    />
+                    <textarea
+                      placeholder="Paragraph text"
+                      value={section.data.body || ''}
+                      onChange={(e) => updateSectionField(index, 'body', e.target.value)}
+                      rows={4}
+                      className={fieldClass}
+                    />
+                  </>
+                )}
+
+                {section.type === 'image' && (
+                  <>
+                    <ImageUploader
+                      label="Image"
+                      value={section.data.imageUrl}
+                      onChange={(url) => updateSectionField(index, 'imageUrl', url)}
+                    />
+                    <input
+                      placeholder="Caption (optional)"
+                      value={section.data.caption || ''}
+                      onChange={(e) => updateSectionField(index, 'caption', e.target.value)}
+                      className={fieldClass}
+                    />
+                  </>
+                )}
+
+                {section.type === 'gallery' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-2">Gallery Images</label>
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      {(section.data.images || []).map((img, gi) => (
+                        <div key={gi} className="relative">
+                          <img src={img} alt="" className="w-24 h-24 object-cover rounded-lg border border-[var(--pa-border)]" />
+                          <button
+                            onClick={() => removeGalleryImage(index, gi)}
+                            className="absolute -top-2 -right-2 bg-white border border-[var(--pa-border)] rounded-full p-1 shadow hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-500" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <ImageUploader label="Add image to gallery" value="" onChange={(url) => addGalleryImage(index, url)} />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-4">
+          {SECTION_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => addSection(type)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-[var(--pa-border)] rounded-lg hover:bg-slate-50 text-slate-600"
+            >
+              <Plus className="w-3.5 h-3.5" /> {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-3 pb-8">
+        <button
+          disabled={saving}
+          onClick={() => saveChanges('draft')}
+          className="px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-semibold text-sm"
+        >
           Save as Draft
         </button>
-        <button disabled={saving} onClick={() => saveChanges('active')} style={btnPrimary}>
+        <button
+          disabled={saving}
+          onClick={() => saveChanges('active')}
+          className="px-5 py-2.5 rounded-lg text-white font-semibold text-sm"
+          style={{ background: 'var(--pa-primary)' }}
+        >
           Publish (Active)
         </button>
       </div>
     </div>
   );
 }
-
-const labelStyle = { display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' };
-const inputStyle = { width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '8px' };
-const btnGhost = { padding: '6px 12px', fontSize: '13px', border: '1px solid #ddd', borderRadius: '6px', background: '#fff', cursor: 'pointer' };
-const btnPrimary = { padding: '12px 22px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' };
-const btnSecondary = { padding: '12px 22px', background: '#f3f4f6', color: '#333', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' };
