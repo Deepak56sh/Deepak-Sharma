@@ -40,7 +40,7 @@ export default function AdminSidebar({ isOpen, setIsOpen, onLogout, adminData })
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Reviews', path: '/admin/reviews', icon: Star },
     { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
-    // { name: 'Blogs', path: '/admin/blogs', icon: FileText },
+    { name: 'Billing', path: '/admin/billing', icon: FileText },
     { name: 'Media', path: '/admin/media', icon: ImageIcon },
     { name: 'Pages', path: '/admin/pages', icon: Layers },
     { name: 'Appearance', path: '/admin/appearance', icon: Palette },
