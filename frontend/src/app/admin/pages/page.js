@@ -85,7 +85,7 @@ export default function PagesPage() {
             <p className="text-white/70 text-sm">{allPages.length} pages total · {publishedCount} published</p>
           </div>
           <Link
-            href="/admin/page/create"
+            href="/admin/pages/create"
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#14261d] text-sm font-semibold hover:bg-white/90 transition shadow-lg w-fit"
           >
             <Plus className="w-4 h-4" /> Create New Page
