@@ -42,7 +42,7 @@ export default function Loader() {
         </div>
 
         <div className="mb-4">
-          <h2 className="text-3xl font-bold text-slate-800 mb-2">Plantora</h2>
+          <h2 className="text-3xl font-bold text-slate-800 mb-2">Shree Khodiyar Enterprise</h2>
           <p className="text-slate-400">Growing your experience...</p>
         </div>
 
