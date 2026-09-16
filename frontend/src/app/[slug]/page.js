@@ -31,14 +31,11 @@ export async function generateMetadata({ params }) {
 export default async function DynamicPage({ params }) {
   const page = await getPage(params.slug);
 
-  // agar page hi nahi mila, ya draft hai (status active nahi hai) -> 404
   if (!page) {
     notFound();
   }
 
   return (
-    <main>
       <PageSections sections={page.sections} />
-    </main>
   );
 }

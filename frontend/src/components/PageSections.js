@@ -1,40 +1,41 @@
 import { ArrowRight } from 'lucide-react';
 import AnimatedSection from '@/components/AnimatedSection';
 
-// Har section 'type' ke hisab se render hota hai.
-// Naya section-type add karna ho to: 1) yahan ek naya component banao, 2) SECTION_MAP mein register karo,
-// 3) admin editor (create/edit page) mein uske form fields add karo.
-
 function HeroSection({ data }) {
   const { heading, subheading, backgroundImage } = data;
   if (!heading && !subheading && !backgroundImage) return null;
 
   return (
-    <section className="relative w-full bg-[#171717] py-10 sm:py-12">
+    <section className="relative w-full bg-[#14181d] overflow-hidden">
       {backgroundImage && (
         <>
           <img
             src={backgroundImage}
             alt={heading || 'Banner'}
-            className="absolute inset-0 w-full h-full object-cover opacity-25"
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.18]"
           />
-          <div className="absolute inset-0 bg-[#171717]/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#14181d]/80 via-[#14181d]/90 to-[#14181d]" />
         </>
       )}
-      <AnimatedSection>
-        <div className="relative z-10 text-center px-4 sm:px-6 max-w-3xl mx-auto">
-          {subheading && (
-            <span className="inline-block text-[11px] sm:text-xs tracking-[0.2em] uppercase text-white/60 font-medium mb-2 break-words">
-              {subheading}
-            </span>
-          )}
-          {heading && (
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">
-              {heading}
-            </h1>
-          )}
-        </div>
-      </AnimatedSection>
+      <div className="relative w-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
+        <AnimatedSection>
+          <div className="max-w-3xl">
+            {subheading && (
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-8 h-[2px] bg-[#a8632a]" />
+                <span className="text-[11px] sm:text-xs text-[#c9a97a] font-medium break-words">
+                  {subheading}
+                </span>
+              </div>
+            )}
+            {heading && (
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-[1.1] tracking-tight break-words">
+                {heading}
+              </h1>
+            )}
+          </div>
+        </AnimatedSection>
+      </div>
     </section>
   );
 }
@@ -43,42 +44,47 @@ function TextSection({ data }) {
   const { heading, body } = data;
   if (!heading && !body) return null;
 
-  // "- " se shuru hone wali lines ko bullet list ki tarah treat karte hain,
-  // baaki normal paragraph lines rehti hain (jaise screenshot mein hai).
   const lines = (body || '').split('\n').filter((l) => l.trim() !== '');
   const bulletLines = lines.filter((l) => l.trim().startsWith('- '));
   const paraLines = lines.filter((l) => !l.trim().startsWith('- '));
 
   return (
-    <section className="py-10 sm:py-14 bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full bg-[#faf9f6] border-t border-[#e6e2da]">
+      <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 py-14 sm:py-18">
         <AnimatedSection>
-          {heading && (
-            <h2 className="text-xl sm:text-2xl font-bold text-[#171717] mb-4 break-words">
-              {heading}
-            </h2>
-          )}
+          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-16">
+            {heading && (
+              <h2 className="text-xl sm:text-2xl font-bold text-[#21252b] leading-snug break-words lg:sticky lg:top-24 lg:self-start">
+                {heading}
+              </h2>
+            )}
 
-          {paraLines.length > 0 && (
-            <div className="space-y-3 mb-5">
-              {paraLines.map((line, i) => (
-                <p key={i} className="text-sm sm:text-base leading-relaxed text-[#4b4b4b] break-words">
-                  {line}
-                </p>
-              ))}
+            <div className="max-w-2xl">
+              {paraLines.length > 0 && (
+                <div className="space-y-4 mb-6">
+                  {paraLines.map((line, i) => (
+                    <p
+                      key={i}
+                      className="text-sm sm:text-base leading-relaxed text-[#5b6169] break-words [overflow-wrap:anywhere] whitespace-pre-line"
+                    >
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {bulletLines.length > 0 && (
+                <ul className="space-y-3 border-t border-[#e6e2da] pt-5">
+                  {bulletLines.map((line, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-[#3a3f45]">
+                      <span className="mt-2 w-1.5 h-1.5 bg-[#a8632a] flex-shrink-0" />
+                      <span className="break-words [overflow-wrap:anywhere]">{line.replace(/^-\s*/, '')}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          )}
-
-          {bulletLines.length > 0 && (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5">
-              {bulletLines.map((line, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm sm:text-base text-[#4b4b4b]">
-                  <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#8a2e18] flex-shrink-0" />
-                  <span className="break-words">{line.replace(/^-\s*/, '')}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          </div>
         </AnimatedSection>
       </div>
     </section>
@@ -90,18 +96,21 @@ function ImageSection({ data }) {
   if (!imageUrl) return null;
 
   return (
-    <section className="py-10 sm:py-14 bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full bg-[#faf9f6]">
+      <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 py-10 sm:py-14">
         <AnimatedSection>
-          <div className="rounded-xl overflow-hidden border border-[#e8e8e8]">
-            <img
-              src={imageUrl}
-              alt={caption || 'Section image'}
-              className="w-full h-[220px] sm:h-[320px] object-cover"
-            />
+          <div className="relative">
+            <span className="absolute -top-2.5 -left-2.5 w-6 h-6 border-t-2 border-l-2 border-[#a8632a] hidden sm:block" />
+            <div className="w-full overflow-hidden border border-[#e6e2da]">
+              <img
+                src={imageUrl}
+                alt={caption || 'Section image'}
+                className="w-full h-[260px] sm:h-[420px] lg:h-[520px] object-cover"
+              />
+            </div>
           </div>
           {caption && (
-            <p className="text-center text-xs sm:text-sm text-[#8a8a8a] mt-3 break-words">
+            <p className="w-full text-xs sm:text-sm text-[#8a8f95] mt-3 break-words [overflow-wrap:anywhere] whitespace-pre-line">
               {caption}
             </p>
           )}
@@ -116,16 +125,16 @@ function GallerySection({ data }) {
   if (!images.length) return null;
 
   return (
-    <section className="py-10 sm:py-14 bg-white">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    <section className="w-full bg-[#faf9f6] border-t border-[#e6e2da]">
+      <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 py-14 sm:py-18">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-[#e6e2da] border border-[#e6e2da]">
           {images.map((img, i) => (
             <AnimatedSection key={i}>
-              <div className="aspect-square rounded-lg overflow-hidden border border-[#e8e8e8]">
+              <div className="aspect-[4/3] overflow-hidden bg-[#faf9f6]">
                 <img
                   src={img}
                   alt={`gallery-${i}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover hover:scale-[1.04] transition-transform duration-500"
                 />
               </div>
             </AnimatedSection>
@@ -141,25 +150,25 @@ function CtaSection({ data }) {
   if (!heading && !buttonText) return null;
 
   return (
-    <section className="py-12 sm:py-16 bg-[#efefef]">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+    <section className="w-full bg-[#14181d]">
+      <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 py-14 sm:py-20">
         <AnimatedSection>
-          {heading && (
-            <h2 className="text-xl sm:text-2xl font-bold text-[#171717] mb-6 break-words">
-              {heading}
-            </h2>
-          )}
-          {buttonText && buttonLink && (
-            <div className="flex items-center justify-center gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            {heading && (
+              <h2 className="text-2xl sm:text-3xl font-bold text-white leading-snug break-words max-w-xl">
+                {heading}
+              </h2>
+            )}
+            {buttonText && buttonLink && (
               <a
                 href={buttonLink}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-[#171717] text-white font-semibold text-xs sm:text-sm uppercase tracking-wide hover:bg-black transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#a8632a] text-white font-semibold text-sm hover:bg-[#8f5322] transition-colors flex-shrink-0 w-fit"
               >
                 {buttonText}
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </AnimatedSection>
       </div>
     </section>
@@ -178,7 +187,7 @@ export default function PageSections({ sections = [] }) {
   if (!sections?.length) return null;
 
   return (
-    <div className="bg-white w-full overflow-x-hidden">
+    <div className="bg-[#faf9f6] w-full overflow-x-hidden">
       {sections.map((section, index) => {
         const Component = SECTION_MAP[section.type];
         if (!Component) return null;

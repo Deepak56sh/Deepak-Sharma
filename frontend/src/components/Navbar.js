@@ -93,7 +93,7 @@ export default function Navbar() {
       {/* Top Bar */}
       <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
         <Truck className="w-3.5 h-3.5" />
-        Free Shipping on orders above ₹999
+        Welcome to ShreeKhaodiyar Interprise
       </div>
 
       <nav className={`sticky top-0 z-50 bg-white border-b border-[#e8ece9] transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
