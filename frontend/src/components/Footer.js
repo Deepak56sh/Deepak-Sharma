@@ -182,15 +182,15 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-white/50">
-          {data.logoText}. {data.copyrightText || 'All rights reserved.'}
+            © {currentYear} {data.logoText}. {data.copyrightText || 'All rights reserved.'}
           </p>
-          {/* <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
             {['VISA', 'Mastercard', 'UPI', 'RuPay'].map((method) => (
               <span key={method} className="px-3 py-1.5 bg-white/10 rounded-lg text-[11px] font-medium text-white/70">
                 {method}
               </span>
             ))}
-          </div> */}
+          </div>
         </div>
       </div>
     </footer>
