@@ -92,7 +92,8 @@ export default function Navbar() {
     <div className="plant-store-header">
       {/* Top Bar */}
       <div className="bg-[#14261d] text-white text-center py-2 text-xs sm:text-sm flex items-center justify-center gap-2">
-        Welcome to Shree Khodiyar Enterprise — Quality Products, Trusted Service.”
+        <Truck className="w-3.5 h-3.5" />
+        Free Shipping on orders above ₹999
       </div>
 
       <nav className={`sticky top-0 z-50 bg-white border-b border-[#e8ece9] transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
